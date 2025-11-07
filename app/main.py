@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings
 from app.core.migrations import run_migrations
@@ -31,6 +34,10 @@ app.include_router(inspections.router, prefix="/inspections", tags=["inspections
 app.include_router(actions.router, prefix="/actions", tags=["actions"])
 app.include_router(dashboard.router, prefix="/dash", tags=["dashboard"])
 app.include_router(files.router, prefix="/files", tags=["files"])
+
+UPLOADS_PATH = Path("uploads")
+UPLOADS_PATH.mkdir(exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=str(UPLOADS_PATH)), name="uploads")
 
 
 @app.get("/health")
