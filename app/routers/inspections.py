@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.models.entities import User
+from app.models.entities import User, UserRole
 from app.schemas.inspection import (
     InspectionCreate,
     InspectionDetail,
@@ -65,6 +65,46 @@ def update_inspection(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
 
+@router.post("/{inspection_id}/submit", response_model=InspectionRead)
+def submit_inspection_endpoint(
+    inspection_id: str,
+    db: Session = Depends(get_db),
+    current_user = Depends(auth_service.get_current_active_user),
+) -> InspectionRead:
+    inspection = _get_inspection_or_404(db, inspection_id, current_user)
+    _ensure_owner_or_admin(inspection, current_user)
+    try:
+        return inspection_service.submit_inspection(db, inspection)
+    except ValueError as exc:  # noqa: BLE001
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+
+@router.post("/{inspection_id}/approve", response_model=InspectionRead)
+def approve_inspection(
+    inspection_id: str,
+    db: Session = Depends(get_db),
+    current_user = Depends(auth_service.require_role([UserRole.admin.value, UserRole.reviewer.value])),
+) -> InspectionRead:
+    inspection = _get_inspection_or_404(db, inspection_id, current_user)
+    try:
+        return inspection_service.approve_inspection(db, inspection)
+    except ValueError as exc:  # noqa: BLE001
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+
+@router.post("/{inspection_id}/reject", response_model=InspectionRead)
+def reject_inspection(
+    inspection_id: str,
+    db: Session = Depends(get_db),
+    current_user = Depends(auth_service.require_role([UserRole.admin.value, UserRole.reviewer.value])),
+) -> InspectionRead:
+    inspection = _get_inspection_or_404(db, inspection_id, current_user)
+    try:
+        return inspection_service.reject_inspection(db, inspection)
+    except ValueError as exc:  # noqa: BLE001
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+
 @router.get("/{inspection_id}/responses", response_model=List[InspectionResponseRead])
 def list_responses(
     inspection_id: str,
@@ -113,3 +153,10 @@ def _get_inspection_or_404(db: Session, inspection_id: str, user: User) -> Inspe
     if not inspection:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Inspection not found")
     return inspection
+
+
+def _ensure_owner_or_admin(inspection: InspectionDetail, user: User) -> None:
+    if user.role in {UserRole.admin.value, UserRole.reviewer.value}:
+        return
+    if inspection.inspector_id != user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only owner can submit inspection")

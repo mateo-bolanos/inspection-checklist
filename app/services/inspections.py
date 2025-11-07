@@ -79,21 +79,40 @@ def update_inspection(db: Session, inspection: Inspection, payload: InspectionUp
         inspection.location = payload.location
     if payload.notes is not None:
         inspection.notes = payload.notes
+    status_handled = False
     if payload.status is not None:
-        new_status = payload.status
-        if new_status == InspectionStatus.submitted.value:
-            _validate_submission_requirements(db, inspection)
-            inspection.status = new_status
-            inspection.submitted_at = datetime.utcnow()
-            inspection.overall_score = _calculate_overall_score(inspection)
-        elif new_status == InspectionStatus.approved.value:
-            inspection.status = new_status
-            inspection.approved_at = datetime.utcnow()
-        elif new_status == InspectionStatus.rejected.value:
-            inspection.status = new_status
-            inspection.rejected_at = datetime.utcnow()
-        else:
-            inspection.status = new_status
+        status_handled = _set_status(db, inspection, payload.status)
+    if not status_handled:
+        db.commit()
+        db.refresh(inspection)
+    return inspection
+
+
+def submit_inspection(db: Session, inspection: Inspection) -> Inspection:
+    _validate_submission_requirements(db, inspection)
+    inspection.status = InspectionStatus.submitted.value
+    inspection.submitted_at = datetime.utcnow()
+    inspection.overall_score = _calculate_overall_score(inspection)
+    db.commit()
+    db.refresh(inspection)
+    return inspection
+
+
+def approve_inspection(db: Session, inspection: Inspection) -> Inspection:
+    if inspection.status != InspectionStatus.submitted.value:
+        raise ValueError("Inspection must be submitted before approval")
+    inspection.status = InspectionStatus.approved.value
+    inspection.approved_at = datetime.utcnow()
+    db.commit()
+    db.refresh(inspection)
+    return inspection
+
+
+def reject_inspection(db: Session, inspection: Inspection) -> Inspection:
+    if inspection.status != InspectionStatus.submitted.value:
+        raise ValueError("Inspection must be submitted before rejection")
+    inspection.status = InspectionStatus.rejected.value
+    inspection.rejected_at = datetime.utcnow()
     db.commit()
     db.refresh(inspection)
     return inspection
@@ -198,3 +217,17 @@ def _calculate_overall_score(inspection: Inspection) -> float:
         return 0.0
     passed = sum(1 for resp in scored_responses if (resp.result or "").lower() == "pass")
     return round((passed / total) * 100, 2)
+
+
+def _set_status(db: Session, inspection: Inspection, new_status: str) -> bool:
+    if new_status == InspectionStatus.submitted.value:
+        submit_inspection(db, inspection)
+        return True
+    if new_status == InspectionStatus.approved.value:
+        approve_inspection(db, inspection)
+        return True
+    if new_status == InspectionStatus.rejected.value:
+        reject_inspection(db, inspection)
+        return True
+    inspection.status = new_status
+    return False
