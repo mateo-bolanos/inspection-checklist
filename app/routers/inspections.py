@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import JSONResponse, Response
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -18,6 +19,7 @@ from app.schemas.inspection import (
 )
 from app.services import auth as auth_service
 from app.services import inspections as inspection_service
+from app.services import reports as report_service
 
 router = APIRouter()
 
@@ -103,6 +105,27 @@ def reject_inspection(
         return inspection_service.reject_inspection(db, inspection)
     except ValueError as exc:  # noqa: BLE001
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+
+@router.get("/{inspection_id}/export")
+def export_inspection(
+    inspection_id: str,
+    format: str = "json",
+    db: Session = Depends(get_db),
+    current_user = Depends(auth_service.get_current_active_user),
+):
+    inspection = inspection_service.get_inspection(db, inspection_id, current_user)
+    if not inspection:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Inspection not found")
+    summary = report_service.build_inspection_summary(inspection)
+    if format.lower() == "pdf":
+        pdf_bytes = report_service.render_pdf(summary)
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f'attachment; filename="inspection-{inspection_id}.pdf"'},
+        )
+    return JSONResponse(summary)
 
 
 @router.get("/{inspection_id}/responses", response_model=List[InspectionResponseRead])

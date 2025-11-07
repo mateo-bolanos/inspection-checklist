@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+import logging
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -7,9 +9,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings
+from app.core.database import SessionLocal
 from app.core.migrations import run_migrations
 from app.routers import actions, auth, dashboard, files, inspections, templates
 from app.seeds.seed_data import seed_initial_data
+
+logger = logging.getLogger("inspection_app")
+logging.basicConfig(level=logging.INFO)
 
 app = FastAPI(title="Safety Inspection Checklist API", version="0.1.0")
 
@@ -26,6 +32,12 @@ app.add_middleware(
 def startup_event() -> None:
     run_migrations()
     seed_initial_data()
+    _start_overdue_monitor()
+
+
+@app.on_event("shutdown")
+def shutdown_event() -> None:
+    _stop_overdue_monitor()
 
 
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
@@ -38,6 +50,33 @@ app.include_router(files.router, prefix="/files", tags=["files"])
 UPLOADS_PATH = Path("uploads")
 UPLOADS_PATH.mkdir(exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=str(UPLOADS_PATH)), name="uploads")
+
+overdue_task: asyncio.Task | None = None
+
+
+def _start_overdue_monitor() -> None:
+    global overdue_task
+    if overdue_task:
+        return
+
+    async def _monitor() -> None:
+        from app.services.actions import count_overdue_actions
+
+        while True:
+            await asyncio.sleep(60)
+            with SessionLocal() as db:
+                overdue = count_overdue_actions(db)
+            if overdue:
+                logger.info("Overdue corrective actions pending: %s", overdue)
+
+    overdue_task = asyncio.create_task(_monitor())
+
+
+def _stop_overdue_monitor() -> None:
+    global overdue_task
+    if overdue_task:
+        overdue_task.cancel()
+        overdue_task = None
 
 
 @app.get("/health")

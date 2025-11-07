@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 
+from sqlalchemy import func
 from sqlalchemy.orm import Session, selectinload
 
 from app.models.entities import ActionStatus, CorrectiveAction, Inspection, InspectionResponse, User, UserRole
@@ -88,3 +89,17 @@ def update_action(db: Session, action: CorrectiveAction, payload: CorrectiveActi
     db.commit()
     db.refresh(action)
     return action
+
+
+def count_overdue_actions(db: Session) -> int:
+    now = datetime.now(timezone.utc)
+    return (
+        db.query(func.count(CorrectiveAction.id))
+        .filter(
+            CorrectiveAction.status != ActionStatus.closed.value,
+            CorrectiveAction.due_date.isnot(None),
+            CorrectiveAction.due_date < now,
+        )
+        .scalar()
+        or 0
+    )

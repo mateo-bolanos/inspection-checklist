@@ -25,7 +25,13 @@ def seed_initial_data() -> None:
             role=UserRole.inspector.value,
             hashed_password=get_password_hash("inspectorpass"),
         )
-        db.add_all([admin, inspector])
+        reviewer = User(
+            email="reviewer@example.com",
+            full_name="Reviewer Pro",
+            role=UserRole.reviewer.value,
+            hashed_password=get_password_hash("reviewerpass"),
+        )
+        db.add_all([admin, inspector, reviewer])
         db.flush()
 
         template = ChecklistTemplate(name="Warehouse Safety", description="Default template")
