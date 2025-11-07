@@ -24,7 +24,7 @@ def upgrade() -> None:
         sa.Column("full_name", sa.String(), nullable=False, server_default=""),
         sa.Column("role", sa.String(), nullable=False, server_default="inspector"),
         sa.Column("hashed_password", sa.String(), nullable=False),
-        sa.Column("is_active", sa.Boolean(), nullable=False, server_default=sa.text("1")),
+        sa.Column("is_active", sa.Boolean(), nullable=False, server_default=sa.text("TRUE")),
         sa.Column("created_at", sa.DateTime(), nullable=False, server_default=sa.text("CURRENT_TIMESTAMP")),
     )
     op.create_index("ix_users_email", "users", ["email"], unique=True)
@@ -51,7 +51,7 @@ def upgrade() -> None:
         sa.Column("id", sa.String(), primary_key=True),
         sa.Column("section_id", sa.String(), sa.ForeignKey("template_sections.id", ondelete="CASCADE"), nullable=False),
         sa.Column("prompt", sa.Text(), nullable=False),
-        sa.Column("is_required", sa.Boolean(), nullable=False, server_default=sa.text("1")),
+        sa.Column("is_required", sa.Boolean(), nullable=False, server_default=sa.text("TRUE")),
         sa.Column("order_index", sa.Integer(), nullable=False, server_default="0"),
     )
 
