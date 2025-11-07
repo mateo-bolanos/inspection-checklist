@@ -1,0 +1,36 @@
+Title,Description,Labels,Phase
+Initialize FastAPI project,Create FastAPI project with SQLAlchemy and Alembic for migrations. Setup virtualenv, .gitignore, and requirements.txt.,setup,Phase 1 - Setup
+Create database schema (SQLite),Implement all tables from design (users, templates, inspections, responses, actions, media_files) using SQLAlchemy models.,database,Phase 1 - Setup
+Seed initial data,Add seed script with one admin user, one template, and few checklist items.,database,Phase 1 - Setup
+Setup environment configuration,Add .env.example with DB URLs and JWT secret; create config loader.,infrastructure,Phase 1 - Setup
+Create ERD diagram,Document database structure in docs/schema.png for future PostgreSQL migration.,documentation,Phase 1 - Setup
+
+Implement user authentication,Add simple JWT-based login (FastAPI Users or manual). Use static admin credentials for MVP.,backend,Phase 2 - Core API
+Build checklist templates endpoints,Create CRUD routes for checklist_templates, sections, and items.,backend,Phase 2 - Core API
+Implement inspections endpoints,Create endpoints to start inspection, get details, and list previous inspections.,backend,Phase 2 - Core API
+Add inspection responses endpoints,Allow adding responses with result, note, and image URLs.,backend,Phase 2 - Core API
+Add corrective actions endpoints,Allow creating actions for failed items; include severity, due date, and assigned user.,backend,Phase 2 - Core API
+Implement validation rules,Ensure all required items are answered before submission; fails must have actions.,validation,Phase 2 - Core API
+Setup pytest and write basic tests,Create simple API tests for templates, inspections, and responses.,testing,Phase 2 - Core API
+
+Implement dashboard endpoints,Add /dash/overview, /dash/actions, and /dash/items endpoints returning JSON metrics.,analytics,Phase 3 - Dashboard
+Create dashboard queries,Write ORM/SQL queries for average rating, open actions by severity, and fail rate per item.,analytics,Phase 3 - Dashboard
+Create placeholder frontend,Optional: simple Tailwind or React dashboard showing key metrics.,frontend,Phase 3 - Dashboard
+
+Implement image file handling,Add /files endpoint to simulate image uploads; store URLs in media_files table.,backend,Phase 4 - Media
+Serve static files,Expose uploads directory through FastAPI StaticFiles.,backend,Phase 4 - Media
+
+Add submission endpoint,Finalize inspections by marking as submitted and computing overall rating.,backend,Phase 5 - Workflow
+Add approval/rejection endpoints,Allow reviewers/admins to approve or reject submitted inspections.,backend,Phase 5 - Workflow
+Add lifecycle validation,Prevent submission if missing required responses or unlinked actions.,validation,Phase 5 - Workflow
+
+Prepare PostgreSQL migration,Setup docker-compose with PostgreSQL and run Alembic migrations.,database,Phase 6 - Migration
+Migrate SQLite data to PostgreSQL,Export SQLite data as CSV and import into PostgreSQL preserving UUIDs.,database,Phase 6 - Migration
+Test application on PostgreSQL,Verify that all endpoints and migrations work correctly with PostgreSQL.,testing,Phase 6 - Migration
+Deploy backend API,Deploy API to Render/Railway using PostgreSQL URL and environment variables.,deployment,Phase 6 - Migration
+
+Enhance role-based permissions,Add admin, reviewer, and inspector roles with appropriate access control.,security,Phase 7 - Enhancement
+Add overdue action notifications,Implement background job or console log alert for overdue corrective actions.,enhancement,Phase 7 - Enhancement
+Add export reports,Allow inspection summary export to PDF or JSON file.,enhancement,Phase 7 - Enhancement
+Add frontend polish,Improve layout, add filtering to dashboard, and polish UI for presentation.,frontend,Phase 7 - Enhancement
+Write complete README,Document setup, usage, and migration steps clearly.,documentation,Phase 7 - Enhancement
