@@ -125,6 +125,10 @@ class InspectionResponse(Base):
     media_files: Mapped[list["MediaFile"]] = relationship(back_populates="response", cascade="all, delete-orphan")
     actions: Mapped[list["CorrectiveAction"]] = relationship(back_populates="response")
 
+    @property
+    def media_urls(self) -> list[str]:
+        return [media.file_url for media in self.media_files]
+
 
 class ActionSeverity(str, Enum):
     low = "low"

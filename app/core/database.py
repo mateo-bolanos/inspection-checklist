@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from app.core import monkeypatches  # noqa: F401 - ensure SQLAlchemy patches load early
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 

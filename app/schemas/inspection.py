@@ -13,7 +13,7 @@ class InspectionBase(BaseModel):
 
 
 class InspectionCreate(InspectionBase):
-    pass
+    inspector_id: str | None = None
 
 
 class InspectionUpdate(BaseModel):
@@ -34,6 +34,10 @@ class InspectionRead(InspectionBase):
         from_attributes = True
 
 
+class InspectionDetail(InspectionRead):
+    responses: List["InspectionResponseRead"] = Field(default_factory=list)
+
+
 class InspectionResponseBase(BaseModel):
     template_item_id: str
     result: str
@@ -45,9 +49,18 @@ class InspectionResponseCreate(InspectionResponseBase):
     pass
 
 
+class InspectionResponseUpdate(BaseModel):
+    result: str | None = None
+    note: str | None = None
+    media_urls: List[str] | None = None
+
+
 class InspectionResponseRead(InspectionResponseBase):
     id: str
     inspection_id: str
 
     class Config:
         from_attributes = True
+
+
+InspectionDetail.model_rebuild()

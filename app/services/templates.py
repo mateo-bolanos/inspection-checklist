@@ -6,6 +6,10 @@ from app.models.entities import ChecklistTemplate, TemplateItem, TemplateSection
 from app.schemas.template import (
     ChecklistTemplateCreate,
     ChecklistTemplateUpdate,
+    TemplateItemCreate,
+    TemplateItemUpdate,
+    TemplateSectionCreate,
+    TemplateSectionUpdate,
 )
 
 
@@ -65,4 +69,83 @@ def update_template(
 
 def delete_template(db: Session, template: ChecklistTemplate) -> None:
     db.delete(template)
+    db.commit()
+
+
+def get_section(db: Session, section_id: str) -> TemplateSection | None:
+    return (
+        db.query(TemplateSection)
+        .options(selectinload(TemplateSection.items))
+        .filter(TemplateSection.id == section_id)
+        .first()
+    )
+
+
+def create_section(
+    db: Session, template: ChecklistTemplate, payload: TemplateSectionCreate
+) -> TemplateSection:
+    section = TemplateSection(
+        title=payload.title,
+        order_index=payload.order_index,
+        template=template,
+    )
+    for item in payload.items:
+        TemplateItem(
+            prompt=item.prompt,
+            is_required=item.is_required,
+            order_index=item.order_index,
+            section=section,
+        )
+    db.add(section)
+    db.commit()
+    db.refresh(section)
+    return section
+
+
+def update_section(db: Session, section: TemplateSection, payload: TemplateSectionUpdate) -> TemplateSection:
+    if payload.title is not None:
+        section.title = payload.title
+    if payload.order_index is not None:
+        section.order_index = payload.order_index
+    db.commit()
+    db.refresh(section)
+    return section
+
+
+def delete_section(db: Session, section: TemplateSection) -> None:
+    db.delete(section)
+    db.commit()
+
+
+def get_item(db: Session, item_id: str) -> TemplateItem | None:
+    return db.query(TemplateItem).filter(TemplateItem.id == item_id).first()
+
+
+def create_item(db: Session, section: TemplateSection, payload: TemplateItemCreate) -> TemplateItem:
+    item = TemplateItem(
+        prompt=payload.prompt,
+        is_required=payload.is_required,
+        order_index=payload.order_index,
+        section=section,
+    )
+    db.add(item)
+    db.commit()
+    db.refresh(item)
+    return item
+
+
+def update_item(db: Session, item: TemplateItem, payload: TemplateItemUpdate) -> TemplateItem:
+    if payload.prompt is not None:
+        item.prompt = payload.prompt
+    if payload.is_required is not None:
+        item.is_required = payload.is_required
+    if payload.order_index is not None:
+        item.order_index = payload.order_index
+    db.commit()
+    db.refresh(item)
+    return item
+
+
+def delete_item(db: Session, item: TemplateItem) -> None:
+    db.delete(item)
     db.commit()

@@ -15,6 +15,12 @@ class TemplateItemCreate(TemplateItemBase):
     pass
 
 
+class TemplateItemUpdate(BaseModel):
+    prompt: str | None = None
+    is_required: bool | None = None
+    order_index: int | None = None
+
+
 class TemplateItemRead(TemplateItemBase):
     id: str
 
@@ -29,6 +35,11 @@ class TemplateSectionBase(BaseModel):
 
 class TemplateSectionCreate(TemplateSectionBase):
     items: List[TemplateItemCreate] = Field(default_factory=list)
+
+
+class TemplateSectionUpdate(BaseModel):
+    title: str | None = None
+    order_index: int | None = None
 
 
 class TemplateSectionRead(TemplateSectionBase):
