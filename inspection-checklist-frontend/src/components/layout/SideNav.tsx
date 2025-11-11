@@ -1,4 +1,4 @@
-import { CheckCircle, ClipboardList, FilePlus2, LayoutDashboard, Layers3, ListChecks, Search, Upload } from 'lucide-react'
+import { CheckCircle, ClipboardList, FilePlus2, FileSearch2, LayoutDashboard, Layers3, ListChecks, Search, Upload } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 
 import { useAuth } from '@/auth/useAuth'
@@ -11,6 +11,7 @@ const navItems = [
   { label: 'Start Inspection', to: '/inspections/new', icon: FilePlus2, roles: ['admin', 'inspector'] },
   { label: 'Inspections', to: '/inspections', icon: Search, roles: ['admin', 'inspector', 'reviewer'] },
   { label: 'Actions Board', to: '/actions', icon: ClipboardList, roles: ['admin', 'inspector', 'reviewer'] },
+  { label: 'Search Actions', to: '/actions/search', icon: FileSearch2, roles: ['admin', 'inspector', 'reviewer'] },
   { label: 'Review Queue', to: '/reviews', icon: CheckCircle, roles: ['admin', 'reviewer'] },
   { label: 'Upload Center', to: '/files/upload', icon: Upload, roles: ['admin', 'inspector'] },
 ]

@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { ImagePlus, Save } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { z } from 'zod'
 
 import {
@@ -47,6 +47,7 @@ type ResponseDraft = {
 
 export const InspectionEditPage = () => {
   const { inspectionId: inspectionIdParam } = useParams<{ inspectionId: string }>()
+  const navigate = useNavigate()
   const parsedInspectionId = inspectionIdParam ? Number(inspectionIdParam) : undefined
   const numericInspectionId = Number.isFinite(parsedInspectionId) ? parsedInspectionId : undefined
   const inspectionResourceId = numericInspectionId ?? inspectionIdParam
@@ -283,7 +284,19 @@ export const InspectionEditPage = () => {
 
   return (
     <div className="space-y-6">
-      <Card title={`Inspection • ${inspection.id}`} subtitle={`Status • ${inspection.status}`}>
+      <Card
+        title={`Inspection • ${inspection.id}`}
+        subtitle={`Status • ${inspection.status}`}
+        actions={
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => navigate(`/actions/search?inspectionId=${inspection.id}`)}
+          >
+            View actions
+          </Button>
+        }
+      >
         <div className="grid gap-4 md:grid-cols-3">
           <div>
             <p className="text-xs uppercase text-slate-500">Started</p>
@@ -407,14 +420,22 @@ export const InspectionEditPage = () => {
                     )}
                     {actionsForResponse.map((action) => (
                       <div key={action.id} className="rounded-lg border border-slate-100 p-3 text-sm">
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
                           <div>
                             <p className="font-semibold text-slate-900">
                               Action #{action.id} • {action.title}
                             </p>
                             <p className="text-xs text-slate-500">Status • {action.status.replace('_', ' ')}</p>
                           </div>
-                          <Badge variant="warning">{action.severity}</Badge>
+                          <div className="flex items-center gap-3">
+                            <Badge variant="warning">{action.severity}</Badge>
+                            <Link
+                              to={`/actions/search?actionId=${action.id}`}
+                              className="text-xs font-semibold text-indigo-600 hover:underline"
+                            >
+                              Open action
+                            </Link>
+                          </div>
                         </div>
                         <p className="text-xs text-slate-500">Due {action.due_date ? formatDateTime(action.due_date.toString()) : 'unspecified'}</p>
                         {action.resolution_notes && (

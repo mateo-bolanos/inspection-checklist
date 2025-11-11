@@ -13,6 +13,7 @@ import { InspectionEditPage } from '@/pages/Inspections/InspectionEdit'
 import { InspectionViewPage } from '@/pages/Inspections/InspectionView'
 import { InspectionsListPage } from '@/pages/Inspections/InspectionsList'
 import { ActionsListPage } from '@/pages/Actions/ActionsList'
+import { ActionsSearchPage } from '@/pages/Actions/ActionsSearch'
 import { ReviewQueuePage } from '@/pages/Reviews/ReviewQueue'
 import { FileUploadPage } from '@/pages/Files/Upload'
 import { useAuth } from '@/auth/useAuth'
@@ -109,6 +110,7 @@ export const router = createBrowserRouter([
         ),
       },
       { path: 'actions', element: <ActionsListPage /> },
+      { path: 'actions/search', element: <ActionsSearchPage /> },
       {
         path: 'reviews',
         element: (

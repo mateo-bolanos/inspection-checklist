@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { useActionsQuery, useInspectionQuery, useTemplateQuery } from '@/api/hooks'
 import { Card } from '@/components/ui/Card'
@@ -46,11 +46,20 @@ export const InspectionViewPage = () => {
         title={inspectionName}
         subtitle={`Status • ${inspection.status}`}
         actions={
-          canEditInspection ? (
-            <Button variant="secondary" onClick={() => navigate(`/inspections/${inspection.id}/edit`)}>
-              Edit inspection
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => navigate(`/actions/search?inspectionId=${inspection.id}`)}
+            >
+              View actions
             </Button>
-          ) : undefined
+            {canEditInspection && (
+              <Button variant="secondary" onClick={() => navigate(`/inspections/${inspection.id}/edit`)}>
+                Edit inspection
+              </Button>
+            )}
+          </div>
         }
       >
         <div className="grid gap-4 md:grid-cols-4">
@@ -102,9 +111,17 @@ export const InspectionViewPage = () => {
                     <div className="mt-3 space-y-2">
                       {actionsForResponse.map((action) => (
                         <div key={action.id} className="rounded-lg border border-slate-100 p-2 text-sm">
-                          <div className="flex items-center justify-between">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
                             <p className="font-semibold text-slate-900">{action.title}</p>
-                            <Badge variant="warning">{action.severity}</Badge>
+                            <div className="flex items-center gap-3">
+                              <Badge variant="warning">{action.severity}</Badge>
+                              <Link
+                                to={`/actions/search?actionId=${action.id}`}
+                                className="text-xs font-semibold text-indigo-600 hover:underline"
+                              >
+                                Open action
+                              </Link>
+                            </div>
                           </div>
                           {action.description && <p className="text-xs text-slate-500">{action.description}</p>}
                         </div>

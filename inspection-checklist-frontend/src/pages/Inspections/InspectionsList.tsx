@@ -140,7 +140,13 @@ export const InspectionsListPage = () => {
                       <td className="px-4 py-3 text-slate-600">{formatDate(inspection.started_at?.toString())}</td>
                       <td className="px-4 py-3 text-slate-900">{formatScore(inspection.overall_score)}</td>
                       <td className="px-4 py-3">
-                        <div className="flex justify-end gap-3 text-sm font-semibold">
+                        <div className="flex flex-wrap justify-end gap-3 text-sm font-semibold">
+                          <Link
+                            className="text-indigo-600 hover:underline"
+                            to={`/actions/search?inspectionId=${inspection.id}`}
+                          >
+                            Actions
+                          </Link>
                           <Link className="text-brand-600 hover:underline" to={`/inspections/${inspection.id}`}>
                             View
                           </Link>
