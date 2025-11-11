@@ -19,6 +19,7 @@ import {
 import type { components } from '@/api/gen/schema'
 import { ACTION_SEVERITIES, INSPECTION_RESULTS } from '@/lib/constants'
 import { formatDateTime } from '@/lib/formatters'
+import { resolveApiUrl } from '@/lib/env'
 import { useAuth } from '@/auth/useAuth'
 import { FormField } from '@/components/forms/FormField'
 import { Card } from '@/components/ui/Card'
@@ -393,7 +394,7 @@ export const InspectionEditPage = () => {
                     <div className="mt-3 flex flex-wrap gap-2">
                       {response.media_urls.map((url) => (
                         <div key={url} className="flex items-center gap-2 rounded-full border border-slate-200 px-3 py-1 text-xs">
-                          <a href={url} className="text-brand-600 underline" target="_blank" rel="noreferrer">
+                          <a href={resolveApiUrl(url)} className="text-brand-600 underline" target="_blank" rel="noreferrer">
                             {url.split('/').pop() ?? 'Attachment'}
                           </a>
                           <button

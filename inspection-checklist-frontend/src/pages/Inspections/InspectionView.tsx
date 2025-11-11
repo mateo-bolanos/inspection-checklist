@@ -8,6 +8,7 @@ import { LoadingState } from '@/components/feedback/LoadingState'
 import { formatDateTime, formatInspectionName } from '@/lib/formatters'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/auth/useAuth'
+import { resolveApiUrl } from '@/lib/env'
 
 export const InspectionViewPage = () => {
   const { inspectionId: inspectionIdParam } = useParams<{ inspectionId: string }>()
@@ -101,7 +102,7 @@ export const InspectionViewPage = () => {
                   {response?.media_urls?.length ? (
                     <div className="mt-2 flex flex-wrap gap-3 text-xs text-brand-600">
                       {response.media_urls.map((url) => (
-                        <a key={url} href={url} target="_blank" rel="noreferrer" className="underline">
+                        <a key={url} href={resolveApiUrl(url)} target="_blank" rel="noreferrer" className="underline">
                           Attachment
                         </a>
                       ))}

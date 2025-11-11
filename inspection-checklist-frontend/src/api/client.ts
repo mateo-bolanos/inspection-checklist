@@ -1,16 +1,10 @@
 import axios, { type AxiosError } from 'axios'
 
 import { authStore } from '@/auth/auth.store'
-
-const baseURL = import.meta.env.VITE_API_BASE_URL
-
-if (!baseURL) {
-  // eslint-disable-next-line no-console
-  console.warn('VITE_API_BASE_URL is not set. API calls will fail until configured.')
-}
+import { API_BASE_URL } from '@/lib/env'
 
 export const api = axios.create({
-  baseURL: baseURL ?? 'http://localhost:8000',
+  baseURL: API_BASE_URL,
 })
 
 type ErrorResponse = {
