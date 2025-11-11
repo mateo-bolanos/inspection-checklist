@@ -4,6 +4,8 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
+from app.schemas.auth import UserRead
+
 
 class CorrectiveActionBase(BaseModel):
     title: str
@@ -15,7 +17,7 @@ class CorrectiveActionBase(BaseModel):
 
 
 class CorrectiveActionCreate(CorrectiveActionBase):
-    inspection_id: str
+    inspection_id: int
     response_id: str | None = None
 
 
@@ -30,10 +32,11 @@ class CorrectiveActionUpdate(BaseModel):
 
 class CorrectiveActionRead(CorrectiveActionBase):
     id: str
-    inspection_id: str
+    inspection_id: int
     response_id: str | None = None
     created_at: datetime
     closed_at: datetime | None = None
+    created_by: UserRead
 
     class Config:
         from_attributes = True

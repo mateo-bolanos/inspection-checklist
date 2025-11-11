@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from enum import Enum
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -31,11 +31,25 @@ class User(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
-    inspections: Mapped[list["Inspection"]] = relationship(back_populates="inspector", cascade="all, delete")
+    inspections: Mapped[list["Inspection"]] = relationship(
+        back_populates="inspector",
+        cascade="all, delete",
+        foreign_keys="Inspection.inspector_id",
+    )
     actions_assigned: Mapped[list["CorrectiveAction"]] = relationship(
         back_populates="assignee",
         cascade="all, delete",
         foreign_keys="CorrectiveAction.assigned_to_id",
+    )
+    inspections_created: Mapped[list["Inspection"]] = relationship(
+        back_populates="created_by",
+        cascade="all, delete",
+        foreign_keys="Inspection.created_by_id",
+    )
+    actions_created: Mapped[list["CorrectiveAction"]] = relationship(
+        back_populates="created_by",
+        cascade="all, delete",
+        foreign_keys="CorrectiveAction.created_by_id",
     )
 
 
@@ -91,9 +105,10 @@ class InspectionStatus(str, Enum):
 class Inspection(Base):
     __tablename__ = "inspections"
 
-    id: Mapped[str] = mapped_column(String, primary_key=True, default=generate_uuid)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     template_id: Mapped[str] = mapped_column(ForeignKey("checklist_templates.id"))
     inspector_id: Mapped[str] = mapped_column(ForeignKey("users.id"))
+    created_by_id: Mapped[str] = mapped_column(ForeignKey("users.id"))
     status: Mapped[str] = mapped_column(String, default=InspectionStatus.draft.value)
     location: Mapped[str | None] = mapped_column(String, nullable=True)
     notes: Mapped[str | None] = mapped_column(Text(), nullable=True)
@@ -104,7 +119,14 @@ class Inspection(Base):
     rejected_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     template: Mapped[ChecklistTemplate] = relationship(back_populates="inspections")
-    inspector: Mapped[User] = relationship(back_populates="inspections")
+    inspector: Mapped[User] = relationship(
+        back_populates="inspections",
+        foreign_keys=[inspector_id],
+    )
+    created_by: Mapped[User] = relationship(
+        back_populates="inspections_created",
+        foreign_keys=[created_by_id],
+    )
     responses: Mapped[list["InspectionResponse"]] = relationship(
         back_populates="inspection", cascade="all, delete-orphan"
     )
@@ -115,7 +137,7 @@ class InspectionResponse(Base):
     __tablename__ = "inspection_responses"
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=generate_uuid)
-    inspection_id: Mapped[str] = mapped_column(ForeignKey("inspections.id", ondelete="CASCADE"))
+    inspection_id: Mapped[int] = mapped_column(ForeignKey("inspections.id", ondelete="CASCADE"))
     template_item_id: Mapped[str] = mapped_column(ForeignKey("template_items.id"))
     result: Mapped[str] = mapped_column(String, default="pending")
     note: Mapped[str | None] = mapped_column(Text(), nullable=True)
@@ -146,7 +168,7 @@ class CorrectiveAction(Base):
     __tablename__ = "corrective_actions"
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=generate_uuid)
-    inspection_id: Mapped[str] = mapped_column(ForeignKey("inspections.id"))
+    inspection_id: Mapped[int] = mapped_column(ForeignKey("inspections.id"))
     response_id: Mapped[str | None] = mapped_column(ForeignKey("inspection_responses.id", ondelete="SET NULL"))
     title: Mapped[str] = mapped_column(String)
     description: Mapped[str | None] = mapped_column(Text(), nullable=True)
@@ -154,12 +176,20 @@ class CorrectiveAction(Base):
     due_date: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     assigned_to_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     status: Mapped[str] = mapped_column(String, default=ActionStatus.open.value)
+    created_by_id: Mapped[str] = mapped_column(ForeignKey("users.id"))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     closed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     inspection: Mapped[Inspection] = relationship(back_populates="actions")
     response: Mapped[InspectionResponse | None] = relationship(back_populates="actions")
-    assignee: Mapped[User | None] = relationship(back_populates="actions_assigned")
+    assignee: Mapped[User | None] = relationship(
+        back_populates="actions_assigned",
+        foreign_keys=[assigned_to_id],
+    )
+    created_by: Mapped[User] = relationship(
+        back_populates="actions_created",
+        foreign_keys=[created_by_id],
+    )
     media_files: Mapped[list["MediaFile"]] = relationship(back_populates="action", cascade="all, delete-orphan")
 
 

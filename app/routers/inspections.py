@@ -46,7 +46,7 @@ def create_inspection(
 
 @router.get("/{inspection_id}", response_model=InspectionDetail)
 def get_inspection(
-    inspection_id: str,
+    inspection_id: int,
     db: Session = Depends(get_db),
     current_user = Depends(auth_service.get_current_active_user),
 ) -> InspectionDetail:
@@ -55,7 +55,7 @@ def get_inspection(
 
 @router.put("/{inspection_id}", response_model=InspectionRead)
 def update_inspection(
-    inspection_id: str,
+    inspection_id: int,
     payload: InspectionUpdate,
     db: Session = Depends(get_db),
     current_user = Depends(auth_service.get_current_active_user),
@@ -69,7 +69,7 @@ def update_inspection(
 
 @router.post("/{inspection_id}/submit", response_model=InspectionRead)
 def submit_inspection_endpoint(
-    inspection_id: str,
+    inspection_id: int,
     db: Session = Depends(get_db),
     current_user = Depends(auth_service.get_current_active_user),
 ) -> InspectionRead:
@@ -83,7 +83,7 @@ def submit_inspection_endpoint(
 
 @router.post("/{inspection_id}/approve", response_model=InspectionRead)
 def approve_inspection(
-    inspection_id: str,
+    inspection_id: int,
     db: Session = Depends(get_db),
     current_user = Depends(auth_service.require_role([UserRole.admin.value, UserRole.reviewer.value])),
 ) -> InspectionRead:
@@ -96,7 +96,7 @@ def approve_inspection(
 
 @router.post("/{inspection_id}/reject", response_model=InspectionRead)
 def reject_inspection(
-    inspection_id: str,
+    inspection_id: int,
     db: Session = Depends(get_db),
     current_user = Depends(auth_service.require_role([UserRole.admin.value, UserRole.reviewer.value])),
 ) -> InspectionRead:
@@ -109,7 +109,7 @@ def reject_inspection(
 
 @router.get("/{inspection_id}/export")
 def export_inspection(
-    inspection_id: str,
+    inspection_id: int,
     format: str = "json",
     db: Session = Depends(get_db),
     current_user = Depends(auth_service.get_current_active_user),
@@ -130,7 +130,7 @@ def export_inspection(
 
 @router.get("/{inspection_id}/responses", response_model=List[InspectionResponseRead])
 def list_responses(
-    inspection_id: str,
+    inspection_id: int,
     db: Session = Depends(get_db),
     current_user = Depends(auth_service.get_current_active_user),
 ) -> List[InspectionResponseRead]:
@@ -144,7 +144,7 @@ def list_responses(
     status_code=status.HTTP_201_CREATED,
 )
 def add_response(
-    inspection_id: str,
+    inspection_id: int,
     payload: InspectionResponseCreate,
     db: Session = Depends(get_db),
     current_user = Depends(auth_service.get_current_active_user),
@@ -158,7 +158,7 @@ def add_response(
 
 @router.put("/{inspection_id}/responses/{response_id}", response_model=InspectionResponseRead)
 def update_response(
-    inspection_id: str,
+    inspection_id: int,
     response_id: str,
     payload: InspectionResponseUpdate,
     db: Session = Depends(get_db),
@@ -171,7 +171,7 @@ def update_response(
     return inspection_service.update_response(db, response, payload, current_user)
 
 
-def _get_inspection_or_404(db: Session, inspection_id: str, user: User) -> InspectionDetail:
+def _get_inspection_or_404(db: Session, inspection_id: int, user: User) -> InspectionDetail:
     inspection = inspection_service.get_inspection(db, inspection_id, user)
     if not inspection:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Inspection not found")

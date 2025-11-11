@@ -12,7 +12,11 @@ from app.schemas.action import CorrectiveActionCreate, CorrectiveActionUpdate
 def list_actions(db: Session, user: User) -> list[CorrectiveAction]:
     query = (
         db.query(CorrectiveAction)
-        .options(selectinload(CorrectiveAction.response), selectinload(CorrectiveAction.inspection))
+        .options(
+            selectinload(CorrectiveAction.response),
+            selectinload(CorrectiveAction.inspection),
+            selectinload(CorrectiveAction.created_by),
+        )
         .order_by(CorrectiveAction.created_at.desc())
     )
     if user.role not in {UserRole.admin.value, UserRole.reviewer.value}:
@@ -23,7 +27,11 @@ def list_actions(db: Session, user: User) -> list[CorrectiveAction]:
 def get_action(db: Session, action_id: str, user: User) -> CorrectiveAction | None:
     query = (
         db.query(CorrectiveAction)
-        .options(selectinload(CorrectiveAction.response), selectinload(CorrectiveAction.inspection))
+        .options(
+            selectinload(CorrectiveAction.response),
+            selectinload(CorrectiveAction.inspection),
+            selectinload(CorrectiveAction.created_by),
+        )
         .filter(CorrectiveAction.id == action_id)
     )
     if user.role not in {UserRole.admin.value, UserRole.reviewer.value}:
@@ -58,6 +66,7 @@ def create_action(db: Session, user: User, payload: CorrectiveActionCreate) -> C
         due_date=payload.due_date,
         assigned_to_id=payload.assigned_to_id,
         status=payload.status,
+        created_by_id=user.id,
     )
     db.add(action)
     db.commit()

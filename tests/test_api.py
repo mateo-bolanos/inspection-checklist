@@ -39,6 +39,7 @@ def test_inspection_submission_rules(client: TestClient) -> None:
 
     inspection = client.post("/inspections/", json={"template_id": template_id}, headers=headers).json()
     inspection_id = inspection["id"]
+    assert inspection["created_by"]["full_name"] == "Inspector One"
 
     submit = client.put(f"/inspections/{inspection_id}", json={"status": "submitted"}, headers=headers)
     assert submit.status_code == 400
@@ -79,6 +80,7 @@ def test_inspection_submission_rules(client: TestClient) -> None:
     }
     action_resp = client.post("/actions/", json=action_payload, headers=headers)
     assert action_resp.status_code == 201
+    assert action_resp.json()["created_by"]["email"] == "inspector@example.com"
 
     submit_with_action = client.put(
         f"/inspections/{inspection_id}",

@@ -5,6 +5,8 @@ from typing import List
 
 from pydantic import BaseModel, Field
 
+from app.schemas.auth import UserRead
+
 
 class InspectionBase(BaseModel):
     template_id: str
@@ -23,12 +25,13 @@ class InspectionUpdate(BaseModel):
 
 
 class InspectionRead(InspectionBase):
-    id: str
+    id: int
     inspector_id: str
     status: str
     started_at: datetime
     submitted_at: datetime | None = None
     overall_score: float | None = None
+    created_by: UserRead
 
     class Config:
         from_attributes = True
@@ -57,7 +60,7 @@ class InspectionResponseUpdate(BaseModel):
 
 class InspectionResponseRead(InspectionResponseBase):
     id: str
-    inspection_id: str
+    inspection_id: int
 
     class Config:
         from_attributes = True

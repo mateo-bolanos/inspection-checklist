@@ -1,0 +1,32 @@
+import { afterAll, afterEach, beforeAll, describe, expect, test } from 'vitest'
+import { http, HttpResponse } from 'msw'
+import { setupServer } from 'msw/node'
+import { screen, waitFor } from '@testing-library/react'
+
+import { OverviewPage } from '@/pages/Dashboard/Overview'
+import { renderWithProviders } from '@/test-utils'
+
+const server = setupServer(
+  http.get('http://localhost:8000/dash/overview', () =>
+    HttpResponse.json({
+      total_inspections: 12,
+      submitted_inspections: 4,
+      approval_rate: 75,
+      average_score: 87.5,
+    }),
+  ),
+  http.get('http://localhost:8000/inspections/', () => HttpResponse.json([])),
+)
+
+beforeAll(() => server.listen())
+afterEach(() => server.resetHandlers())
+afterAll(() => server.close())
+
+describe('OverviewPage', () => {
+  test('renders metrics from API', async () => {
+    renderWithProviders(<OverviewPage />)
+    await waitFor(() => expect(screen.getByText('12')).toBeInTheDocument())
+    expect(screen.getByText('4')).toBeInTheDocument()
+    expect(screen.getByText('75.0%')).toBeInTheDocument()
+  })
+})

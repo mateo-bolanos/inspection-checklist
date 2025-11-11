@@ -26,6 +26,7 @@ def list_inspections(db: Session, user: User) -> list[Inspection]:
             selectinload(Inspection.responses).selectinload(InspectionResponse.item),
             selectinload(Inspection.responses).selectinload(InspectionResponse.media_files),
             selectinload(Inspection.template),
+            selectinload(Inspection.created_by),
         )
         .order_by(Inspection.started_at.desc())
     )
@@ -49,6 +50,7 @@ def create_inspection(db: Session, user: User, payload: InspectionCreate) -> Ins
     inspection = Inspection(
         template_id=template.id,
         inspector_id=inspector_id,
+        created_by_id=user.id,
         location=payload.location,
         notes=payload.notes,
     )
@@ -58,7 +60,7 @@ def create_inspection(db: Session, user: User, payload: InspectionCreate) -> Ins
     return inspection
 
 
-def get_inspection(db: Session, inspection_id: str, user: User) -> Inspection | None:
+def get_inspection(db: Session, inspection_id: int, user: User) -> Inspection | None:
     query = (
         db.query(Inspection)
         .options(
@@ -66,6 +68,7 @@ def get_inspection(db: Session, inspection_id: str, user: User) -> Inspection | 
             .selectinload(InspectionResponse.item),
             selectinload(Inspection.responses).selectinload(InspectionResponse.media_files),
             selectinload(Inspection.actions),
+            selectinload(Inspection.created_by),
         )
         .filter(Inspection.id == inspection_id)
     )
