@@ -35,7 +35,7 @@ def create_action(
 
 @router.get("/{action_id}", response_model=CorrectiveActionRead)
 def get_action(
-    action_id: str,
+    action_id: int,
     db: Session = Depends(get_db),
     current_user = Depends(auth_service.get_current_active_user),
 ) -> CorrectiveActionRead:
@@ -47,7 +47,7 @@ def get_action(
 
 @router.put("/{action_id}", response_model=CorrectiveActionRead)
 def update_action(
-    action_id: str,
+    action_id: int,
     payload: CorrectiveActionUpdate,
     db: Session = Depends(get_db),
     current_user = Depends(auth_service.get_current_active_user),
@@ -56,6 +56,6 @@ def update_action(
     if not action:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Action not found")
     try:
-        return action_service.update_action(db, action, payload)
+        return action_service.update_action(db, action, payload, current_user)
     except ValueError as exc:  # noqa: BLE001
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc

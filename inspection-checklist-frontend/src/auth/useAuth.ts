@@ -4,6 +4,7 @@ import { useSyncExternalStore } from 'react'
 import { api } from '@/api/client'
 import type { components } from '@/api/gen/schema'
 import { ROLE_HOME_ROUTE } from '@/lib/constants'
+import { resetQueryCache } from '@/lib/queryClient'
 
 import type { AuthUser } from './auth.store'
 import { authStore } from './auth.store'
@@ -42,6 +43,7 @@ export const useAuth = () => {
   }, [auth.token, auth.user])
 
   const login = (token: string, user?: AuthUser | null) => {
+    resetQueryCache()
     authStore.setState({ token, user: user ?? auth.user })
   }
 

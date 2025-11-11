@@ -34,7 +34,9 @@ export const InspectionViewPage = () => {
     return <LoadingState label="Loading inspection..." />
   }
 
-  const responseMap = new Map(inspection.responses.map((response) => [response.template_item_id, response]))
+  const responseMap = new Map(
+    (inspection.responses ?? []).map((response) => [response.template_item_id, response]),
+  )
   const inspectionName = formatInspectionName(template.name, inspection.started_at, inspection.id)
   const canEditInspection = hasRole(['admin', 'inspector']) && inspection.status === 'draft'
 

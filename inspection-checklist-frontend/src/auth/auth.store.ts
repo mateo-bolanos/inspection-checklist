@@ -1,4 +1,5 @@
 import type { components } from '@/api/gen/schema'
+import { resetQueryCache } from '@/lib/queryClient'
 
 export type AuthUser = components['schemas']['UserRead']
 
@@ -76,6 +77,7 @@ export const authStore = {
   clear() {
     state = { token: null, user: null, isHydrated: true }
     persist()
+    resetQueryCache()
     notify()
   },
 }

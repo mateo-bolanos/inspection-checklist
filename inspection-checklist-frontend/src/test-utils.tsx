@@ -8,7 +8,7 @@ import { ToastProvider } from '@/components/ui/Toast'
 const createTestQueryClient = () =>
   new QueryClient({
     defaultOptions: {
-      queries: { retry: false, suspense: false },
+      queries: { retry: false },
     },
   })
 

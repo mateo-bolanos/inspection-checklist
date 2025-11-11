@@ -19,10 +19,14 @@ logging.basicConfig(level=logging.INFO)
 
 app = FastAPI(title="Safety Inspection Checklist API", version="0.1.0")
 
+cors_origins = settings.cors_allow_origins or ["*"]
+allow_credentials = "*" not in cors_origins
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=cors_origins,
+    allow_origin_regex=settings.cors_allow_origin_regex,
+    allow_credentials=allow_credentials,
     allow_methods=["*"],
     allow_headers=["*"],
 )

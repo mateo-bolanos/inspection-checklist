@@ -17,6 +17,7 @@ export const queryKeys = {
     items: ['dash', 'items'] as const,
   },
   files: ['files'] as const,
+  actionFiles: (actionId: number | undefined) => ['files', 'action', actionId] as const,
 }
 
 type TemplateListResponse = paths['/templates/']['get']['responses']['200']['content']['application/json']
@@ -350,7 +351,7 @@ export const useCreateActionMutation = () => {
 export const useUpdateActionMutation = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async ({ actionId, data }: { actionId: string; data: CorrectiveActionUpdateInput }) => {
+    mutationFn: async ({ actionId, data }: { actionId: number; data: CorrectiveActionUpdateInput }) => {
       const response = await api.put<CorrectiveActionRead>(`/actions/${actionId}`, data)
       return response.data
     },
@@ -401,24 +402,38 @@ export const useFilesQuery = () => {
   })
 }
 
+export const useActionFilesQuery = (actionId?: number) => {
+  return useQuery({
+    queryKey: queryKeys.actionFiles(actionId),
+    enabled: typeof actionId === 'number',
+    queryFn: async () => {
+      const { data } = await api.get<MediaListResponse>('/files/', { params: { action_id: actionId } })
+      return data
+    },
+  })
+}
+
 export const useUploadMediaMutation = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async (payload: { file: File; responseId?: string; actionId?: string }) => {
+    mutationFn: async (payload: { file: File; responseId?: string; actionId?: number }) => {
       const formData = new FormData()
       formData.append('file', payload.file)
       const params: Record<string, string> = {}
       if (payload.responseId) params.response_id = payload.responseId
-      if (payload.actionId) params.action_id = payload.actionId
+      if (payload.actionId !== undefined) params.action_id = String(payload.actionId)
       const { data } = await api.post<MediaUploadResponse>('/files/', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         params,
       })
       return data
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.files })
       queryClient.invalidateQueries({ queryKey: queryKeys.actions })
+      if (variables.actionId !== undefined) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.actionFiles(variables.actionId) })
+      }
     },
   })
 }

@@ -17,6 +17,7 @@ from app.models.entities import (
     UserRole,
 )
 from app.schemas.inspection import InspectionCreate, InspectionResponseCreate, InspectionResponseUpdate, InspectionUpdate
+from app.services import files as files_service
 
 
 def list_inspections(db: Session, user: User) -> list[Inspection]:
@@ -174,12 +175,33 @@ def update_response(
     return response
 
 
-def _sync_media_files(db: Session, response: InspectionResponse, urls: list[str], user_id: str | None) -> None:
-    response.media_files.clear()
+def _sync_media_files(db: Session, response: InspectionResponse, urls: list[str] | None, user_id: str | None) -> None:
+    if urls is None:
+        return
+    desired_urls: list[str] = []
+    seen: set[str] = set()
     for url in urls:
+        if url and url not in seen:
+            desired_urls.append(url)
+            seen.add(url)
+
+    existing_by_url = {media.file_url: media for media in list(response.media_files)}
+    desired_set = set(desired_urls)
+
+    # Remove files not in the desired list
+    for file_url, media in existing_by_url.items():
+        if file_url not in desired_set:
+            files_service.delete_file_by_url(file_url)
+            db.delete(media)
+
+    # Add any new URLs
+    for url in desired_urls:
+        if url in existing_by_url:
+            continue
         response.media_files.append(
             MediaFile(file_url=url, uploaded_by_id=user_id, response_id=response.id),
         )
+
     db.flush()
 
 

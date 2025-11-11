@@ -46,10 +46,20 @@ class User(Base):
         cascade="all, delete",
         foreign_keys="Inspection.created_by_id",
     )
-    actions_created: Mapped[list["CorrectiveAction"]] = relationship(
-        back_populates="created_by",
+    actions_started: Mapped[list["CorrectiveAction"]] = relationship(
+        back_populates="started_by",
         cascade="all, delete",
-        foreign_keys="CorrectiveAction.created_by_id",
+        foreign_keys="CorrectiveAction.started_by_id",
+    )
+    actions_closed: Mapped[list["CorrectiveAction"]] = relationship(
+        back_populates="closed_by",
+        cascade="all, delete",
+        foreign_keys="CorrectiveAction.closed_by_id",
+    )
+    uploads: Mapped[list["MediaFile"]] = relationship(
+        back_populates="uploaded_by",
+        cascade="all, delete",
+        foreign_keys="MediaFile.uploaded_by_id",
     )
 
 
@@ -167,7 +177,7 @@ class ActionStatus(str, Enum):
 class CorrectiveAction(Base):
     __tablename__ = "corrective_actions"
 
-    id: Mapped[str] = mapped_column(String, primary_key=True, default=generate_uuid)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     inspection_id: Mapped[int] = mapped_column(ForeignKey("inspections.id"))
     response_id: Mapped[str | None] = mapped_column(ForeignKey("inspection_responses.id", ondelete="SET NULL"))
     title: Mapped[str] = mapped_column(String)
@@ -176,9 +186,11 @@ class CorrectiveAction(Base):
     due_date: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     assigned_to_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     status: Mapped[str] = mapped_column(String, default=ActionStatus.open.value)
-    created_by_id: Mapped[str] = mapped_column(ForeignKey("users.id"))
+    started_by_id: Mapped[str] = mapped_column(ForeignKey("users.id"))
+    closed_by_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     closed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    resolution_notes: Mapped[str | None] = mapped_column(Text(), nullable=True)
 
     inspection: Mapped[Inspection] = relationship(back_populates="actions")
     response: Mapped[InspectionResponse | None] = relationship(back_populates="actions")
@@ -186,9 +198,13 @@ class CorrectiveAction(Base):
         back_populates="actions_assigned",
         foreign_keys=[assigned_to_id],
     )
-    created_by: Mapped[User] = relationship(
-        back_populates="actions_created",
-        foreign_keys=[created_by_id],
+    started_by: Mapped[User] = relationship(
+        back_populates="actions_started",
+        foreign_keys=[started_by_id],
+    )
+    closed_by: Mapped[User | None] = relationship(
+        back_populates="actions_closed",
+        foreign_keys=[closed_by_id],
     )
     media_files: Mapped[list["MediaFile"]] = relationship(back_populates="action", cascade="all, delete-orphan")
 
@@ -198,7 +214,7 @@ class MediaFile(Base):
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=generate_uuid)
     response_id: Mapped[str | None] = mapped_column(ForeignKey("inspection_responses.id", ondelete="CASCADE"))
-    action_id: Mapped[str | None] = mapped_column(ForeignKey("corrective_actions.id", ondelete="CASCADE"))
+    action_id: Mapped[int | None] = mapped_column(ForeignKey("corrective_actions.id", ondelete="CASCADE"))
     file_url: Mapped[str] = mapped_column(String)
     description: Mapped[str | None] = mapped_column(Text(), nullable=True)
     uploaded_by_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"), nullable=True)
@@ -206,3 +222,7 @@ class MediaFile(Base):
 
     response: Mapped[InspectionResponse | None] = relationship(back_populates="media_files")
     action: Mapped[CorrectiveAction | None] = relationship(back_populates="media_files")
+    uploaded_by: Mapped[User | None] = relationship(
+        back_populates="uploads",
+        foreign_keys=[uploaded_by_id],
+    )

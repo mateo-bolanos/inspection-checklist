@@ -15,6 +15,7 @@ import {
 import type { components } from '@/api/gen/schema'
 import { FormField } from '@/components/forms/FormField'
 import { EmptyState } from '@/components/feedback/EmptyState'
+import { LoadingState } from '@/components/feedback/LoadingState'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
@@ -23,20 +24,20 @@ import { useToast } from '@/components/ui/Toast'
 
 const itemSchema = z.object({
   prompt: z.string().min(2),
-  is_required: z.boolean().default(true),
-  order_index: z.coerce.number().min(0).default(0),
+  is_required: z.boolean(),
+  order_index: z.number().min(0),
 })
 
 const sectionSchema = z.object({
   title: z.string().min(2),
-  order_index: z.coerce.number().min(0).default(0),
-  items: z.array(itemSchema).default([]),
+  order_index: z.number().min(0),
+  items: z.array(itemSchema),
 })
 
 const templateSchema = z.object({
   name: z.string().min(2),
   description: z.string().optional(),
-  sections: z.array(sectionSchema).default([]),
+  sections: z.array(sectionSchema),
 })
 
 type TemplateFormValues = z.infer<typeof templateSchema>
@@ -70,12 +71,12 @@ export const TemplateEditorPage = () => {
         sections:
           template.sections?.map((section, sectionIndex) => ({
             title: section.title,
-            order_index: section.order_index ?? sectionIndex,
+            order_index: typeof section.order_index === 'number' ? section.order_index : sectionIndex,
             items:
               section.items?.map((item, itemIndex) => ({
                 prompt: item.prompt,
                 is_required: item.is_required,
-                order_index: item.order_index ?? itemIndex,
+                order_index: typeof item.order_index === 'number' ? item.order_index : itemIndex,
               })) ?? [],
           })) ?? [],
       })
@@ -94,7 +95,7 @@ export const TemplateEditorPage = () => {
       template.sections.forEach((section, index) => {
         drafts[section.id] = {
           title: section.title,
-          order_index: section.order_index ?? index,
+          order_index: typeof section.order_index === 'number' ? section.order_index : index,
         }
         itemDefaults[section.id] = { prompt: '', is_required: true, order_index: (section.items?.length ?? 0) + 1 }
       })
@@ -277,6 +278,10 @@ export const TemplateEditorPage = () => {
       </div>
     )
   }, [isNewTemplate, sectionsArray, form, addSection])
+
+  if (!isNewTemplate && isLoading) {
+    return <LoadingState label="Loading template..." />
+  }
 
   return (
     <div className="space-y-6">

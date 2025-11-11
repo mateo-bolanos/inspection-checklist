@@ -10,4 +10,4 @@ export const INSPECTION_STATUSES = ['draft', 'submitted', 'approved', 'rejected'
 
 export const ACTION_SEVERITIES = ['low', 'medium', 'high', 'critical'] as const
 
-export const ACTION_STATUSES = ['open', 'in_progress', 'closed'] as const
+export const ACTION_STATUSES = ['open', 'closed'] as const

@@ -487,15 +487,15 @@ export interface components {
             due_date?: string | null;
             /** Assigned To Id */
             assigned_to_id?: string | null;
+            /** Inspection Id */
+            inspection_id: number;
+            /** Response Id */
+            response_id?: string | null;
             /**
              * Status
              * @default open
              */
             status: string;
-            /** Inspection Id */
-            inspection_id: number;
-            /** Response Id */
-            response_id?: string | null;
         };
         /** CorrectiveActionRead */
         CorrectiveActionRead: {
@@ -512,17 +512,14 @@ export interface components {
             due_date?: string | null;
             /** Assigned To Id */
             assigned_to_id?: string | null;
-            /**
-             * Status
-             * @default open
-             */
-            status: string;
             /** Id */
-            id: string;
+            id: number;
             /** Inspection Id */
             inspection_id: number;
             /** Response Id */
             response_id?: string | null;
+            /** Status */
+            status: string;
             /**
              * Created At
              * Format: date-time
@@ -530,8 +527,10 @@ export interface components {
             created_at: string;
             /** Closed At */
             closed_at?: string | null;
-            /** Created By */
-            created_by: components["schemas"]["UserRead"];
+            /** Resolution Notes */
+            resolution_notes?: string | null;
+            started_by: components["schemas"]["UserRead"];
+            closed_by?: components["schemas"]["UserRead"] | null;
         };
         /** CorrectiveActionUpdate */
         CorrectiveActionUpdate: {
@@ -547,6 +546,8 @@ export interface components {
             assigned_to_id?: string | null;
             /** Status */
             status?: string | null;
+            /** Resolution Notes */
+            resolution_notes?: string | null;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -587,7 +588,6 @@ export interface components {
             submitted_at?: string | null;
             /** Overall Score */
             overall_score?: number | null;
-            /** Created By */
             created_by: components["schemas"]["UserRead"];
             /** Responses */
             responses?: components["schemas"]["InspectionResponseRead"][];
@@ -615,7 +615,6 @@ export interface components {
             submitted_at?: string | null;
             /** Overall Score */
             overall_score?: number | null;
-            /** Created By */
             created_by: components["schemas"]["UserRead"];
         };
         /** InspectionResponseCreate */
@@ -689,6 +688,11 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /** Action Id */
+            action_id?: number | null;
+            /** Response Id */
+            response_id?: string | null;
+            uploaded_by?: components["schemas"]["UserRead"] | null;
         };
         /** OverviewMetrics */
         OverviewMetrics: {
@@ -1628,7 +1632,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                action_id: string;
+                action_id: number;
             };
             cookie?: never;
         };
@@ -1659,7 +1663,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                action_id: string;
+                action_id: number;
             };
             cookie?: never;
         };
@@ -1762,7 +1766,10 @@ export interface operations {
     };
     list_media_files__get: {
         parameters: {
-            query?: never;
+            query?: {
+                response_id?: string | null;
+                action_id?: number | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -1778,13 +1785,22 @@ export interface operations {
                     "application/json": components["schemas"]["MediaFileRead"][];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     upload_media_files__post: {
         parameters: {
             query?: {
                 response_id?: string | null;
-                action_id?: string | null;
+                action_id?: number | null;
             };
             header?: never;
             path?: never;

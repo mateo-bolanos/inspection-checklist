@@ -5,7 +5,6 @@ import { ProtectedRoute } from '@/routes/protected'
 
 import { LoginPage } from '@/pages/Login'
 import { OverviewPage } from '@/pages/Dashboard/Overview'
-import { DashboardActionsPage } from '@/pages/Dashboard/Actions'
 import { DashboardItemsPage } from '@/pages/Dashboard/Items'
 import { TemplatesListPage } from '@/pages/Templates/TemplatesList'
 import { TemplateEditorPage } from '@/pages/Templates/TemplateEditor'
@@ -42,14 +41,6 @@ export const router = createBrowserRouter([
         element: (
           <ProtectedRoute roles={['admin', 'reviewer']}>
             <OverviewPage />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: 'dash/actions',
-        element: (
-          <ProtectedRoute roles={['admin', 'reviewer']}>
-            <DashboardActionsPage />
           </ProtectedRoute>
         ),
       },

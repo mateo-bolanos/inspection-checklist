@@ -22,6 +22,11 @@ class Settings:
         self.jwt_secret = os.getenv("JWT_SECRET", "change-me")
         self.jwt_algorithm = os.getenv("JWT_ALGORITHM", "HS256")
         self.access_token_expire_minutes = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
+        self.cors_allow_origins = self._load_cors_origins()
+        self.cors_allow_origin_regex = os.getenv(
+            "CORS_ALLOW_ORIGIN_REGEX",
+            r"http://(localhost|127\.0\.0\.1)(:\d+)?$",
+        )
 
     @property
     def database_url(self) -> str:
@@ -29,6 +34,17 @@ class Settings:
         if os.getenv("USE_POSTGRES", "0") in {"1", "true", "True"}:
             return self.postgres_url
         return self.sqlite_url
+
+    def _load_cors_origins(self) -> list[str]:
+        raw = os.getenv("CORS_ALLOW_ORIGINS")
+        if raw:
+            origins = [origin.strip() for origin in raw.split(",") if origin.strip()]
+        else:
+            origins = [
+                "http://localhost:5173",
+                "http://127.0.0.1:5173",
+            ]
+        return origins
 
 
 @lru_cache

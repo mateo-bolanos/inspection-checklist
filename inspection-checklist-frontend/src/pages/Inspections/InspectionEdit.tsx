@@ -408,10 +408,18 @@ export const InspectionEditPage = () => {
                     {actionsForResponse.map((action) => (
                       <div key={action.id} className="rounded-lg border border-slate-100 p-3 text-sm">
                         <div className="flex items-center justify-between">
-                          <p className="font-semibold text-slate-900">{action.title}</p>
+                          <div>
+                            <p className="font-semibold text-slate-900">
+                              Action #{action.id} • {action.title}
+                            </p>
+                            <p className="text-xs text-slate-500">Status • {action.status.replace('_', ' ')}</p>
+                          </div>
                           <Badge variant="warning">{action.severity}</Badge>
                         </div>
                         <p className="text-xs text-slate-500">Due {action.due_date ? formatDateTime(action.due_date.toString()) : 'unspecified'}</p>
+                        {action.resolution_notes && (
+                          <p className="mt-1 text-xs text-emerald-700">Resolution • {action.resolution_notes}</p>
+                        )}
                       </div>
                     ))}
                     {activeActionItem === item.id && (
