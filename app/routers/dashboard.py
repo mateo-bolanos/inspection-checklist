@@ -1,11 +1,20 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends
+from datetime import date, timedelta
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.schemas.dashboard import ActionMetrics, ItemsMetrics, OverviewMetrics
+from app.models.entities import UserRole
+from app.schemas.dashboard import (
+    ActionMetrics,
+    ItemsMetrics,
+    OverviewMetrics,
+    WeeklyInspectionKPIs,
+    WeeklyPendingUser,
+)
 from app.services import auth as auth_service
 from app.services import dashboard as dashboard_service
 
@@ -15,7 +24,7 @@ router = APIRouter()
 @router.get("/overview", response_model=OverviewMetrics)
 def read_overview(
     db: Session = Depends(get_db),
-    _: object = Depends(auth_service.get_current_active_user),
+    _: object = Depends(auth_service.require_role([UserRole.admin.value, UserRole.reviewer.value])),
 ) -> OverviewMetrics:
     return dashboard_service.get_overview_metrics(db)
 
@@ -23,7 +32,13 @@ def read_overview(
 @router.get("/actions", response_model=ActionMetrics)
 def read_action_metrics(
     db: Session = Depends(get_db),
-    _: object = Depends(auth_service.get_current_active_user),
+    _: object = Depends(
+        auth_service.require_role([
+            UserRole.admin.value,
+            UserRole.reviewer.value,
+            UserRole.inspector.value,
+        ])
+    ),
 ) -> ActionMetrics:
     return dashboard_service.get_action_metrics(db)
 
@@ -32,9 +47,39 @@ def read_action_metrics(
 def read_item_metrics(
     limit: int = 5,
     db: Session = Depends(get_db),
-    _: object = Depends(auth_service.get_current_active_user),
+    _: object = Depends(auth_service.require_role([UserRole.admin.value, UserRole.reviewer.value])),
 ) -> ItemsMetrics:
     return dashboard_service.get_item_failure_metrics(db, limit=limit)
+
+
+@router.get("/weekly-overview", response_model=WeeklyInspectionKPIs)
+def read_weekly_overview(
+    start: date | None = Query(default=None, description="UTC date (YYYY-MM-DD) for week start"),
+    end: date | None = Query(default=None, description="UTC date (YYYY-MM-DD) for week end"),
+    db: Session = Depends(get_db),
+    _: object = Depends(auth_service.require_role([UserRole.admin.value, UserRole.reviewer.value])),
+) -> WeeklyInspectionKPIs:
+    """
+    Weekly KPI endpoint defaults to the current calendar week (Monday–Sunday) when no range is provided.
+    """
+
+    start_date, end_date = _resolve_week_range(start, end)
+    return dashboard_service.get_weekly_inspection_kpis(db, start_date, end_date)
+
+
+@router.get("/weekly-pending", response_model=list[WeeklyPendingUser])
+def read_weekly_pending(
+    start: date | None = Query(default=None, description="UTC date (YYYY-MM-DD) for week start"),
+    end: date | None = Query(default=None, description="UTC date (YYYY-MM-DD) for week end"),
+    db: Session = Depends(get_db),
+    _: object = Depends(auth_service.require_role([UserRole.admin.value, UserRole.reviewer.value])),
+) -> list[WeeklyPendingUser]:
+    """
+    List of users with pending/overdue scheduled inspections for a calendar week (default: current week).
+    """
+
+    start_date, end_date = _resolve_week_range(start, end)
+    return dashboard_service.get_weekly_pending_by_user(db, start_date, end_date)
 
 
 @router.get("/ui", response_class=HTMLResponse, include_in_schema=False)
@@ -106,3 +151,30 @@ def dashboard_ui() -> HTMLResponse:
     </html>
     """
     return HTMLResponse(content=html)
+
+
+def _resolve_week_range(start: date | None, end: date | None) -> tuple[date, date]:
+    """
+    Helper to normalize inputs into a Monday–Sunday inclusive range.
+    """
+
+    if start and end and start > end:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="start date must be on or before end date",
+        )
+
+    if start and end:
+        week_start, week_end = start, end
+    elif start:
+        week_start = start
+        week_end = start + timedelta(days=6)
+    elif end:
+        week_end = end
+        week_start = end - timedelta(days=6)
+    else:
+        today = date.today()
+        week_start = today - timedelta(days=today.weekday())
+        week_end = week_start + timedelta(days=6)
+
+    return week_start, week_end

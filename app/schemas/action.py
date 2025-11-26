@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import List
 
 from pydantic import BaseModel, Field
 
 from app.models.entities import ActionSeverity, ActionStatus
 from app.schemas.auth import UserRead
+from app.schemas.note import NoteEntryRead
 
 
 class CorrectiveActionBase(BaseModel):
@@ -37,11 +39,14 @@ class CorrectiveActionRead(CorrectiveActionBase):
     inspection_id: int
     response_id: str | None = None
     status: str
+    assignee: UserRead | None = None
     created_at: datetime
     closed_at: datetime | None = None
     resolution_notes: str | None = None
     started_by: UserRead
     closed_by: UserRead | None = None
+    media_urls: List[str] = Field(default_factory=list)
+    note_entries: List[NoteEntryRead] = Field(default_factory=list)
 
     class Config:
         from_attributes = True

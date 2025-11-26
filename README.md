@@ -32,6 +32,17 @@ npm run generate:api   # pulls the current /openapi.json
 npm run dev            # http://localhost:5173
 ```
 
+### CORS configuration
+
+`CORS_ALLOW_ORIGINS` now accepts comma-, whitespace-, or JSON-array-formatted lists.  
+Examples (all equivalent):
+
+- `CORS_ALLOW_ORIGINS=http://localhost:5173,https://app.example.com`
+- `CORS_ALLOW_ORIGINS=http://localhost:5173 https://app.example.com`
+- `CORS_ALLOW_ORIGINS=["http://localhost:5173","https://app.example.com"]`
+
+The backend normalizes duplicates, strips trailing slashes, and appends `FRONTEND_BASE_URL` automatically so the Vite dev server keeps working out of the box.
+
 ## Features
 
 - JWT auth with admin/inspector/reviewer roles and route guards

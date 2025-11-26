@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from fastapi.responses import JSONResponse, Response
 from sqlalchemy.orm import Session
 
@@ -62,7 +62,7 @@ def update_inspection(
 ) -> InspectionRead:
     inspection = _get_inspection_or_404(db, inspection_id, current_user)
     try:
-        return inspection_service.update_inspection(db, inspection, payload)
+        return inspection_service.update_inspection(db, inspection, payload, current_user)
     except ValueError as exc:  # noqa: BLE001
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
@@ -70,15 +70,20 @@ def update_inspection(
 @router.post("/{inspection_id}/submit", response_model=InspectionRead)
 def submit_inspection_endpoint(
     inspection_id: int,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user = Depends(auth_service.get_current_active_user),
 ) -> InspectionRead:
     inspection = _get_inspection_or_404(db, inspection_id, current_user)
     _ensure_owner_or_admin(inspection, current_user)
     try:
-        return inspection_service.submit_inspection(db, inspection)
+        result = inspection_service.submit_inspection(db, inspection)
     except ValueError as exc:  # noqa: BLE001
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    payload = inspection_service.build_submission_notification_payload(result)
+    if payload.get("inspector_email") or payload.get("supervisor_email"):
+        background_tasks.add_task(inspection_service.send_submission_notifications, payload)
+    return result
 
 
 @router.post("/{inspection_id}/approve", response_model=InspectionRead)

@@ -6,11 +6,23 @@ import { TemplateEditorPage } from '@/pages/Templates/TemplateEditor'
 import { renderWithProviders } from '@/test-utils'
 
 const mockCreate = vi.fn()
+const noopMutation = { mutateAsync: vi.fn(), isPending: false }
 
 vi.mock('@/api/hooks', () => ({
   useCreateTemplateMutation: () => ({ mutateAsync: mockCreate, isPending: false }),
+  useUpdateTemplateMutation: () => noopMutation,
   useTemplateQuery: () => ({ data: undefined, isLoading: false }),
   useTemplatesQuery: () => ({ data: [], isLoading: false }),
+  useSectionMutations: () => ({
+    createSection: noopMutation,
+    updateSection: noopMutation,
+    deleteSection: noopMutation,
+  }),
+  useItemMutations: () => ({
+    createItem: noopMutation,
+    updateItem: noopMutation,
+    deleteItem: noopMutation,
+  }),
 }))
 
 describe('TemplateEditorPage', () => {

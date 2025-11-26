@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Inspection Digest</title>
+</head>
+<body style="font-family: Arial, sans-serif; color: #1f2933;">
+  <h2>Good morning {{ user_name or 'team' }},</h2>
+  <p>Here are your upcoming inspections that are still pending or overdue.</p>
+  <table style="border-collapse: collapse; width: 100%;">
+    <thead>
+      <tr>
+        <th style="border-bottom: 1px solid #cbd5e1; text-align: left; padding: 8px;">Template</th>
+        <th style="border-bottom: 1px solid #cbd5e1; text-align: left; padding: 8px;">Location</th>
+        <th style="border-bottom: 1px solid #cbd5e1; text-align: left; padding: 8px;">Due</th>
+        <th style="border-bottom: 1px solid #cbd5e1; text-align: left; padding: 8px;">Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in inspections %}
+      <tr>
+        <td style="padding: 8px;">{{ item.template_name }}</td>
+        <td style="padding: 8px;">{{ item.location or 'Unassigned' }}</td>
+        <td style="padding: 8px;">{{ item.due_at }}</td>
+        <td style="padding: 8px;">{{ item.status|title }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p style="margin-top:16px;">Jump back into your dashboard to work these items:</p>
+  <p><a href="{{ inspection_link }}" style="color:#0b5ed7;">Open inspections dashboard</a></p>
+</body>
+</html>

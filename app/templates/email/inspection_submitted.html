@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Inspection Submitted</title>
+</head>
+<body style="font-family: Arial, sans-serif; color: #1f2933;">
+  <h2>Inspection Submitted</h2>
+  <p>{{ user_name or 'Team' }} just submitted a <strong>{{ template_name }}</strong> inspection.</p>
+  <ul>
+    <li><strong>Location:</strong> {{ location or 'Unassigned' }}</li>
+    <li><strong>Submitted at:</strong> {{ submitted_at }}</li>
+    <li><strong>Total items:</strong> {{ total_items }}</li>
+    <li><strong>Failed items:</strong> {{ failed_items }}</li>
+  </ul>
+  <p>
+    <a href="{{ inspection_link }}" style="color:#0b5ed7;">View inspection details</a>
+    {% if pdf_link %}
+      &nbsp;|&nbsp;
+      <a href="{{ pdf_link }}" style="color:#0b5ed7;">Download PDF</a>
+    {% endif %}
+  </p>
+</body>
+</html>

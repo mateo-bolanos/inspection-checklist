@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 
-import { useActionsQuery } from '@/api/hooks'
+import { useActionsQuery, useActionAssigneesQuery } from '@/api/hooks'
 import type { components } from '@/api/gen/schema'
 import { ACTION_SEVERITIES } from '@/lib/constants'
 import { formatDate, formatRelative } from '@/lib/formatters'
@@ -13,6 +13,7 @@ import { EmptyState } from '@/components/feedback/EmptyState'
 import { LoadingState } from '@/components/feedback/LoadingState'
 import { ActionDetailsModal } from '@/pages/Actions/ActionDetailsModal'
 import { getActionDisplayStatus } from '@/pages/Actions/utils'
+import { useAuth } from '@/auth/useAuth'
 
 type ActionRecord = components['schemas']['CorrectiveActionRead']
 
@@ -27,7 +28,9 @@ type StatusFilter = (typeof STATUS_FILTERS)[number]
 type DueFilter = (typeof DUE_FILTERS)[number]['value']
 
 export const ActionsSearchPage = () => {
-  const { data, isLoading } = useActionsQuery()
+  const { user } = useAuth()
+  const assigneesQuery = useActionAssigneesQuery()
+  const assigneeOptions = assigneesQuery.data ?? []
   const [severity, setSeverity] = useState<'all' | (typeof ACTION_SEVERITIES)[number]>('all')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [dueFilter, setDueFilter] = useState<DueFilter>('all')
@@ -36,7 +39,18 @@ export const ActionsSearchPage = () => {
   const [searchParams, setSearchParams] = useSearchParams()
   const actionParam = searchParams.get('actionId')
   const inspectionParam = searchParams.get('inspectionId')
+  const assigneeParam = searchParams.get('assigneeId')
+  const mineParam = searchParams.get('mine')
   const [inspectionIdFilter, setInspectionIdFilter] = useState(inspectionParam ?? '')
+  const [assigneeFilter, setAssigneeFilter] = useState(assigneeParam ?? '')
+  const [mineOnlyState, setMineOnlyState] = useState(mineParam === '1')
+  const isActionOwner = user?.role === 'action_owner'
+  const mineOnly = isActionOwner ? true : mineOnlyState
+  const assignedToParam = mineOnly ? user?.id ?? undefined : assigneeFilter || undefined
+  const { data, isLoading } = useActionsQuery({
+    assignedTo: assignedToParam,
+    enabled: !mineOnly || Boolean(user?.id),
+  })
 
   useEffect(() => {
     if (!data || !actionParam) return
@@ -52,6 +66,16 @@ export const ActionsSearchPage = () => {
   useEffect(() => {
     setInspectionIdFilter(inspectionParam ?? '')
   }, [inspectionParam])
+
+  useEffect(() => {
+    setAssigneeFilter(assigneeParam ?? '')
+  }, [assigneeParam])
+
+  useEffect(() => {
+    if (!isActionOwner) {
+      setMineOnlyState(mineParam === '1')
+    }
+  }, [mineParam, isActionOwner])
 
   const updateSearchParams = (entries: Record<string, string | null>) => {
     const next = new URLSearchParams(searchParams)
@@ -97,6 +121,8 @@ export const ActionsSearchPage = () => {
         action.resolution_notes,
         action.started_by?.full_name,
         action.closed_by?.full_name,
+        action.assignee?.full_name,
+        action.assignee?.email,
         action.id.toString(),
         action.inspection_id.toString(),
       ]
@@ -116,6 +142,17 @@ export const ActionsSearchPage = () => {
   const handleInspectionFilterChange = (value: string) => {
     setInspectionIdFilter(value)
     updateSearchParams({ inspectionId: value.trim().length > 0 ? value : null })
+  }
+
+  const handleAssigneeFilterChange = (value: string) => {
+    setAssigneeFilter(value)
+    updateSearchParams({ assigneeId: value.trim().length > 0 ? value : null })
+  }
+
+  const handleMineOnlyChange = (checked: boolean) => {
+    if (isActionOwner) return
+    setMineOnlyState(checked)
+    updateSearchParams({ mine: checked ? '1' : null })
   }
 
   const handleActionClick = (action: ActionRecord) => {
@@ -146,49 +183,45 @@ export const ActionsSearchPage = () => {
           />
         }
       >
-        <div className="flex flex-wrap gap-3">
-          <Select
-            value={severity}
-            onChange={(event) => setSeverity(event.target.value as typeof severity)}
-            className="w-40"
-          >
-            <option value="all">All severities</option>
-            {ACTION_SEVERITIES.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </Select>
-          <Select
-            value={statusFilter}
-            onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}
-            className="w-36"
-          >
-            {STATUS_FILTERS.map((option) => (
-              <option key={option} value={option}>
-                {option === 'all' ? 'All statuses' : option}
-              </option>
-            ))}
-          </Select>
-          <Select
-            value={dueFilter}
-            onChange={(event) => setDueFilter(event.target.value as DueFilter)}
-            className="w-48"
-          >
-            {DUE_FILTERS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </Select>
-          <div className="flex items-center gap-2">
+        <div className="flex flex-wrap gap-3 lg:flex-nowrap lg:items-center">
+          <div className="min-w-[10rem] flex-shrink-0">
+            <Select
+              value={severity}
+              onChange={(event) => setSeverity(event.target.value as typeof severity)}
+            >
+              <option value="all">All severities</option>
+              {ACTION_SEVERITIES.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div className="min-w-[9rem] flex-shrink-0">
+            <Select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}>
+              {STATUS_FILTERS.map((option) => (
+                <option key={option} value={option}>
+                  {option === 'all' ? 'All statuses' : option}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div className="min-w-[12rem] flex-shrink-0">
+            <Select value={dueFilter} onChange={(event) => setDueFilter(event.target.value as DueFilter)}>
+              {DUE_FILTERS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div className="flex items-center gap-2 min-w-[12rem] flex-shrink-0">
             <Input
               type="number"
               min="1"
               value={inspectionIdFilter}
               onChange={(event) => handleInspectionFilterChange(event.target.value)}
               placeholder="Inspection ID"
-              className="w-36"
             />
             {inspectionIdFilter && (
               <Button variant="ghost" type="button" onClick={() => handleInspectionFilterChange('')}>
@@ -196,6 +229,29 @@ export const ActionsSearchPage = () => {
               </Button>
             )}
           </div>
+          <div className="min-w-[12rem] flex-shrink-0">
+            <Select
+              value={assigneeFilter}
+              onChange={(event) => handleAssigneeFilterChange(event.target.value)}
+              disabled={mineOnly || assigneesQuery.isLoading}
+            >
+              <option value="">All assignees</option>
+              {assigneeOptions.map((assignee) => (
+                <option key={assignee.id} value={assignee.id}>
+                  {assignee.full_name || assignee.email || 'User'}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <label className="flex items-center gap-2 text-sm text-slate-600">
+            <input
+              type="checkbox"
+              checked={mineOnly}
+              onChange={(event) => handleMineOnlyChange(event.target.checked)}
+              disabled={isActionOwner}
+            />
+            Mine only
+          </label>
         </div>
       </Card>
 
@@ -211,6 +267,7 @@ export const ActionsSearchPage = () => {
                   <th className="px-4 py-2">Severity</th>
                   <th className="px-4 py-2">Status</th>
                   <th className="px-4 py-2">Due</th>
+                  <th className="px-4 py-2">Assignee</th>
                   <th className="px-4 py-2">Inspection</th>
                   <th className="px-4 py-2 text-right">Details</th>
                 </tr>
@@ -238,6 +295,9 @@ export const ActionsSearchPage = () => {
                       </td>
                       <td className="px-4 py-3 text-slate-600">
                         {action.due_date ? `${formatDate(action.due_date)} (${formatRelative(action.due_date)})` : 'N/A'}
+                      </td>
+                      <td className="px-4 py-3 text-slate-600">
+                        {action.assignee?.full_name || action.assignee?.email || 'Unassigned'}
                       </td>
                       <td className="px-4 py-3 text-slate-600">
                         <Link to={`/inspections/${action.inspection_id}`} className="text-indigo-600 hover:underline">

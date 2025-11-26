@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
+import { useAuth } from '@/auth/useAuth'
 import { useActionsQuery, useDashboardActionsQuery } from '@/api/hooks'
 import type { components } from '@/api/gen/schema'
 import { ACTION_SEVERITIES } from '@/lib/constants'
@@ -17,8 +18,19 @@ import { getActionDisplayStatus } from '@/pages/Actions/utils'
 type ActionRecord = components['schemas']['CorrectiveActionRead']
 
 export const ActionsListPage = () => {
-  const { data, isLoading } = useActionsQuery()
-  const dashboard = useDashboardActionsQuery()
+  const { user, hasRole } = useAuth()
+  const role = user?.role ?? 'inspector'
+  const viewingAsOwner = role === 'action_owner'
+  const [scope, setScope] = useState<'all' | 'mine'>(viewingAsOwner ? 'mine' : 'all')
+  const requiresUserScope = viewingAsOwner || scope === 'mine'
+  const assignedToFilter = requiresUserScope ? user?.id : undefined
+  const { data, isLoading } = useActionsQuery({
+    assignedTo: assignedToFilter,
+    enabled: !requiresUserScope || Boolean(user?.id),
+  })
+  const canSeeOrgMetrics = hasRole(['admin', 'reviewer', 'inspector'])
+  const canViewInspections = hasRole(['admin', 'reviewer', 'inspector'])
+  const dashboard = useDashboardActionsQuery({ enabled: canSeeOrgMetrics })
   const [severity, setSeverity] = useState<'all' | (typeof ACTION_SEVERITIES)[number]>('all')
   const [selectedActionId, setSelectedActionId] = useState<number | null>(null)
 
@@ -59,50 +71,68 @@ export const ActionsListPage = () => {
     return <LoadingState label="Loading actions..." />
   }
 
+  const showScopeToggle = hasRole(['admin', 'reviewer'])
+
   return (
     <div className="space-y-6">
-      <Card
-        title="Action overview"
-        actions={
-          <Link to="/actions/search" className="text-sm font-semibold text-indigo-600 hover:underline">
-            Search actions
-          </Link>
-        }
-      >
-        {dashboard.isLoading ? (
-          <p className="text-sm text-slate-500">Loading action metrics...</p>
-        ) : dashboard.isError ? (
-          <ErrorState
-            message="Could not load action metrics"
-            action={
-              <Button variant="ghost" onClick={() => dashboard.refetch()}>
-                Retry
-              </Button>
-            }
-          />
-        ) : dashboard.data ? (
-          <div className="grid gap-4 md:grid-cols-4">
-            {Object.entries(dashboard.data.open_by_severity).map(([key, value]) => (
-              <div key={key} className="rounded-xl bg-slate-50 p-4 text-center">
-                <p className="text-xs uppercase tracking-wide text-slate-500">{key}</p>
-                <p className="text-3xl font-semibold text-slate-900">{value}</p>
+      {canSeeOrgMetrics ? (
+        <Card
+          title="Action overview"
+          actions={
+            <Link to="/actions/search" className="text-sm font-semibold text-indigo-600 hover:underline">
+              Search actions
+            </Link>
+          }
+        >
+          {dashboard.isLoading ? (
+            <p className="text-sm text-slate-500">Loading action metrics...</p>
+          ) : dashboard.isError ? (
+            <ErrorState
+              message="Could not load action metrics"
+              action={
+                <Button variant="ghost" onClick={() => dashboard.refetch()}>
+                  Retry
+                </Button>
+              }
+            />
+          ) : dashboard.data ? (
+            <div className="grid gap-4 md:grid-cols-4">
+              {Object.entries(dashboard.data.open_by_severity).map(([key, value]) => (
+                <div key={key} className="rounded-xl bg-slate-50 p-4 text-center">
+                  <p className="text-xs uppercase tracking-wide text-slate-500">{key}</p>
+                  <p className="text-3xl font-semibold text-slate-900">{value}</p>
+                </div>
+              ))}
+              <div className="rounded-xl bg-red-50 p-4 text-center text-red-700">
+                <p className="text-xs uppercase tracking-wide">Overdue</p>
+                <p className="text-3xl font-semibold">{dashboard.data.overdue_actions}</p>
               </div>
-            ))}
-            <div className="rounded-xl bg-red-50 p-4 text-center text-red-700">
-              <p className="text-xs uppercase tracking-wide">Overdue</p>
-              <p className="text-3xl font-semibold">{dashboard.data.overdue_actions}</p>
             </div>
-          </div>
-        ) : (
-          <p className="text-sm text-slate-500">No metrics available yet.</p>
-        )}
-      </Card>
+          ) : (
+            <p className="text-sm text-slate-500">No metrics available yet.</p>
+          )}
+        </Card>
+      ) : (
+        <Card
+          title="Your assignments"
+          subtitle="You are now responsible for the actions assigned to you"
+          actions={
+            <Link to="/actions/search" className="text-sm font-semibold text-indigo-600 hover:underline">
+              Search actions
+            </Link>
+          }
+        >
+          <p className="text-sm text-slate-600">
+            New assignments appear below. Close them as soon as you upload evidence and add resolution notes.
+          </p>
+        </Card>
+      )}
 
       <Card
         title="Active corrective actions"
         subtitle="Monitor everything that is still open"
         actions={
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Select value={severity} onChange={(event) => setSeverity(event.target.value as typeof severity)}>
               <option value="all">All severities</option>
               {ACTION_SEVERITIES.map((option) => (
@@ -111,6 +141,12 @@ export const ActionsListPage = () => {
                 </option>
               ))}
             </Select>
+            {showScopeToggle && (
+              <Select value={scope} onChange={(event) => setScope(event.target.value as 'all' | 'mine')}>
+                <option value="all">All assignees</option>
+                <option value="mine">My actions</option>
+              </Select>
+            )}
           </div>
         }
       >
@@ -118,39 +154,57 @@ export const ActionsListPage = () => {
           <EmptyState title="No active actions" description="Update filters to see more." />
         ) : (
           <div className="space-y-3">
-            {activeActions.map((action) => (
-              <div key={action.id} className="rounded-xl border border-slate-200 p-4">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900">
-                      <button
-                        type="button"
-                        className="inline-flex items-center gap-1 rounded px-0 py-0 text-indigo-600 underline-offset-4 hover:underline focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
-                        onClick={() => handleActionClick(action)}
-                      >
-                        Action #{action.id}
-                      </button>{' '}
-                      • {action.title}
-                    </p>
-                    <p className="text-xs text-slate-500">Severity • {action.severity}</p>
+            {activeActions.map((action) => {
+              const isOverdue =
+                !!action.due_date && getActionDisplayStatus(action.status) === 'open' &&
+                new Date(action.due_date).getTime() < Date.now()
+              return (
+                <div key={action.id} className="rounded-xl border border-slate-200 p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">
+                        <button
+                          type="button"
+                          className="inline-flex items-center gap-1 rounded px-0 py-0 text-indigo-600 underline-offset-4 hover:underline focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                          onClick={() => handleActionClick(action)}
+                        >
+                          Action #{action.id}
+                        </button>{' '}
+                        • {action.title}
+                      </p>
+                      <p className="text-xs text-slate-500">Severity • {action.severity}</p>
+                    </div>
+                    <span className="text-xs uppercase text-slate-500">{getActionDisplayStatus(action.status)}</span>
                   </div>
-                  <span className="text-xs uppercase text-slate-500">{getActionDisplayStatus(action.status)}</span>
+                  {action.description && <p className="mt-2 text-sm text-slate-600">{action.description}</p>}
+                  <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                    <span>Started by {action.started_by?.full_name ?? 'Unknown'}</span>
+                    <span>Assigned to {action.assignee?.full_name || action.assignee?.email || 'Unassigned'}</span>
+                    {canViewInspections && (
+                      <Link
+                        to={`/inspections/${action.inspection_id}`}
+                        className="font-semibold text-indigo-600 hover:underline"
+                      >
+                        View inspection
+                      </Link>
+                    )}
+                  </div>
+                  <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                    <span>
+                      Due{' '}
+                      {action.due_date
+                        ? `${formatDate(action.due_date)} (${formatRelative(action.due_date)})`
+                        : 'unspecified'}
+                    </span>
+                    {isOverdue && (
+                      <span className="rounded-full bg-red-50 px-2 py-0.5 font-semibold uppercase tracking-wide text-red-700">
+                        Overdue
+                      </span>
+                    )}
+                  </div>
                 </div>
-                {action.description && <p className="mt-2 text-sm text-slate-600">{action.description}</p>}
-                <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-slate-500">
-                  <span>Started by {action.started_by?.full_name ?? 'Unknown'}</span>
-                  <Link
-                    to={`/inspections/${action.inspection_id}`}
-                    className="font-semibold text-indigo-600 hover:underline"
-                  >
-                    View inspection
-                  </Link>
-                </div>
-                <div className="mt-1 text-xs text-slate-500">
-                  Due {action.due_date ? `${formatDate(action.due_date)} (${formatRelative(action.due_date)})` : 'unspecified'}
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </Card>
@@ -186,12 +240,15 @@ export const ActionsListPage = () => {
                   )}
                   <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-slate-500">
                     <span>Started by {action.started_by?.full_name ?? 'Unknown'}</span>
-                    <Link
-                      to={`/inspections/${action.inspection_id}`}
-                      className="font-semibold text-indigo-600 hover:underline"
-                    >
-                      View inspection
-                    </Link>
+                    <span>Assigned to {action.assignee?.full_name || action.assignee?.email || 'Unassigned'}</span>
+                    {canViewInspections && (
+                      <Link
+                        to={`/inspections/${action.inspection_id}`}
+                        className="font-semibold text-indigo-600 hover:underline"
+                      >
+                        View inspection
+                      </Link>
+                    )}
                   </div>
                   <div className="mt-1 text-xs text-slate-500">
                     Closed by {action.closed_by?.full_name ?? 'Unknown'} on{' '}

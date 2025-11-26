@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -15,10 +15,15 @@ router = APIRouter()
 
 @router.get("/", response_model=List[CorrectiveActionRead])
 def list_actions(
+    assigned_to: str | None = Query(default=None, description="Filter by assignee ID"),
+    status_filter: str | None = Query(default=None, alias="status", description="Filter by status"),
     db: Session = Depends(get_db),
     current_user = Depends(auth_service.get_current_active_user),
 ) -> List[CorrectiveActionRead]:
-    return action_service.list_actions(db, current_user)
+    try:
+        return action_service.list_actions(db, current_user, assigned_to=assigned_to, status=status_filter)
+    except ValueError as exc:  # noqa: BLE001
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
 
 @router.post("/", response_model=CorrectiveActionRead, status_code=status.HTTP_201_CREATED)

@@ -1,7 +1,9 @@
-import { createContext, useCallback, useContext, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import type { PropsWithChildren, ReactNode } from 'react'
 
 import { clsx } from 'clsx'
+
+import { ToastContext } from './toastContext'
 
 export type ToastVariant = 'default' | 'success' | 'error' | 'warning'
 
@@ -13,14 +15,7 @@ export type ToastPayload = {
   duration?: number
 }
 
-type ToastContextValue = {
-  push: (toast: ToastPayload) => string
-  dismiss: (id: string) => void
-}
-
 type ToastEntry = ToastPayload & { id: string }
-
-const ToastContext = createContext<ToastContextValue | undefined>(undefined)
 
 const variantClasses: Record<ToastVariant, string> = {
   default: 'bg-white text-slate-900 border-slate-200',
@@ -39,9 +34,7 @@ export const ToastProvider = ({ children }: PropsWithChildren) => {
   const push = useCallback(
     (toast: ToastPayload) => {
       const id =
-        toast.id ?? (typeof crypto !== 'undefined' && 'randomUUID' in crypto
-          ? crypto.randomUUID()
-          : Math.random().toString(36).slice(2))
+        toast.id ?? (typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : Math.random().toString(36).slice(2))
       const entry: ToastEntry = {
         ...toast,
         id,
@@ -74,11 +67,7 @@ export const ToastProvider = ({ children }: PropsWithChildren) => {
                 <p className="text-sm font-semibold">{toast.title}</p>
                 {toast.description && <p className="text-sm text-slate-600">{toast.description}</p>}
               </div>
-              <button
-                className="text-sm text-slate-500 hover:text-slate-900"
-                onClick={() => dismiss(toast.id)}
-                type="button"
-              >
+              <button className="text-sm text-slate-500 hover:text-slate-900" onClick={() => dismiss(toast.id)} type="button">
                 ×
               </button>
             </div>
@@ -89,10 +78,3 @@ export const ToastProvider = ({ children }: PropsWithChildren) => {
   )
 }
 
-export const useToast = () => {
-  const context = useContext(ToastContext)
-  if (!context) {
-    throw new Error('useToast must be used within a ToastProvider')
-  }
-  return context
-}

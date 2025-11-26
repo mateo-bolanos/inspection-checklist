@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Plus, Trash2 } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { useNavigate, useParams } from 'react-router-dom'
 import { z } from 'zod'
@@ -20,7 +20,7 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
-import { useToast } from '@/components/ui/Toast'
+import { useToast } from '@/components/ui/toastContext'
 
 const itemSchema = z.object({
   prompt: z.string().min(2),
@@ -52,9 +52,9 @@ export const TemplateEditorPage = () => {
 
   const { data: template, isLoading } = useTemplateQuery(templateId)
   const createTemplate = useCreateTemplateMutation()
-  const updateTemplate = templateId ? useUpdateTemplateMutation(templateId) : null
-  const sectionMutations = templateId ? useSectionMutations(templateId) : null
-  const itemMutations = templateId ? useItemMutations(templateId) : null
+  const updateTemplate = useUpdateTemplateMutation(templateId)
+  const sectionMutations = useSectionMutations(templateId)
+  const itemMutations = useItemMutations(templateId)
 
   const form = useForm<TemplateFormValues>({
     resolver: zodResolver(templateSchema),
@@ -111,7 +111,7 @@ export const TemplateEditorPage = () => {
         push({ title: 'Template created', variant: 'success' })
         form.reset({ name: '', description: '', sections: [] })
         navigate('/templates')
-      } else if (templateId && updateTemplate) {
+      } else if (templateId) {
         await updateTemplate.mutateAsync({ name: values.name, description: values.description })
         push({ title: 'Template updated', variant: 'success' })
       }
@@ -147,7 +147,7 @@ export const TemplateEditorPage = () => {
   }
 
   const handleSaveSection = async (section: TemplateSection) => {
-    if (!sectionMutations) return
+    if (!templateId) return
     const draft = sectionDrafts[section.id]
     if (!draft) return
     try {
@@ -162,7 +162,7 @@ export const TemplateEditorPage = () => {
   }
 
   const handleDeleteSection = async (sectionId: string) => {
-    if (!sectionMutations) return
+    if (!templateId) return
     if (!window.confirm('Delete this section?')) return
     try {
       await sectionMutations.deleteSection.mutateAsync(sectionId)
@@ -173,7 +173,7 @@ export const TemplateEditorPage = () => {
   }
 
   const handleCreateSection = async () => {
-    if (!sectionMutations) return
+    if (!templateId) return
     const draft = { title: 'New section', order_index: (template?.sections?.length ?? 0) + 1, items: [] }
     try {
       await sectionMutations.createSection.mutateAsync(draft)
@@ -184,7 +184,7 @@ export const TemplateEditorPage = () => {
   }
 
   const handleCreateItem = async (section: TemplateSection) => {
-    if (!itemMutations) return
+    if (!templateId) return
     const draft = itemDrafts[section.id]
     if (!draft?.prompt) {
       push({ title: 'Item prompt required', variant: 'warning' })
@@ -203,7 +203,7 @@ export const TemplateEditorPage = () => {
   }
 
   const handleDeleteItem = async (section: TemplateSection, itemId: string) => {
-    if (!itemMutations) return
+    if (!templateId) return
     try {
       await itemMutations.deleteItem.mutateAsync({ sectionId: section.id, itemId })
       push({ title: 'Item removed', variant: 'success' })
@@ -212,72 +212,79 @@ export const TemplateEditorPage = () => {
     }
   }
 
-  const builder = useMemo(() => {
-    if (!isNewTemplate) return null
-    return (
-      <div className="space-y-4">
-        {sectionsArray.fields.length === 0 && (
-          <EmptyState
-            title="No sections yet"
-            description="Add sections and items before saving the template."
-            action={
-              <Button onClick={addSection} type="button">
-                <Plus className="h-4 w-4" /> Add section
+  const builder = !isNewTemplate ? null : (
+    <div className="space-y-4">
+      {sectionsArray.fields.length === 0 && (
+        <EmptyState
+          title="No sections yet"
+          description="Add sections and items before saving the template."
+          action={
+            <Button onClick={addSection} type="button">
+              <Plus className="h-4 w-4" /> Add section
+            </Button>
+          }
+        />
+      )}
+      {sectionsArray.fields.map((section, index) => (
+        <Card
+          key={section.id}
+          title={`Section ${index + 1}`}
+          actions={
+            <Button variant="ghost" onClick={() => sectionsArray.remove(index)}>
+              Remove
+            </Button>
+          }
+        >
+          <div className="grid gap-4 md:grid-cols-2">
+            <FormField label="Title" error={form.formState.errors.sections?.[index]?.title?.message}>
+              <Input {...form.register(`sections.${index}.title` as const)} />
+            </FormField>
+            <FormField label="Order" error={form.formState.errors.sections?.[index]?.order_index?.message}>
+              <Input
+                type="number"
+                min={0}
+                {...form.register(`sections.${index}.order_index` as const, { valueAsNumber: true })}
+              />
+            </FormField>
+          </div>
+          <div className="mt-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-semibold text-slate-700">Items</p>
+              <Button type="button" variant="secondary" onClick={() => addItemToSection(index)}>
+                <Plus className="h-4 w-4" />
+                Add item
               </Button>
-            }
-          />
-        )}
-        {sectionsArray.fields.map((section, index) => (
-          <Card key={section.id} title={`Section ${index + 1}`}
-            actions={
-              <Button variant="ghost" onClick={() => sectionsArray.remove(index)}>
-                Remove
-              </Button>
-            }
-          >
-            <div className="grid gap-4 md:grid-cols-2">
-              <FormField label="Title" error={form.formState.errors.sections?.[index]?.title?.message}>
-                <Input {...form.register(`sections.${index}.title` as const)} />
-              </FormField>
-              <FormField label="Order" error={form.formState.errors.sections?.[index]?.order_index?.message}>
-                <Input type="number" min={0} {...form.register(`sections.${index}.order_index` as const, { valueAsNumber: true })} />
-              </FormField>
             </div>
-            <div className="mt-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold text-slate-700">Items</p>
-                <Button type="button" variant="secondary" onClick={() => addItemToSection(index)}>
-                  <Plus className="h-4 w-4" />
-                  Add item
-                </Button>
-              </div>
-              {(form.watch(`sections.${index}.items`) ?? []).map((_, itemIndex) => (
-                <div key={itemIndex} className="grid gap-3 rounded-lg border border-slate-100 p-3 md:grid-cols-3">
-                  <FormField label="Prompt" className="md:col-span-2" error={form.formState.errors.sections?.[index]?.items?.[itemIndex]?.prompt?.message}>
-                    <Input {...form.register(`sections.${index}.items.${itemIndex}.prompt` as const)} />
-                  </FormField>
-                  <div className="flex items-end gap-2">
-                    <label className="flex items-center gap-2 text-sm">
-                      <input type="checkbox" {...form.register(`sections.${index}.items.${itemIndex}.is_required` as const)} />
-                      Required
-                    </label>
-                    <Button type="button" variant="ghost" onClick={() => removeItem(index, itemIndex)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+            {(form.watch(`sections.${index}.items`) ?? []).map((_, itemIndex) => (
+              <div key={itemIndex} className="grid gap-3 rounded-lg border border-slate-100 p-3 md:grid-cols-3">
+                <FormField
+                  label="Prompt"
+                  className="md:col-span-2"
+                  error={form.formState.errors.sections?.[index]?.items?.[itemIndex]?.prompt?.message}
+                >
+                  <Input {...form.register(`sections.${index}.items.${itemIndex}.prompt` as const)} />
+                </FormField>
+                <div className="flex items-end gap-2">
+                  <label className="flex items-center gap-2 text-sm">
+                    <input type="checkbox" {...form.register(`sections.${index}.items.${itemIndex}.is_required` as const)} />
+                    Required
+                  </label>
+                  <Button type="button" variant="ghost" onClick={() => removeItem(index, itemIndex)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
-              ))}
-            </div>
-          </Card>
-        ))}
-        {sectionsArray.fields.length > 0 && (
-          <Button type="button" variant="secondary" onClick={addSection}>
-            Add another section
-          </Button>
-        )}
-      </div>
-    )
-  }, [isNewTemplate, sectionsArray, form, addSection])
+              </div>
+            ))}
+          </div>
+        </Card>
+      ))}
+      {sectionsArray.fields.length > 0 && (
+        <Button type="button" variant="secondary" onClick={addSection}>
+          Add another section
+        </Button>
+      )}
+    </div>
+  )
 
   if (!isNewTemplate && isLoading) {
     return <LoadingState label="Loading template..." />

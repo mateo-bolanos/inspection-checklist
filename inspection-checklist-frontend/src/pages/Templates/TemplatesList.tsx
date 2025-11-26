@@ -5,7 +5,7 @@ import { EmptyState } from '@/components/feedback/EmptyState'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Skeleton } from '@/components/ui/Skeleton'
-import { useToast } from '@/components/ui/Toast'
+import { useToast } from '@/components/ui/toastContext'
 
 export const TemplatesListPage = () => {
   const navigate = useNavigate()

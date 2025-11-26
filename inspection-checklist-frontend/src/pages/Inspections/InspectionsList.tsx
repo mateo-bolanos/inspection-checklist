@@ -36,15 +36,16 @@ export const InspectionsListPage = () => {
     const normalizedSearch = searchTerm.trim().toLowerCase()
     return inspectionsQuery.data.filter((inspection) => {
       const templateName = templateNameMap.get(inspection.template_id) ?? ''
-      const inspectionLabel = formatInspectionName(templateName, inspection.started_at, inspection.id)
+      const inspectionLabel = formatInspectionName(templateName || 'Inspection', inspection.started_at, inspection.id)
       const searchTarget = [
         inspectionLabel,
+        templateName,
         inspection.location ?? '',
         inspection.status,
         inspection.id,
-        templateName,
         inspection.created_by?.full_name ?? '',
         inspection.created_by?.email ?? '',
+        inspection.inspection_origin ?? '',
       ]
         .join(' ')
         .toLowerCase()
@@ -91,7 +92,7 @@ export const InspectionsListPage = () => {
           <Input
             value={searchTerm}
             onChange={(event) => setSearchTerm(event.target.value)}
-            placeholder="Search by template, status, location, or ID"
+            placeholder="Search by type, template, status, location, or ID"
             className="md:flex-1"
           />
           <Select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as StatusFilter)} className="md:w-48">
@@ -116,6 +117,7 @@ export const InspectionsListPage = () => {
               <thead>
                 <tr className="text-left text-xs uppercase tracking-wide text-slate-500">
                   <th className="px-4 py-2">Inspection</th>
+                  <th className="px-4 py-2">Template</th>
                   <th className="px-4 py-2">Created by</th>
                   <th className="px-4 py-2">Status</th>
                   <th className="px-4 py-2">Location</th>
@@ -127,12 +129,18 @@ export const InspectionsListPage = () => {
               <tbody>
                 {filteredInspections.map((inspection) => {
                   const templateName = templateNameMap.get(inspection.template_id)
-                  const inspectionLabel = formatInspectionName(templateName, inspection.started_at, inspection.id)
+                  const inspectionLabel = formatInspectionName(templateName || 'Inspection', inspection.started_at, inspection.id)
                   return (
                     <tr key={inspection.id} className="border-t border-slate-100">
                       <td className="px-4 py-3">
                         <div className="font-medium text-slate-900">{inspectionLabel}</div>
                         <p className="text-xs text-slate-500">ID #{inspection.id}</p>
+                      </td>
+                      <td className="px-4 py-3 text-slate-600">
+                        <div>{templateName || '—'}</div>
+                        <p className="text-xs text-slate-500">
+                          {inspection.inspection_origin === 'assignment' ? 'Assignment' : 'Independent'}
+                        </p>
                       </td>
                       <td className="px-4 py-3 text-slate-600">{inspection.created_by?.full_name ?? 'Unknown'}</td>
                       <td className="px-4 py-3 capitalize text-slate-600">{inspection.status}</td>

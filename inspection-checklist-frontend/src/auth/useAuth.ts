@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSyncExternalStore } from 'react'
 
 import { api } from '@/api/client'
@@ -42,19 +42,25 @@ export const useAuth = () => {
     }
   }, [auth.token, auth.user])
 
-  const login = (token: string, user?: AuthUser | null) => {
-    resetQueryCache()
-    authStore.setState({ token, user: user ?? auth.user })
-  }
+  const login = useCallback(
+    (token: string, user?: AuthUser | null) => {
+      resetQueryCache()
+      authStore.setState({ token, user: user ?? auth.user })
+    },
+    [auth.user],
+  )
 
-  const logout = () => {
+  const logout = useCallback(() => {
     authStore.clear()
-  }
+  }, [])
 
-  const hasRole = (roles?: string[]) => {
-    if (!roles || roles.length === 0) return true
-    return roles.includes(auth.user?.role ?? '')
-  }
+  const hasRole = useCallback(
+    (roles?: string[]) => {
+      if (!roles || roles.length === 0) return true
+      return roles.includes(auth.user?.role ?? '')
+    },
+    [auth.user?.role],
+  )
 
   const defaultRoute = ROLE_HOME_ROUTE[auth.user?.role ?? 'inspector'] ?? '/dash/overview'
 
@@ -70,7 +76,7 @@ export const useAuth = () => {
       hasRole,
       defaultRoute,
     }),
-    [auth.token, auth.user, auth.isHydrated, isBootstrapping, defaultRoute],
+    [auth.token, auth.user, auth.isHydrated, isBootstrapping, defaultRoute, login, logout, hasRole],
   )
 
   return value

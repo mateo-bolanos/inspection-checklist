@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Inspection Reminder</title>
+</head>
+<body style="font-family: Arial, sans-serif; color: #1f2933;">
+  <h2>Hi {{ user_name or 'Inspector' }},</h2>
+  <p>This is a quick reminder that your <strong>{{ template_name }}</strong> inspection is due tomorrow.</p>
+  <ul>
+    <li><strong>Location:</strong> {{ location or 'Unassigned' }}</li>
+    <li><strong>Due:</strong> {{ due_at }}</li>
+  </ul>
+  <p>Please wrap up any outstanding responses and submit before the deadline.</p>
+  <p><a href="{{ inspection_link }}" style="color:#0b5ed7;">Resume inspection</a></p>
+</body>
+</html>

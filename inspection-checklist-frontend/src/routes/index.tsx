@@ -2,12 +2,15 @@ import { createBrowserRouter, Navigate } from 'react-router-dom'
 
 import { AppLayout } from '@/components/layout/AppLayout'
 import { ProtectedRoute } from '@/routes/protected'
+import { HomeRedirect } from '@/routes/HomeRedirect'
 
 import { LoginPage } from '@/pages/Login'
-import { OverviewPage } from '@/pages/Dashboard/Overview'
 import { DashboardItemsPage } from '@/pages/Dashboard/Items'
+import { OverviewPage } from '@/pages/Dashboard/Overview'
+import { ReportsPage } from '@/pages/Reports/ReportsPage'
 import { TemplatesListPage } from '@/pages/Templates/TemplatesList'
 import { TemplateEditorPage } from '@/pages/Templates/TemplateEditor'
+import { AssignmentsPage } from '@/pages/Assignments/AssignmentsPage'
 import { NewInspectionPage } from '@/pages/Inspections/NewInspection'
 import { InspectionEditPage } from '@/pages/Inspections/InspectionEdit'
 import { InspectionViewPage } from '@/pages/Inspections/InspectionView'
@@ -15,13 +18,6 @@ import { InspectionsListPage } from '@/pages/Inspections/InspectionsList'
 import { ActionsListPage } from '@/pages/Actions/ActionsList'
 import { ActionsSearchPage } from '@/pages/Actions/ActionsSearch'
 import { ReviewQueuePage } from '@/pages/Reviews/ReviewQueue'
-import { FileUploadPage } from '@/pages/Files/Upload'
-import { useAuth } from '@/auth/useAuth'
-
-const HomeRedirect = () => {
-  const { defaultRoute } = useAuth()
-  return <Navigate to={defaultRoute} replace />
-}
 
 export const router = createBrowserRouter([
   {
@@ -50,6 +46,22 @@ export const router = createBrowserRouter([
         element: (
           <ProtectedRoute roles={['admin', 'reviewer']}>
             <DashboardItemsPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'reports',
+        element: (
+          <ProtectedRoute roles={['admin', 'reviewer']}>
+            <ReportsPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'assignments',
+        element: (
+          <ProtectedRoute roles={['admin', 'inspector']}>
+            <AssignmentsPage />
           </ProtectedRoute>
         ),
       },
@@ -109,21 +121,27 @@ export const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
-      { path: 'actions', element: <ActionsListPage /> },
-      { path: 'actions/search', element: <ActionsSearchPage /> },
+      {
+        path: 'actions',
+        element: (
+          <ProtectedRoute roles={['admin', 'inspector', 'reviewer', 'action_owner']}>
+            <ActionsListPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'actions/search',
+        element: (
+          <ProtectedRoute roles={['admin', 'inspector', 'reviewer', 'action_owner']}>
+            <ActionsSearchPage />
+          </ProtectedRoute>
+        ),
+      },
       {
         path: 'reviews',
         element: (
           <ProtectedRoute roles={['admin', 'reviewer']}>
             <ReviewQueuePage />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: 'files/upload',
-        element: (
-          <ProtectedRoute roles={['admin', 'inspector']}>
-            <FileUploadPage />
           </ProtectedRoute>
         ),
       },

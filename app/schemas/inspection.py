@@ -3,30 +3,41 @@ from __future__ import annotations
 from datetime import datetime
 from typing import List
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
+from app.models.entities import InspectionOrigin
 from app.schemas.auth import UserRead
+from app.schemas.note import NoteEntryRead
 
 
-class InspectionBase(BaseModel):
-    template_id: str
+class InspectionMutableFields(BaseModel):
     location: str | None = None
+    location_id: int | None = None
     notes: str | None = None
 
 
-class InspectionCreate(InspectionBase):
+class InspectionCreate(InspectionMutableFields):
+    template_id: str | None = None
     inspector_id: str | None = None
+    scheduled_inspection_id: int | None = None
+
+    @model_validator(mode="after")
+    def validate_template_or_schedule(self) -> "InspectionCreate":
+        if self.scheduled_inspection_id is None and not self.template_id:
+            raise ValueError("Template is required when inspection is not assigned")
+        return self
 
 
-class InspectionUpdate(BaseModel):
-    location: str | None = None
-    notes: str | None = None
+class InspectionUpdate(InspectionMutableFields):
     status: str | None = None
 
 
-class InspectionRead(InspectionBase):
+class InspectionRead(InspectionMutableFields):
+    template_id: str
+    inspection_origin: InspectionOrigin
     id: int
     inspector_id: str
+    scheduled_inspection_id: int | None = None
     status: str
     started_at: datetime
     submitted_at: datetime | None = None
@@ -39,6 +50,7 @@ class InspectionRead(InspectionBase):
 
 class InspectionDetail(InspectionRead):
     responses: List["InspectionResponseRead"] = Field(default_factory=list)
+    note_entries: List[NoteEntryRead] = Field(default_factory=list)
 
 
 class InspectionResponseBase(BaseModel):
@@ -61,6 +73,7 @@ class InspectionResponseUpdate(BaseModel):
 class InspectionResponseRead(InspectionResponseBase):
     id: str
     inspection_id: int
+    note_entries: List[NoteEntryRead] = Field(default_factory=list)
 
     class Config:
         from_attributes = True

@@ -2,13 +2,17 @@ import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { useActionFilesQuery, useUpdateActionMutation, useUploadMediaMutation } from '@/api/hooks'
+import { useActionFilesQuery, useActionAssigneesQuery, useUpdateActionMutation, useUploadMediaMutation } from '@/api/hooks'
+import { getErrorMessage } from '@/api/client'
 import type { components } from '@/api/gen/schema'
+import { useAuth } from '@/auth/useAuth'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
+import { Select } from '@/components/ui/Select'
 import { Textarea } from '@/components/ui/Textarea'
-import { useToast } from '@/components/ui/Toast'
+import { useToast } from '@/components/ui/toastContext'
 import { formatDate, formatDateTime, formatRelative } from '@/lib/formatters'
+import { downloadFileWithAuth } from '@/lib/download'
 import { LoadingState } from '@/components/feedback/LoadingState'
 import { getActionDisplayStatus } from '@/pages/Actions/utils'
 
@@ -24,15 +28,33 @@ export const ActionDetailsModal = ({ action, onClose }: ActionDetailsModalProps)
   const attachments = filesQuery.data ?? []
   const uploadMedia = useUploadMediaMutation()
   const updateAction = useUpdateActionMutation()
+  const assigneesQuery = useActionAssigneesQuery()
+  const assigneeOptions = assigneesQuery.data ?? []
   const { push } = useToast()
+  const { hasRole } = useAuth()
   const [pendingFile, setPendingFile] = useState<File | null>(null)
-  const [notes, setNotes] = useState(action.resolution_notes ?? '')
+  const [noteDraft, setNoteDraft] = useState('')
+  const [latestResolutionNote, setLatestResolutionNote] = useState(action.resolution_notes ?? '')
+  const [assigneeId, setAssigneeId] = useState(action.assigned_to_id ?? '')
   const navigate = useNavigate()
+  const canReassign = hasRole(['admin', 'reviewer'])
+  const canViewInspection = hasRole(['admin', 'reviewer', 'inspector'])
 
   useEffect(() => {
-    setNotes(action.resolution_notes ?? '')
+    setNoteDraft('')
     setPendingFile(null)
-  }, [action.id, action.resolution_notes])
+    setAssigneeId(action.assigned_to_id ?? '')
+    setLatestResolutionNote(action.resolution_notes ?? '')
+  }, [action.id, action.assigned_to_id, action.resolution_notes])
+
+  const handleDownload = async (file: components['schemas']['MediaFileRead']) => {
+    const fallbackName = file.file_url.split('/').pop()
+    try {
+      await downloadFileWithAuth(file.file_url, fallbackName)
+    } catch (error) {
+      push({ title: 'Unable to download file', description: getErrorMessage(error), variant: 'error' })
+    }
+  }
 
   const handleUpload = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -50,13 +72,20 @@ export const ActionDetailsModal = ({ action, onClose }: ActionDetailsModalProps)
     }
   }
 
-  const handleSaveNotes = async () => {
+  const handleAddNote = async () => {
+    const content = noteDraft.trim()
+    if (!content) {
+      push({ title: 'Add notes before saving', variant: 'warning' })
+      return
+    }
     try {
       await updateAction.mutateAsync({
         actionId: action.id,
-        data: { resolution_notes: notes.trim() || null },
+        data: { resolution_notes: content },
       })
-      push({ title: 'Notes saved', variant: 'success' })
+      push({ title: 'Note saved', variant: 'success' })
+      setNoteDraft('')
+      setLatestResolutionNote(content)
     } catch (error) {
       push({ title: 'Unable to save notes', description: String((error as Error).message), variant: 'error' })
     }
@@ -64,21 +93,45 @@ export const ActionDetailsModal = ({ action, onClose }: ActionDetailsModalProps)
 
   const handleCloseAction = async () => {
     if (displayStatus === 'closed') {
-      push({ title: 'Action already closed', variant: 'info' })
+      push({ title: 'Action already closed', variant: 'warning' })
       return
     }
-    if (!notes.trim()) {
+    const content = noteDraft.trim()
+    const existing = latestResolutionNote.trim()
+    if (!content && !existing) {
       push({ title: 'Add notes before closing', variant: 'warning' })
       return
     }
     try {
       await updateAction.mutateAsync({
         actionId: action.id,
-        data: { status: 'closed', resolution_notes: notes.trim() },
+        data: {
+          status: 'closed',
+          ...(content ? { resolution_notes: content } : {}),
+        },
       })
       push({ title: 'Action closed', variant: 'success' })
+      if (content) {
+        setNoteDraft('')
+        setLatestResolutionNote(content)
+      }
     } catch (error) {
       push({ title: 'Unable to close action', description: String((error as Error).message), variant: 'error' })
+    }
+  }
+
+  const handleReassign = async () => {
+    if (!canReassign) return
+    const nextAssignee = assigneeId.trim()
+    if (!nextAssignee) {
+      push({ title: 'Select an assignee', variant: 'warning' })
+      return
+    }
+    try {
+      await updateAction.mutateAsync({ actionId: action.id, data: { assigned_to_id: nextAssignee } })
+      push({ title: 'Assignee updated', variant: 'success' })
+    } catch (error) {
+      push({ title: 'Unable to update assignee', description: String((error as Error).message), variant: 'error' })
     }
   }
 
@@ -89,6 +142,12 @@ export const ActionDetailsModal = ({ action, onClose }: ActionDetailsModalProps)
 
   const isUploading = uploadMedia.isPending
   const isSaving = updateAction.isPending
+  const noteEntries = useMemo(() => {
+    const entries = action.note_entries ?? []
+    return [...entries].sort(
+      (a, b) => new Date(b.created_at ?? '').getTime() - new Date(a.created_at ?? '').getTime(),
+    )
+  }, [action.note_entries])
   const displayStatus = useMemo(() => getActionDisplayStatus(action.status), [action.status])
 
   return (
@@ -110,6 +169,12 @@ export const ActionDetailsModal = ({ action, onClose }: ActionDetailsModalProps)
                 <div>
                   <dt className="text-xs text-slate-500">Severity</dt>
                   <dd className="text-sm font-medium text-slate-900 capitalize">{action.severity}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs text-slate-500">Assigned to</dt>
+                  <dd className="text-sm font-medium text-slate-900">
+                    {action.assignee?.full_name || action.assignee?.email || 'Unassigned'}
+                  </dd>
                 </div>
                 <div>
                   <dt className="text-xs text-slate-500">Status</dt>
@@ -138,11 +203,42 @@ export const ActionDetailsModal = ({ action, onClose }: ActionDetailsModalProps)
                 )}
               </dl>
             </div>
-            <Button type="button" variant="secondary" onClick={goToInspection}>
-              View inspection
-            </Button>
+            {canViewInspection && (
+              <Button type="button" variant="secondary" onClick={goToInspection}>
+                View inspection
+              </Button>
+            )}
           </div>
         </section>
+
+        {canReassign && (
+          <section className="rounded-xl border border-slate-100 p-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Reassign</h3>
+                <p className="text-xs text-slate-500">Send this action to another owner or inspector.</p>
+              </div>
+              <div className="flex flex-1 flex-wrap gap-2">
+                <Select
+                  value={assigneeId}
+                  onChange={(event) => setAssigneeId(event.target.value)}
+                  disabled={assigneesQuery.isLoading}
+                >
+                  <option value="">Select a user</option>
+                  {assigneeOptions.map((option) => (
+                    <option key={option.id} value={option.id}>
+                      {option.full_name || option.email}
+                    </option>
+                  ))}
+                </Select>
+                <Button type="button" onClick={handleReassign} disabled={isSaving || !assigneeId}>
+                  Update assignee
+                </Button>
+              </div>
+            </div>
+            {assigneesQuery.isError && <p className="mt-2 text-xs text-red-600">Unable to load potential assignees.</p>}
+          </section>
+        )}
 
         <section className="rounded-xl border border-slate-100 p-4 space-y-3">
           <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Details</h3>
@@ -160,14 +256,15 @@ export const ActionDetailsModal = ({ action, onClose }: ActionDetailsModalProps)
           <p className="mt-2 text-xs text-slate-500">Use notes to track progress before closing the action.</p>
           <Textarea
             className="mt-3"
-            value={notes}
-            onChange={(event) => setNotes(event.target.value)}
+            value={noteDraft}
+            onChange={(event) => setNoteDraft(event.target.value)}
             placeholder="Add investigation notes or interim updates"
             rows={4}
+            disabled={isSaving}
           />
           <div className="mt-3 flex flex-wrap gap-3">
-            <Button type="button" variant="secondary" onClick={handleSaveNotes} disabled={isSaving}>
-              Save notes
+            <Button type="button" variant="secondary" onClick={handleAddNote} disabled={isSaving}>
+              Save note
             </Button>
             <Button type="button" onClick={handleCloseAction} disabled={displayStatus === 'closed' || isSaving}>
               {displayStatus === 'closed' ? 'Action closed' : 'Close action'}
@@ -176,6 +273,21 @@ export const ActionDetailsModal = ({ action, onClose }: ActionDetailsModalProps)
               <p className="text-xs text-slate-500">
                 Closed on {formatDate(action.closed_at)} by {action.closed_by?.full_name ?? 'Unknown'}
               </p>
+            )}
+          </div>
+          <div className="mt-4 max-h-60 space-y-2 overflow-y-auto rounded-xl border border-slate-100 p-3">
+            {noteEntries.length === 0 ? (
+              <p className="text-sm text-slate-500">No notes recorded yet.</p>
+            ) : (
+              noteEntries.map((entry) => (
+                <div key={entry.id} className="rounded-lg border border-slate-100 bg-white p-2">
+                  <p className="text-xs font-medium text-slate-500">
+                    {entry.author?.full_name || entry.author?.email || entry.author_id || 'Unknown user'} •{' '}
+                    {formatDateTime(entry.created_at)}
+                  </p>
+                  <p className="text-sm text-slate-900 whitespace-pre-line">{entry.body}</p>
+                </div>
+              ))
             )}
           </div>
         </section>
@@ -217,14 +329,13 @@ export const ActionDetailsModal = ({ action, onClose }: ActionDetailsModalProps)
               attachments.map((file) => (
                 <div key={file.id} className="rounded-lg border border-slate-200 p-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <a
-                      href={file.file_url}
-                      target="_blank"
-                      rel="noreferrer"
+                    <button
+                      type="button"
                       className="text-sm font-semibold text-indigo-600 hover:underline"
+                      onClick={() => handleDownload(file)}
                     >
-                      View file
-                    </a>
+                      Download file
+                    </button>
                     <span className="text-xs text-slate-500">{formatDateTime(file.created_at)}</span>
                   </div>
                   <p className="text-xs text-slate-500">

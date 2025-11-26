@@ -12,3 +12,4 @@ httpx==0.26.0
 pytest==8.4.2
 pytest-asyncio==1.2.0
 fpdf2==2.7.9
+Jinja2==3.1.4

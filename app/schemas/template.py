@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 class TemplateItemBase(BaseModel):
     prompt: str
     is_required: bool = True
+    requires_evidence_on_fail: bool = True
     order_index: int = 0
 
 
@@ -18,6 +19,7 @@ class TemplateItemCreate(TemplateItemBase):
 class TemplateItemUpdate(BaseModel):
     prompt: str | None = None
     is_required: bool | None = None
+    requires_evidence_on_fail: bool | None = None
     order_index: int | None = None
 
 

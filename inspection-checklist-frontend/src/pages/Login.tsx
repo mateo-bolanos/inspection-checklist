@@ -12,7 +12,7 @@ import { useAuth } from '@/auth/useAuth'
 import { FormField } from '@/components/forms/FormField'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { useToast } from '@/components/ui/Toast'
+import { useToast } from '@/components/ui/toastContext'
 
 const schema = z.object({
   username: z.string().email('Use your email address'),

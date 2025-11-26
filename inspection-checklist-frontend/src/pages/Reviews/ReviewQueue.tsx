@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/feedback/EmptyState'
 import { LoadingState } from '@/components/feedback/LoadingState'
 import { formatDateTime, formatInspectionName } from '@/lib/formatters'
-import { useToast } from '@/components/ui/Toast'
+import { useToast } from '@/components/ui/toastContext'
 
 export const ReviewQueuePage = () => {
   const inspections = useInspectionsQuery()
@@ -59,12 +59,16 @@ export const ReviewQueuePage = () => {
                 <div>
                   <p className="text-sm font-semibold text-slate-900">
                     {formatInspectionName(
-                      templateNameMap.get(inspection.template_id),
+                      templateNameMap.get(inspection.template_id) || 'Inspection',
                       inspection.started_at,
                       inspection.id,
                     )}
                   </p>
-                  <p className="text-xs text-slate-500">Started {formatDateTime(inspection.started_at?.toString())}</p>
+                  <p className="text-xs text-slate-500">
+                    Template • {templateNameMap.get(inspection.template_id) || '—'} &nbsp;•&nbsp; Origin •{' '}
+                    {inspection.inspection_origin === 'assignment' ? 'Assignment' : 'Independent'} &nbsp;•&nbsp; Started{' '}
+                    {formatDateTime(inspection.started_at?.toString())}
+                  </p>
                 </div>
                 <div className="flex flex-wrap items-center justify-end gap-3">
                   <Link className="text-sm font-semibold text-brand-600 hover:underline" to={`/inspections/${inspection.id}`}>

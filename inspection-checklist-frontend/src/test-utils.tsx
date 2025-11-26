@@ -3,7 +3,7 @@ import { render } from '@testing-library/react'
 import type { ReactElement, ReactNode } from 'react'
 import { MemoryRouter } from 'react-router-dom'
 
-import { ToastProvider } from '@/components/ui/Toast'
+import { ToastProvider } from '@/components/ui/ToastProvider'
 
 const createTestQueryClient = () =>
   new QueryClient({

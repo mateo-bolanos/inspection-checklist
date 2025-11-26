@@ -320,6 +320,59 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/assignments/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Assignments Endpoint */
+        get: operations["list_assignments_endpoint_assignments__get"];
+        put?: never;
+        /** Create Assignment Endpoint */
+        post: operations["create_assignment_endpoint_assignments__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/assignments/{assignment_id}/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start Assignment Inspection */
+        post: operations["start_assignment_inspection_assignments__assignment_id__start_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/config/severity-sla": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Severity Sla */
+        get: operations["read_severity_sla_config_severity_sla_get"];
+        /** Update Severity Sla */
+        put: operations["update_severity_sla_config_severity_sla_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/dash/overview": {
         parameters: {
             query?: never;
@@ -371,6 +424,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/dash/weekly-overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Weekly Overview
+         * @description Weekly KPI endpoint defaults to the current calendar week (Monday–Sunday) when no range is provided.
+         */
+        get: operations["read_weekly_overview_dash_weekly_overview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/dash/weekly-pending": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Weekly Pending
+         * @description List of users with pending/overdue scheduled inspections for a calendar week (default: current week).
+         */
+        get: operations["read_weekly_pending_dash_weekly_pending_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/files/": {
         parameters: {
             query?: never;
@@ -383,6 +476,126 @@ export interface paths {
         put?: never;
         /** Upload Media */
         post: operations["upload_media_files__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/files/{media_id}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download Media */
+        get: operations["download_media_files__media_id__download_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reports/inspections.pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Inspections Report */
+        get: operations["export_inspections_report_reports_inspections_pdf_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/scheduled-inspections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Scheduled Inspections Endpoint */
+        get: operations["list_scheduled_inspections_endpoint_scheduled_inspections_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/scheduler/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Trigger Generation Endpoint */
+        post: operations["trigger_generation_endpoint_scheduler_generate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/locations/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Locations */
+        get: operations["list_locations_locations__get"];
+        put?: never;
+        /** Create Location */
+        post: operations["create_location_locations__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Users */
+        get: operations["list_users_users__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/assignees": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Action Assignees */
+        get: operations["list_action_assignees_users_assignees_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -418,6 +631,70 @@ export interface components {
             };
             /** Overdue Actions */
             overdue_actions: number;
+        };
+        /** AssignmentCreate */
+        AssignmentCreate: {
+            /** Assigned To Id */
+            assigned_to_id: string;
+            /** Template Id */
+            template_id: string;
+            /** Location */
+            location?: string | null;
+            /**
+             * Frequency
+             * @default weekly
+             * @enum {string}
+             */
+            frequency: "daily" | "weekly" | "monthly";
+            /**
+             * Active
+             * @default true
+             */
+            active: boolean;
+            /**
+             * Start Due At
+             * Format: date-time
+             */
+            start_due_at: string;
+            /** End Date */
+            end_date?: string | null;
+        };
+        /** AssignmentRead */
+        AssignmentRead: {
+            /** Assigned To Id */
+            assigned_to_id: string;
+            /** Template Id */
+            template_id?: string | null;
+            /** Location */
+            location?: string | null;
+            /**
+             * Frequency
+             * @default weekly
+             * @enum {string}
+             */
+            frequency: "daily" | "weekly" | "monthly";
+            /**
+             * Active
+             * @default true
+             */
+            active: boolean;
+            /**
+             * Start Due At
+             * Format: date-time
+             */
+            start_due_at: string;
+            /** End Date */
+            end_date?: string | null;
+            /** Id */
+            id: number;
+            /** Template Name */
+            template_name?: string | null;
+            assignee: components["schemas"]["UserRead"];
+            /**
+             * Current Week Completed
+             * @default false
+             */
+            current_week_completed: boolean;
         };
         /** Body_login_auth_login_post */
         Body_login_auth_login_post: {
@@ -520,6 +797,7 @@ export interface components {
             response_id?: string | null;
             /** Status */
             status: string;
+            assignee?: components["schemas"]["UserRead"] | null;
             /**
              * Created At
              * Format: date-time
@@ -531,6 +809,10 @@ export interface components {
             resolution_notes?: string | null;
             started_by: components["schemas"]["UserRead"];
             closed_by?: components["schemas"]["UserRead"] | null;
+            /** Media Urls */
+            media_urls?: string[];
+            /** Note Entries */
+            note_entries?: components["schemas"]["NoteEntryRead"][];
         };
         /** CorrectiveActionUpdate */
         CorrectiveActionUpdate: {
@@ -556,27 +838,36 @@ export interface components {
         };
         /** InspectionCreate */
         InspectionCreate: {
-            /** Template Id */
-            template_id: string;
             /** Location */
             location?: string | null;
+            /** Location Id */
+            location_id?: number | null;
             /** Notes */
             notes?: string | null;
+            /** Template Id */
+            template_id?: string | null;
             /** Inspector Id */
             inspector_id?: string | null;
+            /** Scheduled Inspection Id */
+            scheduled_inspection_id?: number | null;
         };
         /** InspectionDetail */
         InspectionDetail: {
-            /** Template Id */
-            template_id: string;
             /** Location */
             location?: string | null;
+            /** Location Id */
+            location_id?: number | null;
             /** Notes */
             notes?: string | null;
+            /** Template Id */
+            template_id: string;
+            inspection_origin: components["schemas"]["InspectionOrigin"];
             /** Id */
             id: number;
             /** Inspector Id */
             inspector_id: string;
+            /** Scheduled Inspection Id */
+            scheduled_inspection_id?: number | null;
             /** Status */
             status: string;
             /**
@@ -591,19 +882,31 @@ export interface components {
             created_by: components["schemas"]["UserRead"];
             /** Responses */
             responses?: components["schemas"]["InspectionResponseRead"][];
+            /** Note Entries */
+            note_entries?: components["schemas"]["NoteEntryRead"][];
         };
+        /**
+         * InspectionOrigin
+         * @enum {string}
+         */
+        InspectionOrigin: "assignment" | "independent";
         /** InspectionRead */
         InspectionRead: {
-            /** Template Id */
-            template_id: string;
             /** Location */
             location?: string | null;
+            /** Location Id */
+            location_id?: number | null;
             /** Notes */
             notes?: string | null;
+            /** Template Id */
+            template_id: string;
+            inspection_origin: components["schemas"]["InspectionOrigin"];
             /** Id */
             id: number;
             /** Inspector Id */
             inspector_id: string;
+            /** Scheduled Inspection Id */
+            scheduled_inspection_id?: number | null;
             /** Status */
             status: string;
             /**
@@ -642,6 +945,8 @@ export interface components {
             id: string;
             /** Inspection Id */
             inspection_id: number;
+            /** Note Entries */
+            note_entries?: components["schemas"]["NoteEntryRead"][];
         };
         /** InspectionResponseUpdate */
         InspectionResponseUpdate: {
@@ -656,6 +961,8 @@ export interface components {
         InspectionUpdate: {
             /** Location */
             location?: string | null;
+            /** Location Id */
+            location_id?: number | null;
             /** Notes */
             notes?: string | null;
             /** Status */
@@ -674,6 +981,18 @@ export interface components {
         ItemsMetrics: {
             /** Failures */
             failures: components["schemas"]["ItemFailureMetric"][];
+        };
+        /** LocationCreate */
+        LocationCreate: {
+            /** Name */
+            name: string;
+        };
+        /** LocationRead */
+        LocationRead: {
+            /** Name */
+            name: string;
+            /** Id */
+            id: number;
         };
         /** MediaFileRead */
         MediaFileRead: {
@@ -694,6 +1013,21 @@ export interface components {
             response_id?: string | null;
             uploaded_by?: components["schemas"]["UserRead"] | null;
         };
+        /** NoteEntryRead */
+        NoteEntryRead: {
+            /** Id */
+            id: number;
+            /** Author Id */
+            author_id: string;
+            /** Body */
+            body: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            author?: components["schemas"]["UserRead"] | null;
+        };
         /** OverviewMetrics */
         OverviewMetrics: {
             /** Total Inspections */
@@ -705,6 +1039,49 @@ export interface components {
             /** Average Score */
             average_score: number | null;
         };
+        /** ScheduledInspectionRead */
+        ScheduledInspectionRead: {
+            /** Id */
+            id: number;
+            /** Assignment Id */
+            assignment_id: number;
+            /**
+             * Period Start
+             * Format: date
+             */
+            period_start: string;
+            /**
+             * Due At
+             * Format: date-time
+             */
+            due_at: string;
+            /** Status */
+            status: string;
+            /**
+             * Generated At
+             * Format: date-time
+             */
+            generated_at: string;
+            assignment: components["schemas"]["AssignmentRead"];
+        };
+        /** SeveritySLARead */
+        SeveritySLARead: {
+            /** Low Days */
+            low_days: number;
+            /** Medium Days */
+            medium_days: number;
+            /** High Days */
+            high_days: number;
+        };
+        /** SeveritySLAUpdate */
+        SeveritySLAUpdate: {
+            /** Low Days */
+            low_days?: number | null;
+            /** Medium Days */
+            medium_days?: number | null;
+            /** High Days */
+            high_days?: number | null;
+        };
         /** TemplateItemCreate */
         TemplateItemCreate: {
             /** Prompt */
@@ -714,6 +1091,11 @@ export interface components {
              * @default true
              */
             is_required: boolean;
+            /**
+             * Requires Evidence On Fail
+             * @default true
+             */
+            requires_evidence_on_fail: boolean;
             /**
              * Order Index
              * @default 0
@@ -730,6 +1112,11 @@ export interface components {
              */
             is_required: boolean;
             /**
+             * Requires Evidence On Fail
+             * @default true
+             */
+            requires_evidence_on_fail: boolean;
+            /**
              * Order Index
              * @default 0
              */
@@ -743,6 +1130,8 @@ export interface components {
             prompt?: string | null;
             /** Is Required */
             is_required?: boolean | null;
+            /** Requires Evidence On Fail */
+            requires_evidence_on_fail?: boolean | null;
             /** Order Index */
             order_index?: number | null;
         };
@@ -811,6 +1200,38 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+        };
+        /**
+         * WeeklyInspectionKPIs
+         * @description Weekly scheduled-inspection KPIs (counts for Monday–Sunday).
+         */
+        WeeklyInspectionKPIs: {
+            /** Total Expected */
+            total_expected: number;
+            /** Submitted */
+            submitted: number;
+            /** Approved */
+            approved: number;
+            /** Pending */
+            pending: number;
+            /** Overdue */
+            overdue: number;
+        };
+        /**
+         * WeeklyPendingUser
+         * @description Pending/overdue scheduled inspections grouped per assignee.
+         */
+        WeeklyPendingUser: {
+            /** User Id */
+            user_id: string;
+            /** User Name */
+            user_name: string;
+            /** Pending Count */
+            pending_count: number;
+            /** Overdue Count */
+            overdue_count: number;
+            /** Last Submission At */
+            last_submission_at: string | null;
         };
     };
     responses: never;
@@ -1576,7 +1997,12 @@ export interface operations {
     };
     list_actions_actions__get: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Filter by assignee ID */
+                assigned_to?: string | null;
+                /** @description Filter by status */
+                status?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -1590,6 +2016,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CorrectiveActionRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -1693,6 +2128,154 @@ export interface operations {
             };
         };
     };
+    list_assignments_endpoint_assignments__get: {
+        parameters: {
+            query?: {
+                active?: boolean | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssignmentRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_assignment_endpoint_assignments__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssignmentCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssignmentRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_assignment_inspection_assignments__assignment_id__start_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                assignment_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InspectionRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_severity_sla_config_severity_sla_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SeveritySLARead"];
+                };
+            };
+        };
+    };
+    update_severity_sla_config_severity_sla_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SeveritySLAUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SeveritySLARead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     read_overview_dash_overview_get: {
         parameters: {
             query?: never;
@@ -1764,6 +2347,74 @@ export interface operations {
             };
         };
     };
+    read_weekly_overview_dash_weekly_overview_get: {
+        parameters: {
+            query?: {
+                /** @description UTC date (YYYY-MM-DD) for week start */
+                start?: string | null;
+                /** @description UTC date (YYYY-MM-DD) for week end */
+                end?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WeeklyInspectionKPIs"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_weekly_pending_dash_weekly_pending_get: {
+        parameters: {
+            query?: {
+                /** @description UTC date (YYYY-MM-DD) for week start */
+                start?: string | null;
+                /** @description UTC date (YYYY-MM-DD) for week end */
+                end?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WeeklyPendingUser"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_media_files__get: {
         parameters: {
             query?: {
@@ -1819,6 +2470,253 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MediaFileRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    download_media_files__media_id__download_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                media_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_inspections_report_reports_inspections_pdf_get: {
+        parameters: {
+            query?: {
+                start?: string | null;
+                end?: string | null;
+                assigneeId?: string | null;
+                templateId?: string | null;
+                locationId?: string | null;
+                location?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_scheduled_inspections_endpoint_scheduled_inspections_get: {
+        parameters: {
+            query?: {
+                status?: string | null;
+                assignedToId?: string | null;
+                weekStart?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduledInspectionRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    trigger_generation_endpoint_scheduler_generate_post: {
+        parameters: {
+            query?: {
+                weekStart?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduledInspectionRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_locations_locations__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LocationRead"][];
+                };
+            };
+        };
+    };
+    create_location_locations__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LocationCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LocationRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_users_users__get: {
+        parameters: {
+            query?: {
+                role?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_action_assignees_users_assignees_get: {
+        parameters: {
+            query?: {
+                /** @description Comma-separated list of roles */
+                role?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserRead"][];
                 };
             };
             /** @description Validation Error */

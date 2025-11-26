@@ -12,6 +12,9 @@
    uvicorn app.main:app --reload
    ```
    The application auto-runs Alembic and seeds default admin (`adminpass`), reviewer (`reviewerpass`), and inspector (`inspectorpass`).
+   It also provisions two checklist templates:
+   - **Warehouse Safety** – simple 3-item example used by automated tests.
+   - **Shipping Safety** – mirrors the legacy shipping sheet (housekeeping, units/stock, trailers, loading bars, forklift operations/records, electrical gear, emergency equipment, employee PPE, and MSD hazard checks). Each item carries the “What to look for” guidance so inspectors see expectations inline.
 
 ## Local Development
 - **API server**: `uvicorn app.main:app --reload`

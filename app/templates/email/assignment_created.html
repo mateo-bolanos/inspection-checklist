@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>New Scheduled Inspection</title>
+</head>
+<body style="font-family: Arial, sans-serif; color: #1f2933;">
+  <h2>Hello {{ user_name or 'Inspector' }},</h2>
+  <p>A new <strong>{{ template_name }}</strong> inspection has been scheduled for {{ location or 'your assigned location' }}.</p>
+  <ul>
+    <li><strong>Period start:</strong> {{ period_start }}</li>
+    <li><strong>Due by:</strong> {{ due_at }}</li>
+  </ul>
+  <p>You can open the inspection workspace here:</p>
+  <p><a href="{{ inspection_link }}" style="color:#0b5ed7;">View scheduled inspections</a></p>
+  <p>Thanks for keeping the facility safe!</p>
+</body>
+</html>

@@ -1,3 +1,27 @@
-from . import actions, auth, dashboard, files, inspections, templates
+from . import (
+    actions,
+    assignments,
+    auth,
+    dashboard,
+    files,
+    inspections,
+    locations,
+    reports,
+    scheduled_inspections,
+    templates,
+    users,
+)
 
-__all__ = ["actions", "auth", "dashboard", "files", "inspections", "templates"]
+__all__ = [
+    "actions",
+    "assignments",
+    "auth",
+    "dashboard",
+    "files",
+    "inspections",
+    "locations",
+    "reports",
+    "scheduled_inspections",
+    "templates",
+    "users",
+]

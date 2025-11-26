@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "test": "NODE_OPTIONS=--max-old-space-size=4096 vitest run",
     "test:watch": "vitest watch",
-    "generate:api": "openapi-typescript \"$VITE_API_BASE_URL/openapi.json\" -o src/api/gen/schema.ts"
+    "generate:api": "node ./scripts/generate-openapi.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

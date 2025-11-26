@@ -1,11 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ImagePlus, Save } from 'lucide-react'
+import { ImagePlus } from 'lucide-react'
+import type { JSX } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { z } from 'zod'
 
 import {
+  useActionAssigneesQuery,
   useActionsQuery,
   useApproveInspectionMutation,
   useCreateActionMutation,
@@ -16,27 +18,99 @@ import {
   useUploadMediaMutation,
   useUpsertResponseMutation,
 } from '@/api/hooks'
-import type { components } from '@/api/gen/schema'
+import { getErrorMessage } from '@/api/client'
 import { ACTION_SEVERITIES, INSPECTION_RESULTS } from '@/lib/constants'
 import { formatDateTime } from '@/lib/formatters'
-import { resolveApiUrl } from '@/lib/env'
+import { downloadFileWithAuth } from '@/lib/download'
 import { useAuth } from '@/auth/useAuth'
 import { FormField } from '@/components/forms/FormField'
+import { LocationSelect } from '@/components/forms/LocationSelect'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { Textarea } from '@/components/ui/Textarea'
 import { Badge } from '@/components/ui/Badge'
-import { useToast } from '@/components/ui/Toast'
+import { useToast } from '@/components/ui/toastContext'
 import { EmptyState } from '@/components/feedback/EmptyState'
 import { LoadingState } from '@/components/feedback/LoadingState'
+import { evaluateInspectionSubmitState } from './inspectionSubmitState'
+import type { InspectionResponse, SubmitGuardResult } from './inspectionSubmitState'
 
-const actionSchema = z.object({
+const PROMPT_SEPARATORS = [' – ', ' - ', ' — ']
+
+const parsePromptParts = (prompt: string): { title: string; guidance: string[] } => {
+  const lines = prompt
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+  if (lines.length === 0) {
+    return { title: prompt, guidance: [] }
+  }
+  let [firstLine, ...rest] = lines
+  let title = firstLine
+  let subtitle = ''
+  for (const separator of PROMPT_SEPARATORS) {
+    if (firstLine.includes(separator)) {
+      const [maybeTitle, maybeSubtitle] = firstLine.split(separator)
+      title = maybeTitle.trim()
+      subtitle = maybeSubtitle?.trim() ?? ''
+      break
+    }
+  }
+  const guidance: string[] = []
+  if (subtitle) {
+    guidance.push(subtitle)
+  }
+  guidance.push(...rest)
+  return { title, guidance }
+}
+
+const renderGuidanceLines = (lines: string[], keyPrefix: string) => {
+  if (lines.length === 0) return null
+  const elements: JSX.Element[] = []
+  let bulletBuffer: string[] = []
+  let keyIndex = 0
+  const flushBullets = () => {
+    if (bulletBuffer.length === 0) return
+    const bullets = bulletBuffer.map((text, index) => (
+      <li key={`${keyPrefix}-bullet-${keyIndex}-${index}`}>{text}</li>
+    ))
+    elements.push(
+      <ul key={`${keyPrefix}-bullets-${keyIndex++}`} className="list-inside list-disc space-y-0.5">
+        {bullets}
+      </ul>,
+    )
+    bulletBuffer = []
+  }
+
+  lines.forEach((line) => {
+    if (line.startsWith('- ')) {
+      bulletBuffer.push(line.replace(/^-+\s*/, '').trim())
+      return
+    }
+    flushBullets()
+    elements.push(
+      <p key={`${keyPrefix}-text-${keyIndex++}`} className="whitespace-pre-line">
+        {line}
+      </p>,
+    )
+  })
+  flushBullets()
+
+  return (
+    <div className="mt-1 space-y-1 text-xs text-slate-600" data-testid={`${keyPrefix}-guidance`}>
+      {elements}
+    </div>
+  )
+}
+
+export const actionSchema = z.object({
   title: z.string().min(3),
   description: z.string().optional(),
   severity: z.enum(ACTION_SEVERITIES),
   due_date: z.string().optional(),
+  assigned_to_id: z.string().min(1, 'Assign an action owner'),
 })
 
 type ActionFormValues = z.infer<typeof actionSchema>
@@ -54,19 +128,27 @@ export const InspectionEditPage = () => {
   const inspectionResourceId = numericInspectionId ?? inspectionIdParam
   const inspectionQuery = useInspectionQuery(inspectionResourceId)
   const inspection = inspectionQuery.data
-  const inspectionResponses = inspection?.responses ?? []
+  const inspectionResponses = useMemo(() => inspection?.responses ?? [], [inspection?.responses])
   const templateQuery = useTemplateQuery(inspection?.template_id)
   const template = templateQuery.data
   const actionsQuery = useActionsQuery()
+  const assigneesQuery = useActionAssigneesQuery()
   const resolvedInspectionId = inspection?.id ?? numericInspectionId
   const inspectionActions = useMemo(() => {
     if (resolvedInspectionId === undefined) return []
     return actionsQuery.data?.filter((action) => action.inspection_id === resolvedInspectionId) ?? []
   }, [actionsQuery.data, resolvedInspectionId])
+  const assigneeOptions = useMemo(() => assigneesQuery.data ?? [], [assigneesQuery.data])
+  const inspectionNotes = useMemo(() => {
+    const entries = inspection?.note_entries ?? []
+    return [...entries].sort(
+      (a, b) => new Date(b.created_at ?? '').getTime() - new Date(a.created_at ?? '').getTime(),
+    )
+  }, [inspection?.note_entries])
 
   const upsertResponse = useUpsertResponseMutation(inspectionResourceId ?? '')
   const uploadMedia = useUploadMediaMutation()
-  const updateInspection = inspectionResourceId ? useUpdateInspectionMutation(inspectionResourceId) : null
+  const updateInspection = useUpdateInspectionMutation(inspectionResourceId)
   const submitInspection = useSubmitInspectionMutation()
   const approveInspection = useApproveInspectionMutation()
   const createAction = useCreateActionMutation()
@@ -76,10 +158,12 @@ export const InspectionEditPage = () => {
 
   const [drafts, setDrafts] = useState<Record<string, ResponseDraft>>({})
   const [activeActionItem, setActiveActionItem] = useState<string | null>(null)
+  const [selectedLocationId, setSelectedLocationId] = useState('')
+  const [noteDraft, setNoteDraft] = useState('')
 
   const actionForm = useForm<ActionFormValues>({
     resolver: zodResolver(actionSchema),
-    defaultValues: { title: '', description: '', severity: 'medium', due_date: '' },
+    defaultValues: { title: '', description: '', severity: 'medium', due_date: '', assigned_to_id: '' },
   })
 
   const [localResponses, setLocalResponses] = useState<Record<string, InspectionResponse>>({})
@@ -113,6 +197,18 @@ export const InspectionEditPage = () => {
     previousInspectionId.current = inspection.id ?? null
   }, [inspection])
 
+  useEffect(() => {
+    if (!inspection) {
+      setSelectedLocationId('')
+      return
+    }
+    if (inspection.location_id) {
+      setSelectedLocationId(String(inspection.location_id))
+    } else {
+      setSelectedLocationId('')
+    }
+  }, [inspection])
+
   const responseMap = useMemo(() => {
     const map = new Map<string, InspectionResponse>()
     inspectionResponses.forEach((response) => {
@@ -135,6 +231,8 @@ export const InspectionEditPage = () => {
     submitState.missingRequiredItems.length === 0 &&
     submitState.failingResponses.length === 0
 
+  const legacyLocationLabel = inspection?.location_id ? null : inspection?.location ?? null
+
   if (inspectionQuery.isLoading || !inspection) {
     return <LoadingState label="Loading inspection..." />
   }
@@ -150,9 +248,10 @@ export const InspectionEditPage = () => {
   const handleSaveResponse = async (
     itemId: string,
     options: { suppressToast?: boolean; skipRefetch?: boolean } = {},
+    draftOverride?: ResponseDraft,
   ): Promise<InspectionResponse | undefined> => {
     if (resolvedInspectionId === undefined) return
-    const draft = drafts[itemId]
+    const draft = draftOverride ?? drafts[itemId]
     if (!draft?.result) {
       push({ title: 'Select a result first', variant: 'warning' })
       return
@@ -201,6 +300,16 @@ export const InspectionEditPage = () => {
     return existing
   }
 
+  const handleResultSelect = (itemId: string, result: string, fallbackNote?: string) => {
+    const currentDraft = drafts[itemId] ?? {}
+    const nextDraft: ResponseDraft = { ...currentDraft, result }
+    if (nextDraft.note === undefined) {
+      nextDraft.note = fallbackNote
+    }
+    setDrafts((current) => ({ ...current, [itemId]: nextDraft }))
+    void handleSaveResponse(itemId, { suppressToast: true }, nextDraft)
+  }
+
   const handleUpload = async (itemId: string, file?: File) => {
     if (!file) return
     try {
@@ -211,6 +320,15 @@ export const InspectionEditPage = () => {
       inspectionQuery.refetch()
     } catch (error) {
       push({ title: 'Upload failed', description: String((error as Error).message), variant: 'error' })
+    }
+  }
+
+  const handleDownloadMedia = async (url: string) => {
+    const fallbackName = url.split('/').pop()
+    try {
+      await downloadFileWithAuth(url, fallbackName)
+    } catch (error) {
+      push({ title: 'Unable to download file', description: getErrorMessage(error), variant: 'error' })
     }
   }
 
@@ -228,13 +346,33 @@ export const InspectionEditPage = () => {
     }
   }
 
-  const handleInspectionDetailsUpdate = async (field: 'location' | 'notes', value: string) => {
-    if (!updateInspection) return
+  const canUpdateInspection = inspectionResourceId !== undefined && inspectionResourceId !== null
+
+  const handleInspectionNoteSubmit = async () => {
+    if (!canUpdateInspection) return
+    const content = noteDraft.trim()
+    if (!content) {
+      push({ title: 'Add a note first', variant: 'warning' })
+      return
+    }
     try {
-      await updateInspection.mutateAsync({ [field]: value })
-      push({ title: 'Inspection updated', variant: 'success' })
+      await updateInspection.mutateAsync({ notes: content })
+      push({ title: 'Note saved', variant: 'success' })
+      setNoteDraft('')
+      inspectionQuery.refetch()
     } catch (error) {
       push({ title: 'Unable to update inspection', description: String((error as Error).message), variant: 'error' })
+    }
+  }
+
+  const handleLocationSelectChange = async (value: string) => {
+    setSelectedLocationId(value)
+    if (!canUpdateInspection || !value) return
+    try {
+      await updateInspection.mutateAsync({ location_id: Number(value) })
+      push({ title: 'Location updated', variant: 'success' })
+    } catch (error) {
+      push({ title: 'Unable to update location', description: String((error as Error).message), variant: 'error' })
     }
   }
 
@@ -252,7 +390,7 @@ export const InspectionEditPage = () => {
   const handleAddActionClick = async (itemId: string) => {
     const response = await ensureResponse(itemId)
     if (!response) return
-    actionForm.reset({ title: '', description: '', severity: 'medium', due_date: '' })
+    actionForm.reset({ title: '', description: '', severity: 'medium', due_date: '', assigned_to_id: '' })
     setActiveActionItem(itemId)
   }
 
@@ -265,6 +403,11 @@ export const InspectionEditPage = () => {
       push({ title: 'Action title required', variant: 'warning' })
       return
     }
+    if (!payload.assigned_to_id?.trim()) {
+      push({ title: 'Assign this action to an owner', variant: 'warning' })
+      return
+    }
+    const assignedToId = payload.assigned_to_id.trim()
     try {
       await createAction.mutateAsync({
         inspection_id: inspection.id,
@@ -273,9 +416,11 @@ export const InspectionEditPage = () => {
         description: payload.description,
         severity: payload.severity,
         due_date: payload.due_date ? new Date(payload.due_date).toISOString() : undefined,
+        assigned_to_id: assignedToId,
+        status: 'open',
       })
       push({ title: 'Action created', variant: 'success' })
-      actionForm.reset({ title: '', description: '', severity: 'medium', due_date: '' })
+      actionForm.reset({ title: '', description: '', severity: 'medium', due_date: '', assigned_to_id: '' })
       setActiveActionItem(null)
       actionsQuery.refetch()
     } catch (error) {
@@ -298,18 +443,60 @@ export const InspectionEditPage = () => {
           </Button>
         }
       >
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-4">
           <div>
             <p className="text-xs uppercase text-slate-500">Started</p>
             <p className="text-sm font-semibold text-slate-900">{formatDateTime(inspection.started_at?.toString())}</p>
           </div>
           <div>
+            <p className="text-xs uppercase text-slate-500">Template</p>
+            <p className="text-sm font-semibold text-slate-900">{template.name || 'Inspection'}</p>
+            <p className="text-xs text-slate-500">
+              {inspection.inspection_origin === 'assignment' ? 'Assignment' : 'Independent'}
+            </p>
+          </div>
+          <div>
             <p className="text-xs uppercase text-slate-500">Location</p>
-            <Input defaultValue={inspection.location ?? ''} onBlur={(event) => handleInspectionDetailsUpdate('location', event.target.value)} placeholder="Enter location" />
+            <LocationSelect
+              value={selectedLocationId}
+              onChange={handleLocationSelectChange}
+              disabled={!canUpdateInspection || updateInspection.isPending}
+              legacyLabel={legacyLocationLabel}
+            />
           </div>
           <div>
             <p className="text-xs uppercase text-slate-500">Notes</p>
-            <Textarea rows={2} defaultValue={inspection.notes ?? ''} onBlur={(event) => handleInspectionDetailsUpdate('notes', event.target.value)} placeholder="Notes" />
+            <div className="mt-2 space-y-2">
+              <Textarea
+                rows={3}
+                value={noteDraft}
+                onChange={(event) => setNoteDraft(event.target.value)}
+                disabled={!canUpdateInspection || updateInspection.isPending}
+                placeholder="Add a note"
+              />
+              <Button
+                type="button"
+                onClick={handleInspectionNoteSubmit}
+                disabled={!canUpdateInspection || updateInspection.isPending}
+              >
+                Save note
+              </Button>
+              <div className="max-h-48 space-y-2 overflow-y-auto rounded-xl border border-slate-100 p-3">
+                {inspectionNotes.length === 0 ? (
+                  <p className="text-xs text-slate-500">No notes captured yet.</p>
+                ) : (
+                  inspectionNotes.map((entry) => (
+                    <div key={entry.id} className="rounded-lg border border-slate-100 bg-white p-2">
+                      <p className="text-xs font-medium text-slate-500">
+                        {entry.author?.full_name || entry.author?.email || entry.author_id || 'Unknown user'} •{' '}
+                        {formatDateTime(entry.created_at)}
+                      </p>
+                      <p className="text-sm text-slate-900 whitespace-pre-line">{entry.body}</p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </Card>
@@ -317,9 +504,10 @@ export const InspectionEditPage = () => {
       {submitState.missingRequiredItems.length > 0 && (
         <Card title="Missing responses" subtitle="Required items need responses before submission">
           <ul className="list-inside list-disc text-sm text-red-700">
-            {submitState.missingRequiredItems.map((item) => (
-              <li key={item.id}>{item.prompt}</li>
-            ))}
+            {submitState.missingRequiredItems.map((item) => {
+              const parts = parsePromptParts(item.prompt ?? '')
+              return <li key={item.id}>{parts.title || item.prompt}</li>
+            })}
           </ul>
         </Card>
       )}
@@ -341,13 +529,18 @@ export const InspectionEditPage = () => {
               const response = getResponseForItem(item.id)
               const draft = drafts[item.id] ?? { result: '', note: '' }
               const actionsForResponse = inspectionActions.filter((action) => action.response_id === response?.id)
-              const disableSave = upsertResponse.isPending
+              const currentResult = draft.result ?? response?.result ?? ''
+              const isFailSelected = currentResult === 'fail'
+              const noteValue = draft.note ?? response?.note ?? ''
+              const promptParts = parsePromptParts(item.prompt ?? '')
+              const guidanceContent = renderGuidanceLines(promptParts.guidance, item.id)
               return (
                 <div key={item.id} className="rounded-xl border border-slate-200 p-4">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
-                      <p className="text-sm font-semibold text-slate-900">{item.prompt}</p>
-                      <p className="text-xs text-slate-500">{item.is_required ? 'Required' : 'Optional'}</p>
+                      <p className="text-sm font-semibold text-slate-900">{promptParts.title || item.prompt}</p>
+                      {guidanceContent}
+                      <p className="mt-1 text-xs text-slate-500">{item.is_required ? 'Required' : 'Optional'}</p>
                     </div>
                     {response?.result && <Badge variant={response.result === 'fail' ? 'danger' : 'info'}>{response.result}</Badge>}
                   </div>
@@ -358,24 +551,23 @@ export const InspectionEditPage = () => {
                           type="radio"
                           name={`result-${item.id}`}
                           value={result}
-                          checked={draft.result === result}
-                          onChange={(event) => handleDraftChange(item.id, { result: event.target.value })}
+                          checked={currentResult === result}
+                          onChange={(event) => handleResultSelect(item.id, event.target.value, noteValue)}
                         />
                         {result.toUpperCase()}
                       </label>
                     ))}
                   </div>
-                  <Textarea
-                    className="mt-3"
-                    rows={3}
-                    placeholder="Add notes"
-                    value={draft.note ?? ''}
-                    onChange={(event) => handleDraftChange(item.id, { note: event.target.value })}
-                  />
+                  {isFailSelected && (
+                    <Textarea
+                      className="mt-3"
+                      rows={3}
+                      placeholder="Add notes"
+                      value={noteValue}
+                      onChange={(event) => handleDraftChange(item.id, { note: event.target.value })}
+                    />
+                  )}
                   <div className="mt-3 flex flex-wrap items-center gap-3">
-                    <Button type="button" variant="secondary" onClick={() => handleSaveResponse(item.id)} disabled={disableSave}>
-                      <Save className="mr-2 h-4 w-4" /> Save response
-                    </Button>
                     <label className="flex cursor-pointer items-center gap-2 text-sm text-brand-700">
                       <ImagePlus className="h-4 w-4" />
                       <input
@@ -394,9 +586,13 @@ export const InspectionEditPage = () => {
                     <div className="mt-3 flex flex-wrap gap-2">
                       {response.media_urls.map((url) => (
                         <div key={url} className="flex items-center gap-2 rounded-full border border-slate-200 px-3 py-1 text-xs">
-                          <a href={resolveApiUrl(url)} className="text-brand-600 underline" target="_blank" rel="noreferrer">
+                          <button
+                            type="button"
+                            className="text-brand-600 underline"
+                            onClick={() => handleDownloadMedia(url)}
+                          >
                             {url.split('/').pop() ?? 'Attachment'}
-                          </a>
+                          </button>
                           <button
                             type="button"
                             className="text-red-600"
@@ -409,78 +605,98 @@ export const InspectionEditPage = () => {
                     </div>
                   ) : null}
 
-                  <div className="mt-4 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold text-slate-900">Corrective actions</p>
+                  {isFailSelected && (
+                    <div className="mt-4 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-semibold text-slate-900">Corrective actions</p>
                         <Button type="button" variant="ghost" onClick={() => void handleAddActionClick(item.id)}>
                           Add action
                         </Button>
-                    </div>
-                    {actionsForResponse.length === 0 && (
-                      <EmptyState title="No actions" description="Create an action for failed items." />
-                    )}
-                    {actionsForResponse.map((action) => (
-                      <div key={action.id} className="rounded-lg border border-slate-100 p-3 text-sm">
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <div>
-                            <p className="font-semibold text-slate-900">
-                              Action #{action.id} • {action.title}
-                            </p>
-                            <p className="text-xs text-slate-500">Status • {action.status.replace('_', ' ')}</p>
+                      </div>
+                      {actionsForResponse.length === 0 && (
+                        <EmptyState title="No actions" description="Create an action for failed items." />
+                      )}
+                      {actionsForResponse.map((action) => (
+                        <div key={action.id} className="rounded-lg border border-slate-100 p-3 text-sm">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div>
+                              <p className="font-semibold text-slate-900">
+                                Action #{action.id} • {action.title}
+                              </p>
+                              <p className="text-xs text-slate-500">Status • {action.status.replace('_', ' ')}</p>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <Badge variant="warning">{action.severity}</Badge>
+                              <Link
+                                to={`/actions/search?actionId=${action.id}`}
+                                className="text-xs font-semibold text-indigo-600 hover:underline"
+                              >
+                                Open action
+                              </Link>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-3">
-                            <Badge variant="warning">{action.severity}</Badge>
-                            <Link
-                              to={`/actions/search?actionId=${action.id}`}
-                              className="text-xs font-semibold text-indigo-600 hover:underline"
-                            >
-                              Open action
-                            </Link>
-                          </div>
+                          <p className="text-xs text-slate-500">
+                            Due {action.due_date ? formatDateTime(action.due_date.toString()) : 'unspecified'}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            Assigned to {action.assignee?.full_name || action.assignee?.email || 'Unassigned'}
+                          </p>
+                          {action.resolution_notes && (
+                            <p className="mt-1 text-xs text-emerald-700">Resolution • {action.resolution_notes}</p>
+                          )}
                         </div>
-                        <p className="text-xs text-slate-500">Due {action.due_date ? formatDateTime(action.due_date.toString()) : 'unspecified'}</p>
-                        {action.resolution_notes && (
-                          <p className="mt-1 text-xs text-emerald-700">Resolution • {action.resolution_notes}</p>
-                        )}
-                      </div>
-                    ))}
-                    {activeActionItem === item.id && (
-                      <div className="rounded-xl border border-dashed border-slate-200 p-4">
-                        <form
-                          className="grid gap-3 md:grid-cols-2"
-                          onSubmit={(event) => {
-                            event.preventDefault()
-                            void handleCreateAction(item.id)
-                          }}
-                        >
-                          <FormField label="Title" error={actionForm.formState.errors.title?.message}>
-                            <Input {...actionForm.register('title')} />
-                          </FormField>
-                          <FormField label="Severity">
-                            <Select {...actionForm.register('severity')}>
-                              {ACTION_SEVERITIES.map((severity) => (
-                                <option key={severity} value={severity}>
-                                  {severity}
-                                </option>
-                              ))}
-                            </Select>
-                          </FormField>
-                          <FormField label="Due date">
-                            <Input type="date" {...actionForm.register('due_date')} />
-                          </FormField>
-                          <FormField label="Description">
-                            <Textarea rows={2} {...actionForm.register('description')} />
-                          </FormField>
-                          <div className="md:col-span-2 flex justify-end gap-2">
-                            <Button type="button" variant="ghost" onClick={() => setActiveActionItem(null)}>
-                              Cancel
-                            </Button>
-                            <Button type="submit">Save action</Button>
-                          </div>
-                        </form>
-                      </div>
-                    )}
-                  </div>
+                      ))}
+                      {activeActionItem === item.id && (
+                        <div className="rounded-xl border border-dashed border-slate-200 p-4">
+                          <form
+                            className="grid gap-3 md:grid-cols-2"
+                            onSubmit={(event) => {
+                              event.preventDefault()
+                              void handleCreateAction(item.id)
+                            }}
+                          >
+                            <FormField label="Title" error={actionForm.formState.errors.title?.message}>
+                              <Input {...actionForm.register('title')} />
+                            </FormField>
+                            <FormField label="Severity">
+                              <Select {...actionForm.register('severity')}>
+                                {ACTION_SEVERITIES.map((severity) => (
+                                  <option key={severity} value={severity}>
+                                    {severity}
+                                  </option>
+                                ))}
+                              </Select>
+                            </FormField>
+                            <FormField label="Due date">
+                              <Input type="date" {...actionForm.register('due_date')} />
+                            </FormField>
+                            <FormField label="Assign to">
+                              <Select {...actionForm.register('assigned_to_id')} disabled={assigneesQuery.isLoading}>
+                                <option value="">Unassigned</option>
+                                {assigneeOptions.map((user) => (
+                                  <option key={user.id} value={user.id}>
+                                    {user.full_name || user.email}
+                                  </option>
+                                ))}
+                              </Select>
+                            </FormField>
+                            <FormField label="Description">
+                              <Textarea rows={2} {...actionForm.register('description')} />
+                            </FormField>
+                            {assigneesQuery.isError && (
+                              <p className="text-xs text-red-600 md:col-span-2">Unable to load suggested assignees.</p>
+                            )}
+                            <div className="md:col-span-2 flex justify-end gap-2">
+                              <Button type="button" variant="ghost" onClick={() => setActiveActionItem(null)}>
+                                Cancel
+                              </Button>
+                              <Button type="submit">Save action</Button>
+                            </div>
+                          </form>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )
             })}
@@ -505,32 +721,4 @@ export const InspectionEditPage = () => {
       </div>
     </div>
   )
-}
-
-type TemplateRead = components['schemas']['ChecklistTemplateRead']
-type TemplateItem = components['schemas']['TemplateItemRead']
-type InspectionResponse = components['schemas']['InspectionResponseRead']
-type CorrectiveAction = components['schemas']['CorrectiveActionRead']
-
-export type SubmitGuardResult = {
-  missingRequiredItems: TemplateItem[]
-  failingResponses: InspectionResponse[]
-}
-
-export const evaluateInspectionSubmitState = (
-  template: TemplateRead,
-  responses: InspectionResponse[],
-  actions: CorrectiveAction[],
-): SubmitGuardResult => {
-  const requiredItems = template.sections?.flatMap((section) => section.items ?? []).filter((item) => item.is_required) ?? []
-  const responseMap = new Map(responses.map((response) => [response.template_item_id, response]))
-  const missingRequiredItems = requiredItems.filter((item) => {
-    const response = responseMap.get(item.id)
-    return !response?.result
-  })
-  const failingResponses = responses.filter((response) => {
-    if (response.result !== 'fail') return false
-    return !actions.some((action) => action.response_id === response.id)
-  })
-  return { missingRequiredItems, failingResponses }
 }

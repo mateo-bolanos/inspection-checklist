@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { api } from './client'
+import { api, getErrorMessage } from './client'
 import type { components, paths } from './gen/schema'
 
 export const queryKeys = {
@@ -11,13 +11,19 @@ export const queryKeys = {
   inspection: (inspectionId: string | number | undefined) => ['inspections', inspectionId] as const,
   inspectionResponses: (inspectionId: string | number | undefined) => ['inspections', inspectionId, 'responses'] as const,
   actions: ['actions'] as const,
+  assignments: ['assignments'] as const,
+  locations: ['locations'] as const,
   dashboard: {
     overview: ['dash', 'overview'] as const,
     actions: ['dash', 'actions'] as const,
     items: ['dash', 'items'] as const,
+    weeklyOverview: ['dash', 'weekly-overview'] as const,
+    weeklyPending: ['dash', 'weekly-pending'] as const,
   },
   files: ['files'] as const,
   actionFiles: (actionId: number | undefined) => ['files', 'action', actionId] as const,
+  users: (role?: string) => ['users', role] as const,
+  actionAssignees: (role?: string) => ['action-assignees', role] as const,
 }
 
 type TemplateListResponse = paths['/templates/']['get']['responses']['200']['content']['application/json']
@@ -31,6 +37,12 @@ type SectionUpdateInput = paths['/templates/{template_id}/sections/{section_id}'
 type ItemCreateInput = paths['/templates/{template_id}/sections/{section_id}/items']['post']['requestBody']['content']['application/json']
 type ItemUpdateInput = paths['/templates/{template_id}/sections/{section_id}/items/{item_id}']['put']['requestBody']['content']['application/json']
 
+type LocationListResponse = paths['/locations/']['get']['responses']['200']['content']['application/json']
+type LocationCreateInput = paths['/locations/']['post']['requestBody']['content']['application/json']
+type LocationRead = components['schemas']['LocationRead']
+type AssignmentListResponse = paths['/assignments/']['get']['responses']['200']['content']['application/json']
+type AssignmentCreateInput = paths['/assignments/']['post']['requestBody']['content']['application/json']
+type UserListResponse = paths['/users/']['get']['responses']['200']['content']['application/json']
 type InspectionListResponse = paths['/inspections/']['get']['responses']['200']['content']['application/json']
 type InspectionDetailResponse = paths['/inspections/{inspection_id}']['get']['responses']['200']['content']['application/json']
 type InspectionCreateInput = paths['/inspections/']['post']['requestBody']['content']['application/json']
@@ -54,6 +66,20 @@ type CorrectiveActionRead = components['schemas']['CorrectiveActionRead']
 type OverviewMetrics = components['schemas']['OverviewMetrics']
 type ActionMetrics = components['schemas']['ActionMetrics']
 type ItemsMetrics = components['schemas']['ItemsMetrics']
+type WeeklyInspectionKPIs = {
+  total_expected: number
+  submitted: number
+  approved: number
+  pending: number
+  overdue: number
+}
+type WeeklyPendingUser = {
+  user_id: string
+  user_name: string
+  pending_count: number
+  overdue_count: number
+  last_submission_at: string | null
+}
 
 type MediaListResponse = paths['/files/']['get']['responses']['200']['content']['application/json']
 type MediaUploadResponse = paths['/files/']['post']['responses']['201']['content']['application/json']
@@ -99,16 +125,21 @@ export const useCreateTemplateMutation = () => {
   })
 }
 
-export const useUpdateTemplateMutation = (templateId: string) => {
+export const useUpdateTemplateMutation = (templateId?: string) => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (payload: TemplateUpdateInput) => {
+      if (!templateId) {
+        throw new Error('Template ID is required to update templates')
+      }
       const { data } = await api.put<TemplateRead>(`/templates/${templateId}`, payload)
       return data
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.templates })
-      queryClient.invalidateQueries({ queryKey: queryKeys.template(templateId) })
+      if (templateId) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.template(templateId) })
+      }
     },
   })
 }
@@ -123,15 +154,23 @@ export const useDeleteTemplateMutation = () => {
   })
 }
 
-export const useSectionMutations = (templateId: string) => {
+export const useSectionMutations = (templateId?: string) => {
   const queryClient = useQueryClient()
+  const ensureTemplateId = () => {
+    if (!templateId) {
+      throw new Error('Template ID is required to manage sections')
+    }
+  }
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: queryKeys.templates })
-    queryClient.invalidateQueries({ queryKey: queryKeys.template(templateId) })
+    if (templateId) {
+      queryClient.invalidateQueries({ queryKey: queryKeys.template(templateId) })
+    }
   }
 
   const createSection = useMutation({
     mutationFn: async (payload: SectionCreateInput) => {
+      ensureTemplateId()
       const { data } = await api.post<TemplateSectionRead>(`/templates/${templateId}/sections`, payload)
       return data
     },
@@ -140,6 +179,7 @@ export const useSectionMutations = (templateId: string) => {
 
   const updateSection = useMutation({
     mutationFn: async ({ sectionId, data }: { sectionId: string; data: SectionUpdateInput }) => {
+      ensureTemplateId()
       const response = await api.put<TemplateSectionRead>(
         `/templates/${templateId}/sections/${sectionId}`,
         data,
@@ -151,6 +191,7 @@ export const useSectionMutations = (templateId: string) => {
 
   const deleteSection = useMutation({
     mutationFn: async (sectionId: string) => {
+      ensureTemplateId()
       await api.delete(`/templates/${templateId}/sections/${sectionId}`)
     },
     onSuccess: invalidate,
@@ -159,15 +200,23 @@ export const useSectionMutations = (templateId: string) => {
   return { createSection, updateSection, deleteSection }
 }
 
-export const useItemMutations = (templateId: string) => {
+export const useItemMutations = (templateId?: string) => {
   const queryClient = useQueryClient()
+  const ensureTemplateId = () => {
+    if (!templateId) {
+      throw new Error('Template ID is required to manage items')
+    }
+  }
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: queryKeys.templates })
-    queryClient.invalidateQueries({ queryKey: queryKeys.template(templateId) })
+    if (templateId) {
+      queryClient.invalidateQueries({ queryKey: queryKeys.template(templateId) })
+    }
   }
 
   const createItem = useMutation({
     mutationFn: async ({ sectionId, payload }: { sectionId: string; payload: ItemCreateInput }) => {
+      ensureTemplateId()
       const { data } = await api.post<TemplateItemRead>(
         `/templates/${templateId}/sections/${sectionId}/items`,
         payload,
@@ -194,12 +243,92 @@ export const useItemMutations = (templateId: string) => {
 
   const deleteItem = useMutation({
     mutationFn: async ({ sectionId, itemId }: { sectionId: string; itemId: string }) => {
+      ensureTemplateId()
       await api.delete(`/templates/${templateId}/sections/${sectionId}/items/${itemId}`)
     },
     onSuccess: invalidate,
   })
 
   return { createItem, updateItem, deleteItem }
+}
+
+export const useLocationsQuery = (options?: { enabled?: boolean }) => {
+  return useQuery({
+    queryKey: queryKeys.locations,
+    enabled: options?.enabled ?? true,
+    queryFn: async () => {
+      const { data } = await api.get<LocationListResponse>('/locations/')
+      return data
+    },
+  })
+}
+
+export const useAssignmentsQuery = (options?: { enabled?: boolean }) => {
+  return useQuery({
+    queryKey: queryKeys.assignments,
+    enabled: options?.enabled ?? true,
+    queryFn: async () => {
+      const { data } = await api.get<AssignmentListResponse>('/assignments/')
+      return data
+    },
+  })
+}
+
+export const useCreateAssignmentMutation = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (payload: AssignmentCreateInput) => {
+      const { data } = await api.post('/assignments/', payload)
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.assignments })
+    },
+  })
+}
+
+export const useStartAssignmentInspectionMutation = () => {
+  return useMutation({
+    mutationFn: async (assignmentId: number) => {
+      const { data } = await api.post<components['schemas']['InspectionRead']>(`/assignments/${assignmentId}/start`)
+      return data
+    },
+  })
+}
+
+export const useUsersQuery = (role?: string) => {
+  return useQuery({
+    queryKey: queryKeys.users(role),
+    queryFn: async () => {
+      const { data } = await api.get<UserListResponse>('/users/', { params: role ? { role } : undefined })
+      return data
+    },
+  })
+}
+
+export const useActionAssigneesQuery = (roles: string[] | string = ['action_owner']) => {
+  const roleParam = Array.isArray(roles) ? roles.join(',') : roles
+  return useQuery({
+    queryKey: queryKeys.actionAssignees(roleParam),
+    queryFn: async () => {
+      const params = roleParam ? { role: roleParam } : undefined
+      const { data } = await api.get<UserListResponse>('/users/assignees', { params })
+      return data
+    },
+  })
+}
+
+export const useCreateLocationMutation = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (payload: LocationCreateInput) => {
+      const { data } = await api.post<LocationRead>('/locations/', payload)
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.locations })
+    },
+  })
 }
 
 export const useInspectionsQuery = () => {
@@ -241,15 +370,20 @@ export const useCreateInspectionMutation = () => {
   })
 }
 
-export const useUpdateInspectionMutation = (inspectionId: string | number) => {
+export const useUpdateInspectionMutation = (inspectionId?: string | number) => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (payload: InspectionUpdateInput) => {
+      if (inspectionId === undefined || inspectionId === null) {
+        throw new Error('Inspection ID is required to update inspections')
+      }
       const { data } = await api.put(`/inspections/${inspectionId}`, payload)
       return data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.inspection(inspectionId) })
+      if (inspectionId !== undefined && inspectionId !== null) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.inspection(inspectionId) })
+      }
       queryClient.invalidateQueries({ queryKey: queryKeys.inspections })
     },
   })
@@ -324,11 +458,26 @@ export const useUpsertResponseMutation = (inspectionId: string | number) => {
   return mutation
 }
 
-export const useActionsQuery = () => {
+type ActionsQueryOptions = {
+  assignedTo?: string | null
+  status?: string | null
+  enabled?: boolean
+}
+
+export const useActionsQuery = (options?: ActionsQueryOptions) => {
+  const assignedTo = options?.assignedTo ?? undefined
+  const status = options?.status ?? undefined
+  const enabled = options?.enabled ?? true
   return useQuery({
-    queryKey: queryKeys.actions,
+    queryKey: [...queryKeys.actions, assignedTo ?? null, status ?? null] as const,
+    enabled,
     queryFn: async () => {
-      const { data } = await api.get<CorrectiveActionListResponse>('/actions/')
+      const params: Record<string, string> = {}
+      if (assignedTo) params.assigned_to = assignedTo
+      if (status) params.status = status
+      const { data } = await api.get<CorrectiveActionListResponse>('/actions/', {
+        params: Object.keys(params).length ? params : undefined,
+      })
       return data
     },
   })
@@ -372,9 +521,10 @@ export const useDashboardOverviewQuery = () => {
   })
 }
 
-export const useDashboardActionsQuery = () => {
+export const useDashboardActionsQuery = (options?: { enabled?: boolean }) => {
   return useQuery({
     queryKey: queryKeys.dashboard.actions,
+    enabled: options?.enabled ?? true,
     queryFn: async () => {
       const { data } = await api.get<ActionMetrics>('/dash/actions')
       return data
@@ -387,6 +537,40 @@ export const useDashboardItemsQuery = (limit = 5) => {
     queryKey: [...queryKeys.dashboard.items, limit] as const,
     queryFn: async () => {
       const { data } = await api.get<ItemsMetrics>('/dash/items', { params: { limit } })
+      return data
+    },
+  })
+}
+
+type WeeklyRangeOptions = {
+  start?: string
+  end?: string
+  enabled?: boolean
+}
+
+export const useDashboardWeeklyOverviewQuery = (options?: WeeklyRangeOptions) => {
+  const { start, end, enabled = true } = options ?? {}
+  return useQuery({
+    queryKey: [...queryKeys.dashboard.weeklyOverview, start ?? null, end ?? null] as const,
+    enabled,
+    queryFn: async () => {
+      const { data } = await api.get<WeeklyInspectionKPIs>('/dash/weekly-overview', {
+        params: { start, end },
+      })
+      return data
+    },
+  })
+}
+
+export const useDashboardWeeklyPendingQuery = (options?: WeeklyRangeOptions) => {
+  const { start, end, enabled = true } = options ?? {}
+  return useQuery({
+    queryKey: [...queryKeys.dashboard.weeklyPending, start ?? null, end ?? null] as const,
+    enabled,
+    queryFn: async () => {
+      const { data } = await api.get<WeeklyPendingUser[]>('/dash/weekly-pending', {
+        params: { start, end },
+      })
       return data
     },
   })
@@ -440,6 +624,7 @@ export const useUploadMediaMutation = () => {
 
 export const useLoginMutation = () => {
   return useMutation({
+    mutationKey: ['auth', 'login'],
     mutationFn: async ({ username, password }: LoginInput) => {
       const body = new URLSearchParams()
       body.append('username', username)
@@ -448,6 +633,10 @@ export const useLoginMutation = () => {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       })
       return data
+    },
+    onError: (error) => {
+      // Surface detailed errors in development to make CORS/network issues obvious
+      console.error('Login request failed:', getErrorMessage(error))
     },
   })
 }

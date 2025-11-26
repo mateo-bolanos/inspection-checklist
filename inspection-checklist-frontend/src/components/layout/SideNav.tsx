@@ -1,4 +1,15 @@
-import { CheckCircle, ClipboardList, FilePlus2, FileSearch2, LayoutDashboard, Layers3, ListChecks, Search, Upload } from 'lucide-react'
+import {
+  CalendarClock,
+  CheckCircle,
+  ClipboardList,
+  FilePlus2,
+  FileSearch2,
+  FileText,
+  LayoutDashboard,
+  Layers3,
+  ListChecks,
+  Search,
+} from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 
 import { useAuth } from '@/auth/useAuth'
@@ -7,13 +18,14 @@ import { clsx } from 'clsx'
 const navItems = [
   { label: 'Overview', to: '/dash/overview', icon: LayoutDashboard, roles: ['admin', 'reviewer'] },
   { label: 'Failing Items', to: '/dash/items', icon: ListChecks, roles: ['admin', 'reviewer'] },
+  { label: 'Reports', to: '/reports', icon: FileText, roles: ['admin', 'reviewer'] },
   { label: 'Templates', to: '/templates', icon: Layers3, roles: ['admin'] },
+  { label: 'Assignments', to: '/assignments', icon: CalendarClock, roles: ['admin', 'inspector'] },
   { label: 'Start Inspection', to: '/inspections/new', icon: FilePlus2, roles: ['admin', 'inspector'] },
   { label: 'Inspections', to: '/inspections', icon: Search, roles: ['admin', 'inspector', 'reviewer'] },
-  { label: 'Actions Board', to: '/actions', icon: ClipboardList, roles: ['admin', 'inspector', 'reviewer'] },
-  { label: 'Search Actions', to: '/actions/search', icon: FileSearch2, roles: ['admin', 'inspector', 'reviewer'] },
+  { label: 'Actions Board', to: '/actions', icon: ClipboardList, roles: ['admin', 'inspector', 'reviewer', 'action_owner'] },
+  { label: 'Search Actions', to: '/actions/search', icon: FileSearch2, roles: ['admin', 'inspector', 'reviewer', 'action_owner'] },
   { label: 'Review Queue', to: '/reviews', icon: CheckCircle, roles: ['admin', 'reviewer'] },
-  { label: 'Upload Center', to: '/files/upload', icon: Upload, roles: ['admin', 'inspector'] },
 ]
 
 type SideNavProps = {
