@@ -39,6 +39,8 @@ const buildAction = (
   due_date: null,
   assigned_to_id: null,
   status: 'open',
+  work_order_required: false,
+  work_order_number: null,
   assignee: null,
   created_at: new Date().toISOString(),
   closed_at: null,
@@ -101,15 +103,19 @@ describe('evaluateInspectionSubmitState', () => {
   })
 
   test('skips evidence requirement when template item disables it', () => {
+    const [firstSection] = template.sections ?? []
+    if (!firstSection) {
+      throw new Error('Test template is missing sections')
+    }
     const relaxedTemplate: components['schemas']['ChecklistTemplateRead'] = {
       ...template,
       sections: [
         {
-          ...template.sections[0],
+          ...firstSection,
           items: [
-            { ...template.sections[0].items[0], requires_evidence_on_fail: false },
-            template.sections[0].items[1],
-          ],
+            { ...(firstSection.items?.[0] ?? template.sections?.[0].items?.[0]), requires_evidence_on_fail: false },
+            ...(firstSection.items?.[1] ? [firstSection.items[1]] : []),
+          ].filter(Boolean) as components['schemas']['TemplateItemRead'][],
         },
       ],
     }

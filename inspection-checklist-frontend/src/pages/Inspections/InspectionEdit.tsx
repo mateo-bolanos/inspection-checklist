@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ImagePlus } from 'lucide-react'
+import { AlertTriangle, ImagePlus, Loader2 } from 'lucide-react'
 import type { JSX } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -12,9 +12,11 @@ import {
   useApproveInspectionMutation,
   useCreateActionMutation,
   useInspectionQuery,
+  useOpenActionsByItemQuery,
   useSubmitInspectionMutation,
   useTemplateQuery,
   useUpdateInspectionMutation,
+  useUpdateActionMutation,
   useUploadMediaMutation,
   useUpsertResponseMutation,
 } from '@/api/hooks'
@@ -105,12 +107,127 @@ const renderGuidanceLines = (lines: string[], keyPrefix: string) => {
   )
 }
 
+const deriveRiskLevel = (occurrence: string, injury: string) => {
+  const occ = occurrence?.toLowerCase()
+  const inj = injury?.toLowerCase()
+  const score = (value: string) => {
+    if (value === 'high') return 3
+    if (value === 'medium') return 2
+    if (value === 'low') return 1
+    return 0
+  }
+  const scores = [score(occ), score(inj)].filter((s) => s > 0)
+  if (scores.length === 0) return 'medium'
+  const avg = scores.reduce((a, b) => a + b, 0) / scores.length
+  if (avg >= 2.5) return 'high'
+  if (avg >= 1.5) return 'medium'
+  return 'low'
+}
+
+type OpenActionsPanelProps = {
+  templateItemId: string
+  enabled: boolean
+  drafts: Record<number, string>
+  onDraftChange: (actionId: number, value: string) => void
+  onAddNote: (actionId: number) => Promise<void>
+  isSaving: boolean
+}
+
+const OpenActionsPanel = ({
+  templateItemId,
+  enabled,
+  drafts,
+  onDraftChange,
+  onAddNote,
+  isSaving,
+}: OpenActionsPanelProps) => {
+  const openActionsQuery = useOpenActionsByItemQuery(templateItemId, enabled)
+  const openActions = openActionsQuery.data ?? []
+
+  if (!enabled) return null
+
+  if (openActionsQuery.isLoading) {
+    return (
+      <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-slate-50 px-3 py-1 text-xs text-slate-600">
+        <Loader2 className="h-4 w-4 animate-spin text-slate-500" />
+        Checking for existing actions...
+      </div>
+    )
+  }
+
+  if (openActionsQuery.isError) {
+    return (
+      <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-xs text-red-700">
+        <AlertTriangle className="h-4 w-4" />
+        Unable to load open actions right now.
+      </div>
+    )
+  }
+
+  if (openActions.length === 0) {
+    return null
+  }
+
+  return (
+    <div className="mt-3 space-y-2 rounded-lg border border-amber-200 bg-amber-50 p-3">
+      <div className="flex items-center gap-2 text-amber-800">
+        <AlertTriangle className="h-4 w-4" />
+        <p className="text-sm font-semibold">
+          Existing open actions for this item — add a note or continue to create a new action.
+        </p>
+      </div>
+      <div className="space-y-3">
+        {openActions.map((action) => (
+          <div key={action.id} className="rounded border border-amber-100 bg-white p-3 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <p className="text-sm font-semibold text-slate-900">
+                  Action #{action.id} • {action.title}
+                </p>
+                <p className="text-xs text-slate-500">
+                  Assigned to {action.assignee?.full_name || action.assignee?.email || 'Unassigned'} • Due{' '}
+                  {action.due_date ? formatDateTime(action.due_date.toString()) : 'unspecified'}
+                </p>
+                {action.inspection_location && (
+                  <p className="text-xs text-slate-500">Department • {action.inspection_location}</p>
+                )}
+              </div>
+              <Badge variant="warning">{action.severity}</Badge>
+            </div>
+            <Textarea
+              className="mt-2"
+              rows={2}
+              placeholder="Add note to existing action"
+              value={drafts[action.id] ?? ''}
+              onChange={(event) => onDraftChange(action.id, event.target.value)}
+            />
+            <div className="flex justify-end">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => void onAddNote(action.id)}
+                disabled={(drafts[action.id] ?? '').trim().length === 0 || isSaving}
+              >
+                Add note to action
+              </Button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export const actionSchema = z.object({
   title: z.string().min(3),
   description: z.string().optional(),
   severity: z.enum(ACTION_SEVERITIES),
+  occurrence_severity: z.enum(ACTION_SEVERITIES),
+  injury_severity: z.enum(ACTION_SEVERITIES),
   due_date: z.string().optional(),
-  assigned_to_id: z.string().min(1, 'Assign an action owner'),
+  assigned_to_id: z.string().optional(),
+  work_order_required: z.boolean(),
+  work_order_number: z.string().optional(),
 })
 
 type ActionFormValues = z.infer<typeof actionSchema>
@@ -131,6 +248,21 @@ export const InspectionEditPage = () => {
   const inspectionResponses = useMemo(() => inspection?.responses ?? [], [inspection?.responses])
   const templateQuery = useTemplateQuery(inspection?.template_id)
   const template = templateQuery.data
+  const itemPromptMap = useMemo(() => {
+    const map = new Map<string, string>()
+    template?.sections?.forEach((section) =>
+      section.items?.forEach((item) => {
+        if (item.id) map.set(item.id, parsePromptParts(item.prompt || '').title || item.prompt || item.id)
+      }),
+    )
+    return map
+  }, [template])
+  const rejectedItems = useMemo(() => {
+    if (inspection?.status !== 'rejected') return new Set<string>()
+    const entries = inspection.rejection_entries ?? []
+    return new Set(entries.filter((entry) => !entry.resolved_at).map((entry) => entry.template_item_id).filter(Boolean) as string[])
+  }, [inspection?.rejection_entries, inspection?.status])
+  const isRework = inspection?.status === 'rejected' && rejectedItems.size > 0
   const actionsQuery = useActionsQuery()
   const assigneesQuery = useActionAssigneesQuery()
   const resolvedInspectionId = inspection?.id ?? numericInspectionId
@@ -152,19 +284,41 @@ export const InspectionEditPage = () => {
   const submitInspection = useSubmitInspectionMutation()
   const approveInspection = useApproveInspectionMutation()
   const createAction = useCreateActionMutation()
+  const updateAction = useUpdateActionMutation()
   const { push } = useToast()
   const { hasRole } = useAuth()
   const canApprove = hasRole(['admin', 'reviewer'])
+  const isManager = hasRole(['admin', 'reviewer'])
 
   const [drafts, setDrafts] = useState<Record<string, ResponseDraft>>({})
   const [activeActionItem, setActiveActionItem] = useState<string | null>(null)
   const [selectedLocationId, setSelectedLocationId] = useState('')
   const [noteDraft, setNoteDraft] = useState('')
+  const [actionNoteDrafts, setActionNoteDrafts] = useState<Record<number, string>>({})
 
   const actionForm = useForm<ActionFormValues>({
     resolver: zodResolver(actionSchema),
-    defaultValues: { title: '', description: '', severity: 'medium', due_date: '', assigned_to_id: '' },
+    defaultValues: {
+      title: '',
+      description: '',
+      severity: 'medium',
+      occurrence_severity: 'medium',
+      injury_severity: 'medium',
+      due_date: '',
+      assigned_to_id: '',
+      work_order_required: false,
+      work_order_number: '',
+    },
   })
+  const watchOccurrence = actionForm.watch('occurrence_severity')
+  const watchInjury = actionForm.watch('injury_severity')
+
+  useEffect(() => {
+    const risk = deriveRiskLevel(watchOccurrence, watchInjury)
+    if (risk && actionForm.getValues('severity') !== risk) {
+      actionForm.setValue('severity', risk)
+    }
+  }, [actionForm, watchOccurrence, watchInjury])
 
   const [localResponses, setLocalResponses] = useState<Record<string, InspectionResponse>>({})
 
@@ -227,7 +381,7 @@ export const InspectionEditPage = () => {
   const getResponseForItem = (itemId: string) => localResponses[itemId] ?? responseMap.get(itemId)
 
   const canSubmit =
-    inspection?.status === 'draft' &&
+    (inspection?.status === 'draft' || inspection?.status === 'rejected') &&
     submitState.missingRequiredItems.length === 0 &&
     submitState.failingResponses.length === 0
 
@@ -387,10 +541,39 @@ export const InspectionEditPage = () => {
     }
   }
 
+  const handleOpenActionNoteChange = (actionId: number, value: string) => {
+    setActionNoteDrafts((current) => ({ ...current, [actionId]: value }))
+  }
+
+  const handleAddNoteToExistingAction = async (actionId: number) => {
+    const note = (actionNoteDrafts[actionId] ?? '').trim()
+    if (!note) {
+      push({ title: 'Add a note before saving', variant: 'warning' })
+      return
+    }
+    try {
+      await updateAction.mutateAsync({ actionId, data: { resolution_notes: note } })
+      push({ title: 'Note added to action', variant: 'success' })
+      setActionNoteDrafts((current) => ({ ...current, [actionId]: '' }))
+    } catch (error) {
+      push({ title: 'Unable to add note', description: getErrorMessage(error), variant: 'error' })
+    }
+  }
+
   const handleAddActionClick = async (itemId: string) => {
     const response = await ensureResponse(itemId)
     if (!response) return
-    actionForm.reset({ title: '', description: '', severity: 'medium', due_date: '', assigned_to_id: '' })
+    actionForm.reset({
+      title: '',
+      description: '',
+      severity: 'medium',
+      occurrence_severity: 'medium',
+      injury_severity: 'medium',
+      due_date: '',
+      assigned_to_id: '',
+      work_order_required: false,
+      work_order_number: '',
+    })
     setActiveActionItem(itemId)
   }
 
@@ -403,24 +586,38 @@ export const InspectionEditPage = () => {
       push({ title: 'Action title required', variant: 'warning' })
       return
     }
-    if (!payload.assigned_to_id?.trim()) {
+    const assignedToId = payload.assigned_to_id?.trim()
+    if (isManager && !assignedToId) {
       push({ title: 'Assign this action to an owner', variant: 'warning' })
       return
     }
-    const assignedToId = payload.assigned_to_id.trim()
     try {
       await createAction.mutateAsync({
         inspection_id: inspection.id,
         response_id: response.id,
         title: payload.title,
         description: payload.description,
-        severity: payload.severity,
-        due_date: payload.due_date ? new Date(payload.due_date).toISOString() : undefined,
-        assigned_to_id: assignedToId,
-        status: 'open',
-      })
+      occurrence_severity: payload.occurrence_severity,
+      injury_severity: payload.injury_severity,
+      severity: payload.severity,
+      due_date: payload.due_date ? new Date(payload.due_date).toISOString() : undefined,
+      work_order_required: payload.work_order_required,
+      work_order_number: payload.work_order_number,
+      assigned_to_id: isManager ? assignedToId : undefined,
+      status: 'open',
+    })
       push({ title: 'Action created', variant: 'success' })
-      actionForm.reset({ title: '', description: '', severity: 'medium', due_date: '', assigned_to_id: '' })
+      actionForm.reset({
+        title: '',
+        description: '',
+        severity: 'medium',
+        occurrence_severity: 'medium',
+        injury_severity: 'medium',
+        due_date: '',
+        assigned_to_id: '',
+        work_order_required: false,
+        work_order_number: '',
+      })
       setActiveActionItem(null)
       actionsQuery.refetch()
     } catch (error) {
@@ -443,7 +640,7 @@ export const InspectionEditPage = () => {
           </Button>
         }
       >
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-3">
           <div>
             <p className="text-xs uppercase text-slate-500">Started</p>
             <p className="text-sm font-semibold text-slate-900">{formatDateTime(inspection.started_at?.toString())}</p>
@@ -464,42 +661,52 @@ export const InspectionEditPage = () => {
               legacyLabel={legacyLocationLabel}
             />
           </div>
-          <div>
-            <p className="text-xs uppercase text-slate-500">Notes</p>
-            <div className="mt-2 space-y-2">
-              <Textarea
-                rows={3}
-                value={noteDraft}
-                onChange={(event) => setNoteDraft(event.target.value)}
-                disabled={!canUpdateInspection || updateInspection.isPending}
-                placeholder="Add a note"
-              />
-              <Button
-                type="button"
-                onClick={handleInspectionNoteSubmit}
-                disabled={!canUpdateInspection || updateInspection.isPending}
-              >
-                Save note
-              </Button>
-              <div className="max-h-48 space-y-2 overflow-y-auto rounded-xl border border-slate-100 p-3">
-                {inspectionNotes.length === 0 ? (
-                  <p className="text-xs text-slate-500">No notes captured yet.</p>
-                ) : (
-                  inspectionNotes.map((entry) => (
-                    <div key={entry.id} className="rounded-lg border border-slate-100 bg-white p-2">
-                      <p className="text-xs font-medium text-slate-500">
-                        {entry.author?.full_name || entry.author?.email || entry.author_id || 'Unknown user'} •{' '}
-                        {formatDateTime(entry.created_at)}
-                      </p>
-                      <p className="text-sm text-slate-900 whitespace-pre-line">{entry.body}</p>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
+        </div>
+      </Card>
+
+      <Card title="Inspection Notes">
+        <div className="space-y-3">
+          <Textarea
+            rows={3}
+            value={noteDraft}
+            onChange={(event) => setNoteDraft(event.target.value)}
+            disabled={!canUpdateInspection || updateInspection.isPending}
+            placeholder="Add a note"
+          />
+          <Button
+            type="button"
+            onClick={handleInspectionNoteSubmit}
+            disabled={!canUpdateInspection || updateInspection.isPending}
+          >
+            Save note
+          </Button>
+          <div className="max-h-60 space-y-2 overflow-y-auto rounded-xl border border-slate-100 p-3">
+            {inspectionNotes.length === 0 ? (
+              <p className="text-xs text-slate-500">No notes captured yet.</p>
+            ) : (
+              inspectionNotes.map((entry) => (
+                <div key={entry.id} className="rounded-lg border border-slate-100 bg-white p-2">
+                  <p className="text-xs font-medium text-slate-500">
+                    {entry.author?.full_name || entry.author?.email || entry.author_id || 'Unknown user'} •{' '}
+                    {formatDateTime(entry.created_at)}
+                  </p>
+                  <p className="text-sm text-slate-900 whitespace-pre-line">{entry.body}</p>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </Card>
+
+      {isRework && rejectedItems.size > 0 && (
+        <Card title="Returned items" subtitle="Only these items can be updated before resubmitting">
+          <ul className="list-inside list-disc text-sm text-amber-700">
+            {Array.from(rejectedItems).map((itemId) => (
+              <li key={itemId}>{itemPromptMap.get(itemId) || `Item ${itemId}`}</li>
+            ))}
+          </ul>
+        </Card>
+      )}
 
       {submitState.missingRequiredItems.length > 0 && (
         <Card title="Missing responses" subtitle="Required items need responses before submission">
@@ -534,13 +741,19 @@ export const InspectionEditPage = () => {
               const noteValue = draft.note ?? response?.note ?? ''
               const promptParts = parsePromptParts(item.prompt ?? '')
               const guidanceContent = renderGuidanceLines(promptParts.guidance, item.id)
+              const isEditable = !isRework || rejectedItems.has(item.id)
               return (
                 <div key={item.id} className="rounded-xl border border-slate-200 p-4">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
-                      <p className="text-sm font-semibold text-slate-900">{promptParts.title || item.prompt}</p>
+                      <p className="text-sm font-semibold text-slate-900">
+                        {promptParts.title || itemPromptMap.get(item.id) || item.prompt}
+                      </p>
                       {guidanceContent}
                       <p className="mt-1 text-xs text-slate-500">{item.is_required ? 'Required' : 'Optional'}</p>
+                      {!isEditable && (
+                        <p className="text-xs text-amber-600">Locked — not part of the returned items.</p>
+                      )}
                     </div>
                     {response?.result && <Badge variant={response.result === 'fail' ? 'danger' : 'info'}>{response.result}</Badge>}
                   </div>
@@ -552,6 +765,7 @@ export const InspectionEditPage = () => {
                           name={`result-${item.id}`}
                           value={result}
                           checked={currentResult === result}
+                          disabled={!isEditable}
                           onChange={(event) => handleResultSelect(item.id, event.target.value, noteValue)}
                         />
                         {result.toUpperCase()}
@@ -565,6 +779,7 @@ export const InspectionEditPage = () => {
                       placeholder="Add notes"
                       value={noteValue}
                       onChange={(event) => handleDraftChange(item.id, { note: event.target.value })}
+                      disabled={!isEditable}
                     />
                   )}
                   <div className="mt-3 flex flex-wrap items-center gap-3">
@@ -578,6 +793,7 @@ export const InspectionEditPage = () => {
                           const file = event.target.files?.[0]
                           if (file) handleUpload(item.id, file)
                         }}
+                        disabled={!isEditable}
                       />
                       Upload image
                     </label>
@@ -597,6 +813,7 @@ export const InspectionEditPage = () => {
                             type="button"
                             className="text-red-600"
                             onClick={() => handleRemoveAttachment(item.id, url)}
+                            disabled={!isEditable}
                           >
                             Remove
                           </button>
@@ -606,10 +823,26 @@ export const InspectionEditPage = () => {
                   ) : null}
 
                   {isFailSelected && (
+                    <OpenActionsPanel
+                      templateItemId={item.id}
+                      enabled={isFailSelected}
+                      drafts={actionNoteDrafts}
+                      isSaving={updateAction.isPending}
+                      onDraftChange={handleOpenActionNoteChange}
+                      onAddNote={handleAddNoteToExistingAction}
+                    />
+                  )}
+
+                  {isFailSelected && (
                     <div className="mt-4 space-y-2">
                       <div className="flex items-center justify-between">
                         <p className="text-sm font-semibold text-slate-900">Corrective actions</p>
-                        <Button type="button" variant="ghost" onClick={() => void handleAddActionClick(item.id)}>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={() => void handleAddActionClick(item.id)}
+                          disabled={!isEditable}
+                        >
                           Add action
                         </Button>
                       </div>
@@ -652,37 +885,60 @@ export const InspectionEditPage = () => {
                             className="grid gap-3 md:grid-cols-2"
                             onSubmit={(event) => {
                               event.preventDefault()
-                              void handleCreateAction(item.id)
-                            }}
-                          >
-                            <FormField label="Title" error={actionForm.formState.errors.title?.message}>
-                              <Input {...actionForm.register('title')} />
-                            </FormField>
-                            <FormField label="Severity">
-                              <Select {...actionForm.register('severity')}>
-                                {ACTION_SEVERITIES.map((severity) => (
-                                  <option key={severity} value={severity}>
-                                    {severity}
-                                  </option>
-                                ))}
-                              </Select>
-                            </FormField>
-                            <FormField label="Due date">
-                              <Input type="date" {...actionForm.register('due_date')} />
-                            </FormField>
-                            <FormField label="Assign to">
-                              <Select {...actionForm.register('assigned_to_id')} disabled={assigneesQuery.isLoading}>
-                                <option value="">Unassigned</option>
-                                {assigneeOptions.map((user) => (
-                                  <option key={user.id} value={user.id}>
-                                    {user.full_name || user.email}
-                                  </option>
-                                ))}
-                              </Select>
-                            </FormField>
-                            <FormField label="Description">
-                              <Textarea rows={2} {...actionForm.register('description')} />
-                            </FormField>
+                          void handleCreateAction(item.id)
+                        }}
+                      >
+                        <FormField label="Title" error={actionForm.formState.errors.title?.message}>
+                          <Input {...actionForm.register('title')} />
+                        </FormField>
+                        <FormField label="Severity of occurrence">
+                          <Select {...actionForm.register('occurrence_severity')}>
+                            {ACTION_SEVERITIES.map((severity) => (
+                              <option key={severity} value={severity}>
+                                {severity}
+                              </option>
+                            ))}
+                          </Select>
+                        </FormField>
+                        <FormField label="Severity of injury">
+                          <Select {...actionForm.register('injury_severity')}>
+                            {ACTION_SEVERITIES.map((severity) => (
+                              <option key={severity} value={severity}>
+                                {severity}
+                              </option>
+                            ))}
+                          </Select>
+                        </FormField>
+                        <FormField label="Risk level (auto)">
+                          <Input value={actionForm.watch('severity')} disabled readOnly />
+                        </FormField>
+                        <FormField label="Due date">
+                          <Input type="date" {...actionForm.register('due_date')} />
+                        </FormField>
+                        <FormField label="Work order required?">
+                          <div className="flex items-center gap-2">
+                            <input type="checkbox" {...actionForm.register('work_order_required')} />
+                            <span className="text-sm text-slate-700">Block closure until a number is provided</span>
+                          </div>
+                        </FormField>
+                        <FormField label="Work order number">
+                          <Input {...actionForm.register('work_order_number')} placeholder="WO-1234" />
+                        </FormField>
+                        {isManager ? (
+                          <FormField label="Assign to">
+                            <Select {...actionForm.register('assigned_to_id')} disabled={assigneesQuery.isLoading}>
+                              <option value="">Unassigned</option>
+                              {assigneeOptions.map((user) => (
+                                <option key={user.id} value={user.id}>
+                                  {user.full_name || user.email}
+                                </option>
+                              ))}
+                            </Select>
+                          </FormField>
+                        ) : null}
+                        <FormField label="Description">
+                          <Textarea rows={2} {...actionForm.register('description')} />
+                        </FormField>
                             {assigneesQuery.isError && (
                               <p className="text-xs text-red-600 md:col-span-2">Unable to load suggested assignees.</p>
                             )}

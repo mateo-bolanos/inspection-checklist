@@ -132,4 +132,4 @@ def _ensure_can_access_media(user: User, media: MediaFile) -> None:
 
 
 def _action_owned_by_user(user: User, action: CorrectiveAction) -> bool:
-    return user.role == UserRole.action_owner.value and action.assigned_to_id == user.id
+    return action.assigned_to_id == user.id

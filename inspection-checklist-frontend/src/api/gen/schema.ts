@@ -320,6 +320,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/actions/open-by-item/{template_item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Open Actions By Item */
+        get: operations["list_open_actions_by_item_actions_open_by_item__template_item_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/assignments/": {
         parameters: {
             query?: never;
@@ -658,6 +675,18 @@ export interface components {
             start_due_at: string;
             /** End Date */
             end_date?: string | null;
+            /**
+             * Priority
+             * @default normal
+             * @enum {string}
+             */
+            priority: "normal" | "urgent";
+            /** Tag */
+            tag?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /** Source Inspection Id */
+            source_inspection_id?: number | null;
         };
         /** AssignmentRead */
         AssignmentRead: {
@@ -685,6 +714,18 @@ export interface components {
             start_due_at: string;
             /** End Date */
             end_date?: string | null;
+            /**
+             * Priority
+             * @default normal
+             * @enum {string}
+             */
+            priority: "normal" | "urgent";
+            /** Tag */
+            tag?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /** Source Inspection Id */
+            source_inspection_id?: number | null;
             /** Id */
             id: number;
             /** Template Name */
@@ -760,10 +801,21 @@ export interface components {
              * @default medium
              */
             severity: string;
+            /** Occurrence Severity */
+            occurrence_severity?: string | null;
+            /** Injury Severity */
+            injury_severity?: string | null;
             /** Due Date */
             due_date?: string | null;
             /** Assigned To Id */
             assigned_to_id?: string | null;
+            /**
+             * Work Order Required
+             * @default false
+             */
+            work_order_required: boolean;
+            /** Work Order Number */
+            work_order_number?: string | null;
             /** Inspection Id */
             inspection_id: number;
             /** Response Id */
@@ -785,10 +837,21 @@ export interface components {
              * @default medium
              */
             severity: string;
+            /** Occurrence Severity */
+            occurrence_severity?: string | null;
+            /** Injury Severity */
+            injury_severity?: string | null;
             /** Due Date */
             due_date?: string | null;
             /** Assigned To Id */
             assigned_to_id?: string | null;
+            /**
+             * Work Order Required
+             * @default false
+             */
+            work_order_required: boolean;
+            /** Work Order Number */
+            work_order_number?: string | null;
             /** Id */
             id: number;
             /** Inspection Id */
@@ -797,6 +860,10 @@ export interface components {
             response_id?: string | null;
             /** Status */
             status: string;
+            /** Inspection Location */
+            inspection_location?: string | null;
+            /** Inspection Template Name */
+            inspection_template_name?: string | null;
             assignee?: components["schemas"]["UserRead"] | null;
             /**
              * Created At
@@ -822,6 +889,10 @@ export interface components {
             description?: string | null;
             /** Severity */
             severity?: string | null;
+            /** Occurrence Severity */
+            occurrence_severity?: string | null;
+            /** Injury Severity */
+            injury_severity?: string | null;
             /** Due Date */
             due_date?: string | null;
             /** Assigned To Id */
@@ -830,6 +901,10 @@ export interface components {
             status?: string | null;
             /** Resolution Notes */
             resolution_notes?: string | null;
+            /** Work Order Required */
+            work_order_required?: boolean | null;
+            /** Work Order Number */
+            work_order_number?: string | null;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -877,8 +952,13 @@ export interface components {
             started_at: string;
             /** Submitted At */
             submitted_at?: string | null;
+            /** Rejected At */
+            rejected_at?: string | null;
             /** Overall Score */
             overall_score?: number | null;
+            /** Rejection Reason */
+            rejection_reason?: string | null;
+            rejected_by?: components["schemas"]["UserRead"] | null;
             created_by: components["schemas"]["UserRead"];
             /** Responses */
             responses?: components["schemas"]["InspectionResponseRead"][];
@@ -916,8 +996,13 @@ export interface components {
             started_at: string;
             /** Submitted At */
             submitted_at?: string | null;
+            /** Rejected At */
+            rejected_at?: string | null;
             /** Overall Score */
             overall_score?: number | null;
+            /** Rejection Reason */
+            rejection_reason?: string | null;
+            rejected_by?: components["schemas"]["UserRead"] | null;
             created_by: components["schemas"]["UserRead"];
         };
         /** InspectionResponseCreate */
@@ -967,6 +1052,13 @@ export interface components {
             notes?: string | null;
             /** Status */
             status?: string | null;
+        };
+        /** InspectionReject */
+        InspectionReject: {
+            /** Reason */
+            reason: string;
+            /** Follow Up Instructions */
+            follow_up_instructions?: string | null;
         };
         /** ItemFailureMetric */
         ItemFailureMetric: {
@@ -1710,7 +1802,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InspectionReject"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -2002,6 +2098,8 @@ export interface operations {
                 assigned_to?: string | null;
                 /** @description Filter by status */
                 status?: string | null;
+                /** @description Filter by inspection location/department (contains match) */
+                location?: string | null;
             };
             header?: never;
             path?: never;
@@ -2115,6 +2213,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CorrectiveActionRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_open_actions_by_item_actions_open_by_item__template_item_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                template_item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CorrectiveActionRead"][];
                 };
             };
             /** @description Validation Error */

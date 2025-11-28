@@ -17,11 +17,18 @@ router = APIRouter()
 def list_actions(
     assigned_to: str | None = Query(default=None, description="Filter by assignee ID"),
     status_filter: str | None = Query(default=None, alias="status", description="Filter by status"),
+    location: str | None = Query(default=None, description="Filter by inspection location/department (contains match)"),
     db: Session = Depends(get_db),
     current_user = Depends(auth_service.get_current_active_user),
 ) -> List[CorrectiveActionRead]:
     try:
-        return action_service.list_actions(db, current_user, assigned_to=assigned_to, status=status_filter)
+        return action_service.list_actions(
+            db,
+            current_user,
+            assigned_to=assigned_to,
+            status=status_filter,
+            location=location,
+        )
     except ValueError as exc:  # noqa: BLE001
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
@@ -62,5 +69,17 @@ def update_action(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Action not found")
     try:
         return action_service.update_action(db, action, payload, current_user)
+    except ValueError as exc:  # noqa: BLE001
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+
+@router.get("/open-by-item/{template_item_id}", response_model=List[CorrectiveActionRead])
+def list_open_actions_by_item(
+    template_item_id: str,
+    db: Session = Depends(get_db),
+    current_user = Depends(auth_service.get_current_active_user),
+) -> List[CorrectiveActionRead]:
+    try:
+        return action_service.list_open_actions_for_item(db, current_user, template_item_id)
     except ValueError as exc:  # noqa: BLE001
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc

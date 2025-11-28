@@ -25,6 +25,7 @@ import { useToast } from '@/components/ui/toastContext'
 const itemSchema = z.object({
   prompt: z.string().min(2),
   is_required: z.boolean(),
+  requires_evidence_on_fail: z.boolean(),
   order_index: z.number().min(0),
 })
 
@@ -43,6 +44,13 @@ const templateSchema = z.object({
 type TemplateFormValues = z.infer<typeof templateSchema>
 
 type TemplateSection = components['schemas']['TemplateSectionRead']
+
+const emptyItemDraft = {
+  prompt: '',
+  is_required: true,
+  requires_evidence_on_fail: true,
+  order_index: 0,
+}
 
 export const TemplateEditorPage = () => {
   const { templateId } = useParams<{ templateId: string }>()
@@ -76,6 +84,7 @@ export const TemplateEditorPage = () => {
               section.items?.map((item, itemIndex) => ({
                 prompt: item.prompt,
                 is_required: item.is_required,
+                requires_evidence_on_fail: item.requires_evidence_on_fail,
                 order_index: typeof item.order_index === 'number' ? item.order_index : itemIndex,
               })) ?? [],
           })) ?? [],
@@ -85,19 +94,27 @@ export const TemplateEditorPage = () => {
 
   const [sectionDrafts, setSectionDrafts] = useState<Record<string, { title: string; order_index: number }>>({})
   const [itemDrafts, setItemDrafts] = useState<
-    Record<string, { prompt: string; is_required: boolean; order_index: number }>
+    Record<string, { prompt: string; is_required: boolean; requires_evidence_on_fail: boolean; order_index: number }>
   >({})
 
   useEffect(() => {
     if (template?.sections && !isNewTemplate) {
       const drafts: Record<string, { title: string; order_index: number }> = {}
-      const itemDefaults: Record<string, { prompt: string; is_required: boolean; order_index: number }> = {}
+      const itemDefaults: Record<
+        string,
+        { prompt: string; is_required: boolean; requires_evidence_on_fail: boolean; order_index: number }
+      > = {}
       template.sections.forEach((section, index) => {
         drafts[section.id] = {
           title: section.title,
           order_index: typeof section.order_index === 'number' ? section.order_index : index,
         }
-        itemDefaults[section.id] = { prompt: '', is_required: true, order_index: (section.items?.length ?? 0) + 1 }
+        itemDefaults[section.id] = {
+          prompt: '',
+          is_required: true,
+          requires_evidence_on_fail: true,
+          order_index: (section.items?.length ?? 0) + 1,
+        }
       })
       setSectionDrafts(drafts)
       setItemDrafts(itemDefaults)
@@ -127,7 +144,13 @@ export const TemplateEditorPage = () => {
   const addItemToSection = (sectionIndex: number) => {
     const path = `sections.${sectionIndex}.items` as const
     const items = form.getValues(path) ?? []
-    form.setValue(path, [...items, { prompt: 'New item', is_required: true, order_index: items.length }])
+    form.setValue(
+      path,
+      [
+        ...items,
+        { prompt: 'New item', is_required: true, requires_evidence_on_fail: true, order_index: items.length },
+      ],
+    )
   }
 
   const removeItem = (sectionIndex: number, itemIndex: number) => {
@@ -193,10 +216,23 @@ export const TemplateEditorPage = () => {
     try {
       await itemMutations.createItem.mutateAsync({
         sectionId: section.id,
-        payload: { prompt: draft.prompt, is_required: draft.is_required, order_index: draft.order_index },
+        payload: {
+          prompt: draft.prompt,
+          is_required: draft.is_required,
+          requires_evidence_on_fail: draft.requires_evidence_on_fail,
+          order_index: draft.order_index,
+        },
       })
       push({ title: 'Item added', variant: 'success' })
-      setItemDrafts((current) => ({ ...current, [section.id]: { prompt: '', is_required: true, order_index: draft.order_index + 1 } }))
+      setItemDrafts((current) => ({
+        ...current,
+        [section.id]: {
+          prompt: '',
+          is_required: true,
+          requires_evidence_on_fail: true,
+          order_index: draft.order_index + 1,
+        },
+      }))
     } catch (error) {
       push({ title: 'Unable to add item', description: String((error as Error).message), variant: 'error' })
     }
@@ -366,7 +402,7 @@ export const TemplateEditorPage = () => {
                       onChange={(event) =>
                         setItemDrafts((current) => ({
                           ...current,
-                          [section.id]: { ...current[section.id], prompt: event.target.value },
+                          [section.id]: { ...(current[section.id] ?? emptyItemDraft), prompt: event.target.value },
                         }))
                       }
                     />
@@ -377,7 +413,10 @@ export const TemplateEditorPage = () => {
                         onChange={(event) =>
                           setItemDrafts((current) => ({
                             ...current,
-                            [section.id]: { ...current[section.id], is_required: event.target.checked },
+                            [section.id]: {
+                              ...(current[section.id] ?? emptyItemDraft),
+                              is_required: event.target.checked,
+                            },
                           }))
                         }
                       />
@@ -390,7 +429,10 @@ export const TemplateEditorPage = () => {
                       onChange={(event) =>
                         setItemDrafts((current) => ({
                           ...current,
-                          [section.id]: { ...current[section.id], order_index: Number(event.target.value) },
+                          [section.id]: {
+                            ...(current[section.id] ?? emptyItemDraft),
+                            order_index: Number(event.target.value),
+                          },
                         }))
                       }
                     />

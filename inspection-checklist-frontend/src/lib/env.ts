@@ -1,10 +1,10 @@
 const rawApiBaseUrl = import.meta.env.VITE_API_BASE_URL
 
 if (!rawApiBaseUrl) {
-  console.warn('VITE_API_BASE_URL is not set. Falling back to http://localhost:8000.')
+  console.warn('VITE_API_BASE_URL is not set. Falling back to /api for local development.')
 }
 
-export const API_BASE_URL = (rawApiBaseUrl ?? 'http://localhost:8000').replace(/\/+$/, '')
+export const API_BASE_URL = (rawApiBaseUrl ?? '/api').replace(/\/+$/, '')
 
 const ABSOLUTE_URL_PATTERN = /^https?:\/\//i
 

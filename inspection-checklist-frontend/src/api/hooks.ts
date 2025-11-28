@@ -49,6 +49,7 @@ type InspectionCreateInput = paths['/inspections/']['post']['requestBody']['cont
 type InspectionUpdateInput = paths['/inspections/{inspection_id}']['put']['requestBody']['content']['application/json']
 type InspectionSubmitResponse = paths['/inspections/{inspection_id}/submit']['post']['responses']['200']['content']['application/json']
 type InspectionApproveResponse = paths['/inspections/{inspection_id}/approve']['post']['responses']['200']['content']['application/json']
+type InspectionRejectInput = paths['/inspections/{inspection_id}/reject']['post']['requestBody']['content']['application/json']
 type InspectionRejectResponse = paths['/inspections/{inspection_id}/reject']['post']['responses']['200']['content']['application/json']
 
 type ResponseCreateInput = paths['/inspections/{inspection_id}/responses']['post']['requestBody']['content']['application/json']
@@ -306,7 +307,7 @@ export const useUsersQuery = (role?: string) => {
   })
 }
 
-export const useActionAssigneesQuery = (roles: string[] | string = ['action_owner']) => {
+export const useActionAssigneesQuery = (roles: string[] | string = ['inspector', 'reviewer']) => {
   const roleParam = Array.isArray(roles) ? roles.join(',') : roles
   return useQuery({
     queryKey: queryKeys.actionAssignees(roleParam),
@@ -389,6 +390,19 @@ export const useUpdateInspectionMutation = (inspectionId?: string | number) => {
   })
 }
 
+export const useDeleteInspectionMutation = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (inspectionId: string | number) => {
+      await api.delete(`/inspections/${inspectionId}`)
+    },
+    onSuccess: (_, inspectionId) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.inspections })
+      queryClient.invalidateQueries({ queryKey: queryKeys.inspection(inspectionId) })
+    },
+  })
+}
+
 export const useSubmitInspectionMutation = () => {
   const queryClient = useQueryClient()
   return useMutation({
@@ -420,8 +434,17 @@ export const useApproveInspectionMutation = () => {
 export const useRejectInspectionMutation = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async (inspectionId: string | number) => {
-      const { data } = await api.post<InspectionRejectResponse>(`/inspections/${inspectionId}/reject`)
+    mutationFn: async ({
+      inspectionId,
+      reason,
+      follow_up_instructions,
+      item_ids,
+    }: { inspectionId: string | number } & InspectionRejectInput) => {
+      const { data } = await api.post<InspectionRejectResponse>(`/inspections/${inspectionId}/reject`, {
+        reason,
+        follow_up_instructions,
+        item_ids,
+      })
       return data
     },
     onSuccess: (_, inspectionId) => {
@@ -461,23 +484,37 @@ export const useUpsertResponseMutation = (inspectionId: string | number) => {
 type ActionsQueryOptions = {
   assignedTo?: string | null
   status?: string | null
+  location?: string | null
   enabled?: boolean
 }
 
 export const useActionsQuery = (options?: ActionsQueryOptions) => {
   const assignedTo = options?.assignedTo ?? undefined
   const status = options?.status ?? undefined
+  const location = options?.location ?? undefined
   const enabled = options?.enabled ?? true
   return useQuery({
-    queryKey: [...queryKeys.actions, assignedTo ?? null, status ?? null] as const,
+    queryKey: [...queryKeys.actions, assignedTo ?? null, status ?? null, location ?? null] as const,
     enabled,
     queryFn: async () => {
       const params: Record<string, string> = {}
       if (assignedTo) params.assigned_to = assignedTo
       if (status) params.status = status
+      if (location) params.location = location
       const { data } = await api.get<CorrectiveActionListResponse>('/actions/', {
         params: Object.keys(params).length ? params : undefined,
       })
+      return data
+    },
+  })
+}
+
+export const useOpenActionsByItemQuery = (templateItemId: string | undefined, enabled = true) => {
+  return useQuery({
+    queryKey: [...queryKeys.actions, 'open-by-item', templateItemId ?? null] as const,
+    enabled: Boolean(templateItemId) && enabled,
+    queryFn: async () => {
+      const { data } = await api.get<CorrectiveActionListResponse>(`/actions/open-by-item/${templateItemId}`)
       return data
     },
   })

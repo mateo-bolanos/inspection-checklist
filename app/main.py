@@ -109,6 +109,8 @@ def _start_scheduling_jobs() -> None:
             mark_overdue_scheduled_inspections,
             send_daily_digest_emails,
             send_day_before_due_reminders,
+            send_friday_pending_reminders,
+            send_monday_assignment_kickoff,
         )
 
         interval = 60 * 60 * 24  # run once per day
@@ -119,6 +121,8 @@ def _start_scheduling_jobs() -> None:
                     overdue = mark_overdue_scheduled_inspections(db)
                     digests = send_daily_digest_emails(db)
                     reminders = send_day_before_due_reminders(db)
+                    monday_notices = send_monday_assignment_kickoff(db)
+                    friday_notices = send_friday_pending_reminders(db)
                 if created:
                     logger.info("Generated %s scheduled inspections for next week", len(created))
                 if overdue:
@@ -127,6 +131,10 @@ def _start_scheduling_jobs() -> None:
                     logger.info("Sent %s inspection digest emails", digests)
                 if reminders:
                     logger.info("Sent %s day-before reminder emails", reminders)
+                if monday_notices:
+                    logger.info("Sent %s Monday assignment emails", monday_notices)
+                if friday_notices:
+                    logger.info("Sent %s Friday reminder emails", friday_notices)
             except Exception:  # noqa: BLE001
                 logger.exception("Error running scheduled inspection jobs")
             await asyncio.sleep(interval)

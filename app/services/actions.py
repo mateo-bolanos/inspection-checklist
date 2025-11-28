@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from datetime import datetime, timezone, timedelta
 
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session, selectinload
 
 from app.models.entities import (
@@ -25,6 +25,7 @@ from app.services import note_history as note_history_service
 logger = logging.getLogger(__name__)
 
 VALID_STATUSES = {status.value for status in ActionStatus}
+RISK_LEVELS = {ActionSeverity.low.value, ActionSeverity.medium.value, ActionSeverity.high.value}
 
 
 def _apply_resolution_notes(db: Session, action: CorrectiveAction, user_id: str, value: str | None) -> None:
@@ -47,12 +48,47 @@ def get_due_date_for_severity(db: Session, created_at: datetime, severity: str) 
     return created_at + timedelta(days=days)
 
 
+def _normalize_severity(value: str | None, default: str) -> str:
+    if not value:
+        return default
+    lowered = value.strip().lower()
+    return lowered if lowered in RISK_LEVELS else default
+
+
+def _derive_risk_level(occurrence: str | None, injury: str | None, fallback: str) -> str:
+    """Average the two severity inputs instead of taking the max (low+high => medium)."""
+    occ = _normalize_severity(occurrence, None)
+    inj = _normalize_severity(injury, None)
+    if not occ and not inj:
+        return _normalize_severity(None, fallback)
+
+    def _score(value: str | None) -> int:
+        if value == ActionSeverity.high.value:
+            return 3
+        if value == ActionSeverity.medium.value:
+            return 2
+        if value == ActionSeverity.low.value:
+            return 1
+        return 0
+
+    scores = [score for score in (_score(occ), _score(inj)) if score > 0]
+    if not scores:
+        return _normalize_severity(None, fallback)
+    avg = sum(scores) / len(scores)
+    if avg >= 2.5:
+        return ActionSeverity.high.value
+    if avg >= 1.5:
+        return ActionSeverity.medium.value
+    return ActionSeverity.low.value
+
+
 def list_actions(
     db: Session,
     user: User,
     *,
     assigned_to: str | None = None,
     status: str | None = None,
+    location: str | None = None,
 ) -> list[CorrectiveAction]:
     query = (
         db.query(CorrectiveAction)
@@ -73,16 +109,16 @@ def list_actions(
         query = query.filter(CorrectiveAction.status == status)
     if assigned_to:
         query = query.filter(CorrectiveAction.assigned_to_id == assigned_to)
+    if location:
+        query = query.join(Inspection).filter(Inspection.location.ilike(f"%{location}%"))
 
     privileged_roles = {UserRole.admin.value, UserRole.reviewer.value}
     if user.role in privileged_roles:
         return query.all()
 
-    if user.role == UserRole.action_owner.value:
-        query = query.filter(CorrectiveAction.assigned_to_id == user.id)
-        return query.all()
-
-    query = query.join(Inspection).filter(Inspection.inspector_id == user.id)
+    query = query.join(Inspection).filter(
+        or_(CorrectiveAction.assigned_to_id == user.id, Inspection.inspector_id == user.id)
+    )
     return query.all()
 
 
@@ -104,22 +140,45 @@ def get_action(db: Session, action_id: int, user: User) -> CorrectiveAction | No
     if user.role in privileged_roles:
         return query.first()
 
-    if user.role == UserRole.action_owner.value:
-        query = query.filter(CorrectiveAction.assigned_to_id == user.id)
-        return query.first()
-
-    query = query.join(Inspection).filter(Inspection.inspector_id == user.id)
+    query = query.join(Inspection).filter(
+        or_(CorrectiveAction.assigned_to_id == user.id, Inspection.inspector_id == user.id)
+    )
     return query.first()
 
 
+def list_open_actions_for_item(db: Session, user: User, template_item_id: str) -> list[CorrectiveAction]:
+    query = (
+        db.query(CorrectiveAction)
+        .join(InspectionResponse, CorrectiveAction.response_id == InspectionResponse.id)
+        .join(Inspection, Inspection.id == CorrectiveAction.inspection_id)
+        .options(
+            selectinload(CorrectiveAction.assignee),
+            selectinload(CorrectiveAction.response),
+            selectinload(CorrectiveAction.inspection),
+        )
+        .filter(
+            InspectionResponse.template_item_id == template_item_id,
+            CorrectiveAction.status != ActionStatus.closed.value,
+        )
+        .order_by(CorrectiveAction.due_date.asc().nullslast())
+    )
+    privileged_roles = {UserRole.admin.value, UserRole.reviewer.value}
+    if user.role in privileged_roles:
+        return query.all()
+    return query.filter(
+        or_(CorrectiveAction.assigned_to_id == user.id, Inspection.inspector_id == user.id)
+    ).all()
+
+
 def create_action(db: Session, user: User, payload: CorrectiveActionCreate) -> CorrectiveAction:
+    privileged_roles = {UserRole.admin.value, UserRole.reviewer.value}
     if user.role == UserRole.action_owner.value:
         raise ValueError("Action owners cannot create corrective actions")
 
     inspection = db.query(Inspection).filter(Inspection.id == payload.inspection_id).first()
     if not inspection:
         raise ValueError("Inspection not found")
-    if user.role not in {UserRole.admin.value, UserRole.reviewer.value} and inspection.inspector_id != user.id:
+    if user.role not in privileged_roles and inspection.inspector_id != user.id:
         raise ValueError("Not allowed to create action for this inspection")
 
     response = None
@@ -128,8 +187,12 @@ def create_action(db: Session, user: User, payload: CorrectiveActionCreate) -> C
         if not response or response.inspection_id != inspection.id:
             raise ValueError("Response not found on inspection")
 
+    if not payload.occurrence_severity or not payload.injury_severity:
+        raise ValueError("Provide both occurrence and injury severities for the action")
     assigned_to_id = payload.assigned_to_id or None
-    if assigned_to_id:
+    if user.role not in privileged_roles:
+        assigned_to_id = None
+    elif assigned_to_id:
         assignee = db.query(User).filter(User.id == assigned_to_id, User.is_active.is_(True)).first()
         if not assignee:
             raise ValueError("Assigned user not found")
@@ -139,7 +202,9 @@ def create_action(db: Session, user: User, payload: CorrectiveActionCreate) -> C
         raise ValueError("Invalid status for action")
     if status == ActionStatus.closed.value:
         raise ValueError("Actions cannot be created already closed")
-    severity = (payload.severity or ActionSeverity.medium.value).lower()
+    severity = _derive_risk_level(payload.occurrence_severity, payload.injury_severity, ActionSeverity.medium.value)
+    normalized_occurrence = _normalize_severity(payload.occurrence_severity, None)
+    normalized_injury = _normalize_severity(payload.injury_severity, None)
     now = datetime.utcnow()
     due_date = payload.due_date or get_due_date_for_severity(db, now, severity)
 
@@ -149,10 +214,14 @@ def create_action(db: Session, user: User, payload: CorrectiveActionCreate) -> C
         title=payload.title,
         description=payload.description,
         severity=severity,
+        occurrence_severity=normalized_occurrence,
+        injury_severity=normalized_injury,
         due_date=due_date,
         assigned_to_id=assigned_to_id,
         status=status,
         started_by_id=user.id,
+        work_order_required=bool(payload.work_order_required),
+        work_order_number=payload.work_order_number,
     )
     db.add(action)
     db.commit()
@@ -163,8 +232,12 @@ def create_action(db: Session, user: User, payload: CorrectiveActionCreate) -> C
 
 
 def update_action(db: Session, action: CorrectiveAction, payload: CorrectiveActionUpdate, user: User) -> CorrectiveAction:
-    if user.role == UserRole.action_owner.value:
-        if action.assigned_to_id != user.id:
+    privileged_roles = {UserRole.admin.value, UserRole.reviewer.value}
+    is_privileged = user.role in privileged_roles
+    is_assignee = action.assigned_to_id == user.id
+    inspector_is_owner = bool(action.inspection and action.inspection.inspector_id == user.id)
+    if not is_privileged:
+        if not is_assignee and not inspector_is_owner:
             raise ValueError("Not allowed to update this action")
         forbidden_fields = [
             payload.title,
@@ -172,16 +245,32 @@ def update_action(db: Session, action: CorrectiveAction, payload: CorrectiveActi
             payload.severity,
             payload.due_date,
             payload.assigned_to_id,
+            payload.occurrence_severity,
+            payload.injury_severity,
+            payload.work_order_number,
+            payload.work_order_required,
         ]
         if any(value is not None for value in forbidden_fields):
-            raise ValueError("Action owners can only update status and notes")
+            raise ValueError("Only managers can change action details or assignment")
+        if payload.status == ActionStatus.closed.value:
+            raise ValueError("Only managers can close actions")
 
     if payload.title is not None:
         action.title = payload.title
     if payload.description is not None:
         action.description = payload.description
+    if payload.occurrence_severity is not None:
+        action.occurrence_severity = _normalize_severity(payload.occurrence_severity, action.occurrence_severity)
+    if payload.injury_severity is not None:
+        action.injury_severity = _normalize_severity(payload.injury_severity, action.injury_severity)
     if payload.severity is not None:
-        action.severity = payload.severity
+        action.severity = _normalize_severity(payload.severity, action.severity)
+    elif payload.occurrence_severity is not None or payload.injury_severity is not None:
+        action.severity = _derive_risk_level(
+            payload.occurrence_severity or action.occurrence_severity,
+            payload.injury_severity or action.injury_severity,
+            action.severity or ActionSeverity.medium.value,
+        )
     if payload.due_date is not None:
         action.due_date = payload.due_date
     if payload.assigned_to_id is not None:
@@ -191,16 +280,23 @@ def update_action(db: Session, action: CorrectiveAction, payload: CorrectiveActi
             if not assignee:
                 raise ValueError("Assigned user not found")
         action.assigned_to_id = assigned_to_id
+    if payload.work_order_required is not None:
+        action.work_order_required = bool(payload.work_order_required)
+    if payload.work_order_number is not None:
+        action.work_order_number = payload.work_order_number
     if payload.status is not None:
         if payload.status not in VALID_STATUSES:
             raise ValueError("Invalid status for action")
         current_status = action.status
         closing = payload.status == ActionStatus.closed.value and current_status != ActionStatus.closed.value
         reopening = payload.status != ActionStatus.closed.value and current_status == ActionStatus.closed.value
+        if closing and not is_privileged:
+            raise ValueError("Only managers can close actions")
         action.status = payload.status
         if closing:
-            _ensure_action_has_evidence(db, action.id)
             notes = payload.resolution_notes or action.resolution_notes
+            if action.work_order_required and not (payload.work_order_number or action.work_order_number):
+                raise ValueError("Work order number required before closing this action")
             if not notes:
                 raise ValueError("Resolution notes are required to close an action")
             _apply_resolution_notes(db, action, user.id, notes)

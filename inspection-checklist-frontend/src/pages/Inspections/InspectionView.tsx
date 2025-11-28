@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
-import { useActionsQuery, useInspectionQuery, useTemplateQuery } from '@/api/hooks'
+import { useActionsQuery, useDeleteInspectionMutation, useInspectionQuery, useTemplateQuery } from '@/api/hooks'
 import { getErrorMessage } from '@/api/client'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
@@ -11,6 +11,30 @@ import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/auth/useAuth'
 import { useToast } from '@/components/ui/toastContext'
 import { downloadFileWithAuth } from '@/lib/download'
+
+const PROMPT_SEPARATORS = [' – ', ' - ', ' — ']
+
+const parsePrompt = (prompt: string) => {
+  const lines = (prompt || '').split('\n').map((line) => line.trim()).filter(Boolean)
+  if (lines.length === 0) {
+    return { title: prompt, guidance: [] as string[] }
+  }
+  let [firstLine, ...rest] = lines
+  let title = firstLine
+  let subtitle = ''
+  for (const separator of PROMPT_SEPARATORS) {
+    if (firstLine.includes(separator)) {
+      const [maybeTitle, maybeSubtitle] = firstLine.split(separator)
+      title = maybeTitle.trim()
+      subtitle = (maybeSubtitle || '').trim()
+      break
+    }
+  }
+  const guidance: string[] = []
+  if (subtitle) guidance.push(subtitle)
+  guidance.push(...rest)
+  return { title, guidance }
+}
 
 export const InspectionViewPage = () => {
   const { inspectionId: inspectionIdParam } = useParams<{ inspectionId: string }>()
@@ -24,8 +48,21 @@ export const InspectionViewPage = () => {
   const inspection = inspectionQuery.data
   const templateQuery = useTemplateQuery(inspection?.template_id)
   const template = templateQuery.data
+  const itemPromptMap = useMemo(() => {
+    const map = new Map<string, string>()
+    template?.sections?.forEach((section) =>
+      section.items?.forEach((item) => {
+        if (item.id) {
+          const parsed = parsePrompt(item.prompt || item.id)
+          map.set(item.id, parsed.title || item.prompt || item.id)
+        }
+      }),
+    )
+    return map
+  }, [template])
   const actionsQuery = useActionsQuery()
   const resolvedInspectionId = inspection?.id ?? numericInspectionId
+  const deleteMutation = useDeleteInspectionMutation()
   const inspectionActions = useMemo(
     () =>
       resolvedInspectionId === undefined
@@ -40,6 +77,18 @@ export const InspectionViewPage = () => {
       await downloadFileWithAuth(url, fallbackName)
     } catch (error) {
       push({ title: 'Unable to download file', description: getErrorMessage(error), variant: 'error' })
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!inspection?.id) return
+    if (!window.confirm('Delete this draft inspection? This cannot be undone.')) return
+    try {
+      await deleteMutation.mutateAsync(inspection.id)
+      push({ title: 'Inspection deleted', variant: 'success' })
+      navigate('/inspections')
+    } catch (error) {
+      push({ title: 'Unable to delete inspection', description: getErrorMessage(error), variant: 'error' })
     }
   }
 
@@ -69,9 +118,14 @@ export const InspectionViewPage = () => {
               View actions
             </Button>
             {canEditInspection && (
-              <Button variant="secondary" onClick={() => navigate(`/inspections/${inspection.id}/edit`)}>
-                Edit inspection
-              </Button>
+              <>
+                <Button variant="secondary" onClick={() => navigate(`/inspections/${inspection.id}/edit`)}>
+                  Edit inspection
+                </Button>
+                <Button variant="danger" onClick={handleDelete} loading={deleteMutation.isPending}>
+                  Delete draft
+                </Button>
+              </>
             )}
           </div>
         }
@@ -100,6 +154,42 @@ export const InspectionViewPage = () => {
             <p className="text-sm font-semibold text-slate-900">{inspection.created_by?.full_name ?? '—'}</p>
           </div>
         </div>
+        {inspection.status === 'rejected' && (
+          <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="danger">Denied</Badge>
+              <p className="text-sm font-semibold text-red-800">Returned for corrections</p>
+              {inspection.rejected_at && (
+                <span className="text-xs text-red-700">on {formatDateTime(inspection.rejected_at?.toString())}</span>
+              )}
+            </div>
+            {inspection.rejection_reason && (
+              <p className="mt-2 text-sm font-medium text-red-900 whitespace-pre-line">{inspection.rejection_reason}</p>
+            )}
+            {inspection.rejected_by && (
+              <p className="mt-1 text-xs text-red-700">
+                Reviewer: {inspection.rejected_by.full_name || inspection.rejected_by.email}
+              </p>
+            )}
+            {inspection.rejection_entries && inspection.rejection_entries.length > 0 && (
+              <div className="mt-3 space-y-2">
+                {inspection.rejection_entries.map((entry) => (
+                  <div key={entry.id} className="rounded-lg border border-red-100 bg-white p-2 text-xs text-slate-700">
+                    <p className="font-semibold text-red-800">
+                      {itemPromptMap.get(entry.template_item_id || '') || `Item ${entry.template_item_id || 'Unknown'}`} •{' '}
+                      {entry.reason}
+                    </p>
+                    {entry.follow_up_instructions && <p className="text-slate-700">Follow-up: {entry.follow_up_instructions}</p>}
+                    <p className="text-slate-500">
+                      Logged {formatDateTime(entry.created_at?.toString())} by {entry.created_by?.full_name || entry.created_by?.email}
+                      {entry.resolved_at && ` • Resolved ${formatDateTime(entry.resolved_at.toString())}`}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </Card>
 
       <Card title="Notes" subtitle="Latest inspection updates">

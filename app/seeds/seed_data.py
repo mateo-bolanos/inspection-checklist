@@ -27,12 +27,6 @@ DEFAULT_USERS = [
         "role": UserRole.reviewer.value,
         "password": "reviewerpass",
     },
-    {
-        "email": "employee@example.com",
-        "full_name": "Action Owner",
-        "role": UserRole.action_owner.value,
-        "password": "employeepass",
-    },
 ]
 
 

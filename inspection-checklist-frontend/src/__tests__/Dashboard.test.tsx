@@ -4,10 +4,11 @@ import { setupServer } from 'msw/node'
 import { screen, waitFor } from '@testing-library/react'
 
 import { OverviewPage } from '@/pages/Dashboard/Overview'
+import { resolveApiUrl } from '@/lib/env'
 import { renderWithProviders } from '@/test-utils'
 
 const server = setupServer(
-  http.get('http://localhost:8000/dash/overview', () =>
+  http.get(resolveApiUrl('/dash/overview'), () =>
     HttpResponse.json({
       total_inspections: 12,
       submitted_inspections: 4,
@@ -15,7 +16,7 @@ const server = setupServer(
       average_score: 87.5,
     }),
   ),
-  http.get('http://localhost:8000/inspections/', () => HttpResponse.json([])),
+  http.get(resolveApiUrl('/inspections/'), () => HttpResponse.json([])),
 )
 
 beforeAll(() => server.listen())

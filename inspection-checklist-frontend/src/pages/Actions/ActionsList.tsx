@@ -8,6 +8,7 @@ import { ACTION_SEVERITIES } from '@/lib/constants'
 import { formatDate, formatRelative } from '@/lib/formatters'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
+import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { EmptyState } from '@/components/feedback/EmptyState'
 import { ErrorState } from '@/components/feedback/ErrorState'
@@ -19,13 +20,14 @@ type ActionRecord = components['schemas']['CorrectiveActionRead']
 
 export const ActionsListPage = () => {
   const { user, hasRole } = useAuth()
-  const role = user?.role ?? 'inspector'
-  const viewingAsOwner = role === 'action_owner'
-  const [scope, setScope] = useState<'all' | 'mine'>(viewingAsOwner ? 'mine' : 'all')
-  const requiresUserScope = viewingAsOwner || scope === 'mine'
+  const canSeeAll = hasRole(['admin', 'reviewer'])
+  const [scope, setScope] = useState<'all' | 'mine'>(canSeeAll ? 'all' : 'mine')
+  const requiresUserScope = !canSeeAll || scope === 'mine'
   const assignedToFilter = requiresUserScope ? user?.id : undefined
+  const [locationFilter, setLocationFilter] = useState('')
   const { data, isLoading } = useActionsQuery({
     assignedTo: assignedToFilter,
+    location: locationFilter || null,
     enabled: !requiresUserScope || Boolean(user?.id),
   })
   const canSeeOrgMetrics = hasRole(['admin', 'reviewer', 'inspector'])
@@ -39,16 +41,20 @@ export const ActionsListPage = () => {
 
   const activeActions = useMemo(() => {
     if (!data) return []
+    const normalizedLocation = locationFilter.trim().toLowerCase()
     return data.filter((action) => {
       if (action.status === 'closed') return false
       const severityMatch = severity === 'all' || action.severity === severity
       const isOpen = getActionDisplayStatus(action.status) === 'open'
-      return severityMatch && isOpen
+      const locationMatch = !normalizedLocation
+        || (action.inspection_location ?? '').toLowerCase().includes(normalizedLocation)
+      return severityMatch && isOpen && locationMatch
     })
-  }, [data, severity])
+  }, [data, severity, locationFilter])
 
   const closedActions = useMemo(() => {
     if (!data) return []
+    const normalizedLocation = locationFilter.trim().toLowerCase()
     return data
       .filter((action) => action.status === 'closed')
       .sort((a, b) => {
@@ -56,7 +62,11 @@ export const ActionsListPage = () => {
         const dateB = new Date(resolveActionDate(b.closed_at, b.created_at)).getTime()
         return dateB - dateA
       })
-  }, [data])
+      .filter((action) => {
+        if (!normalizedLocation) return true
+        return (action.inspection_location ?? '').toLowerCase().includes(normalizedLocation)
+      })
+  }, [data, locationFilter])
 
   const selectedAction = useMemo(() => {
     if (!data || selectedActionId === null) return null
@@ -71,7 +81,7 @@ export const ActionsListPage = () => {
     return <LoadingState label="Loading actions..." />
   }
 
-  const showScopeToggle = hasRole(['admin', 'reviewer'])
+  const showScopeToggle = canSeeAll
 
   return (
     <div className="space-y-6">
@@ -133,6 +143,12 @@ export const ActionsListPage = () => {
         subtitle="Monitor everything that is still open"
         actions={
           <div className="flex flex-wrap gap-2">
+            <Input
+              value={locationFilter}
+              onChange={(event) => setLocationFilter(event.target.value)}
+              placeholder="Filter by department/location"
+              className="w-48"
+            />
             <Select value={severity} onChange={(event) => setSeverity(event.target.value as typeof severity)}>
               <option value="all">All severities</option>
               {ACTION_SEVERITIES.map((option) => (

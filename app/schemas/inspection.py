@@ -41,7 +41,10 @@ class InspectionRead(InspectionMutableFields):
     status: str
     started_at: datetime
     submitted_at: datetime | None = None
+    rejected_at: datetime | None = None
     overall_score: float | None = None
+    rejection_reason: str | None = None
+    rejected_by: UserRead | None = None
     created_by: UserRead
 
     class Config:
@@ -51,6 +54,21 @@ class InspectionRead(InspectionMutableFields):
 class InspectionDetail(InspectionRead):
     responses: List["InspectionResponseRead"] = Field(default_factory=list)
     note_entries: List[NoteEntryRead] = Field(default_factory=list)
+    rejection_entries: List["InspectionRejectionEntryRead"] = Field(default_factory=list)
+
+
+class InspectionReject(BaseModel):
+    reason: str
+    follow_up_instructions: str | None = None
+    item_ids: List[str] | None = None
+
+    @model_validator(mode="after")
+    def validate_reason(self) -> "InspectionReject":
+        if not (self.reason or "").strip():
+            raise ValueError("Rejection reason is required")
+        if self.item_ids is not None and len(self.item_ids) == 0:
+            raise ValueError("At least one item must be selected when item_ids are provided")
+        return self
 
 
 class InspectionResponseBase(BaseModel):
@@ -74,6 +92,20 @@ class InspectionResponseRead(InspectionResponseBase):
     id: str
     inspection_id: int
     note_entries: List[NoteEntryRead] = Field(default_factory=list)
+
+    class Config:
+        from_attributes = True
+
+
+class InspectionRejectionEntryRead(BaseModel):
+    id: int
+    inspection_id: int
+    template_item_id: str | None = None
+    reason: str
+    follow_up_instructions: str | None = None
+    created_at: datetime
+    resolved_at: datetime | None = None
+    created_by: UserRead
 
     class Config:
         from_attributes = True

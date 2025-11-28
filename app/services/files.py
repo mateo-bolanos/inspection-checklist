@@ -90,10 +90,7 @@ def list_media_files(
                 CorrectiveAction.inspection.has(Inspection.inspector_id == user.id),
             )
         )
-        if user.role == UserRole.action_owner.value:
-            filters.append(
-                MediaFile.action.has(CorrectiveAction.assigned_to_id == user.id)
-            )
+        filters.append(MediaFile.action.has(CorrectiveAction.assigned_to_id == user.id))
         query = query.filter(or_(*filters))
     if action_id is not None:
         query = query.filter(MediaFile.action_id == action_id)

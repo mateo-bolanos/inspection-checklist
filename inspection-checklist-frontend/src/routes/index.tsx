@@ -124,7 +124,7 @@ export const router = createBrowserRouter([
       {
         path: 'actions',
         element: (
-          <ProtectedRoute roles={['admin', 'inspector', 'reviewer', 'action_owner']}>
+          <ProtectedRoute roles={['admin', 'inspector', 'reviewer']}>
             <ActionsListPage />
           </ProtectedRoute>
         ),
@@ -132,7 +132,7 @@ export const router = createBrowserRouter([
       {
         path: 'actions/search',
         element: (
-          <ProtectedRoute roles={['admin', 'inspector', 'reviewer', 'action_owner']}>
+          <ProtectedRoute roles={['admin', 'inspector', 'reviewer']}>
             <ActionsSearchPage />
           </ProtectedRoute>
         ),

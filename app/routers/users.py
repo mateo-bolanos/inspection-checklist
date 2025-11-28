@@ -46,4 +46,4 @@ def _parse_roles(role_param: str | None) -> list[str]:
     if role_param:
         roles = {value.strip() for value in role_param.split(",") if value.strip()}
         return [value for value in roles]
-    return [UserRole.action_owner.value]
+    return [UserRole.inspector.value, UserRole.reviewer.value, UserRole.admin.value]

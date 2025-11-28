@@ -1,0 +1,397 @@
+inspection_id,inspection_date,inspector,started_at,submitted_at,item,result,issue_location,issue,corrective_action,status,duplicate_item_same_day,completion_flag
+2025-01-06::aferguson@moorepackaging.com,2025-01-06,aferguson@moorepackaging.com,2025-01-06 04:40:14.913,2025-01-06 04:45:54.960,Electrical Equipment,pass,,,,,False,0
+2025-01-06::aferguson@moorepackaging.com,2025-01-06,aferguson@moorepackaging.com,2025-01-06 04:40:14.913,2025-01-06 04:45:54.960,Emergency Equipment,pass,,,,,False,0
+2025-01-06::aferguson@moorepackaging.com,2025-01-06,aferguson@moorepackaging.com,2025-01-06 04:40:14.913,2025-01-06 04:45:54.960,Employee PPE,pass,,,,,False,0
+2025-01-06::aferguson@moorepackaging.com,2025-01-06,aferguson@moorepackaging.com,2025-01-06 04:40:14.913,2025-01-06 04:45:54.960,Forklift Inspection Records,pass,,,,,False,0
+2025-01-06::aferguson@moorepackaging.com,2025-01-06,aferguson@moorepackaging.com,2025-01-06 04:40:14.913,2025-01-06 04:45:54.960,Forklift Operation,pass,,,,,False,0
+2025-01-06::aferguson@moorepackaging.com,2025-01-06,aferguson@moorepackaging.com,2025-01-06 04:40:14.913,2025-01-06 04:45:54.960,General Housekeeping,pass,,,,,False,0
+2025-01-06::aferguson@moorepackaging.com,2025-01-06,aferguson@moorepackaging.com,2025-01-06 04:40:14.913,2025-01-06 04:45:54.960,Loading Bars,pass,,,,,False,0
+2025-01-06::aferguson@moorepackaging.com,2025-01-06,aferguson@moorepackaging.com,2025-01-06 04:40:14.913,2025-01-06 04:45:54.960,MSD Hazards,pass,,,,,False,0
+2025-01-06::aferguson@moorepackaging.com,2025-01-06,aferguson@moorepackaging.com,2025-01-06 04:40:14.913,2025-01-06 04:45:54.960,Trailers,pass,,,,,False,0
+2025-01-06::aferguson@moorepackaging.com,2025-01-06,aferguson@moorepackaging.com,2025-01-06 04:40:14.913,2025-01-06 04:45:54.960,Units and Stock,pass,,,,,False,1
+2025-01-21::aferguson@moorepackaging.com,2025-01-21,aferguson@moorepackaging.com,2025-01-21 09:11:22.717,2025-01-21 09:21:41.963,Electrical Equipment,pass,,,,,False,0
+2025-01-21::aferguson@moorepackaging.com,2025-01-21,aferguson@moorepackaging.com,2025-01-21 09:11:22.717,2025-01-21 09:21:41.963,Emergency Equipment,pass,,,,,False,0
+2025-01-21::aferguson@moorepackaging.com,2025-01-21,aferguson@moorepackaging.com,2025-01-21 09:11:22.717,2025-01-21 09:21:41.963,Employee PPE,pass,,,,,False,0
+2025-01-21::aferguson@moorepackaging.com,2025-01-21,aferguson@moorepackaging.com,2025-01-21 09:11:22.717,2025-01-21 09:21:41.963,Forklift Inspection Records,pass,,,,,False,0
+2025-01-21::aferguson@moorepackaging.com,2025-01-21,aferguson@moorepackaging.com,2025-01-21 09:11:22.717,2025-01-21 09:21:41.963,Forklift Operation,pass,,,,,False,0
+2025-01-21::aferguson@moorepackaging.com,2025-01-21,aferguson@moorepackaging.com,2025-01-21 09:11:22.717,2025-01-21 09:21:41.963,General Housekeeping,pass,,,,,False,0
+2025-01-21::aferguson@moorepackaging.com,2025-01-21,aferguson@moorepackaging.com,2025-01-21 09:11:22.717,2025-01-21 09:21:41.963,Loading Bars,pass,,,,,False,0
+2025-01-21::aferguson@moorepackaging.com,2025-01-21,aferguson@moorepackaging.com,2025-01-21 09:11:22.717,2025-01-21 09:21:41.963,MSD Hazards,pass,,,,,False,0
+2025-01-21::aferguson@moorepackaging.com,2025-01-21,aferguson@moorepackaging.com,2025-01-21 09:11:22.717,2025-01-21 09:21:41.963,Trailers,pass,,,,,False,0
+2025-01-21::aferguson@moorepackaging.com,2025-01-21,aferguson@moorepackaging.com,2025-01-21 09:11:22.717,2025-01-21 09:21:41.963,Units and Stock,fail,warehouse / wall area,excess amount of supplier & internal stock,,Completed,False,0
+2025-01-29::aferguson@moorepackaging.com,2025-01-29,aferguson@moorepackaging.com,2025-01-29 07:40:09.031,2025-01-29 07:41:19.505,Electrical Equipment,pass,,,,,False,0
+2025-01-29::aferguson@moorepackaging.com,2025-01-29,aferguson@moorepackaging.com,2025-01-29 07:40:09.031,2025-01-29 07:41:19.505,Emergency Equipment,pass,,,,,False,0
+2025-01-29::aferguson@moorepackaging.com,2025-01-29,aferguson@moorepackaging.com,2025-01-29 07:40:09.031,2025-01-29 07:41:19.505,Employee PPE,pass,,,,,False,0
+2025-01-29::aferguson@moorepackaging.com,2025-01-29,aferguson@moorepackaging.com,2025-01-29 07:40:09.031,2025-01-29 07:41:19.505,Forklift Inspection Records,pass,,,,,False,0
+2025-01-29::aferguson@moorepackaging.com,2025-01-29,aferguson@moorepackaging.com,2025-01-29 07:40:09.031,2025-01-29 07:41:19.505,Forklift Operation,pass,,,,,False,0
+2025-01-29::aferguson@moorepackaging.com,2025-01-29,aferguson@moorepackaging.com,2025-01-29 07:40:09.031,2025-01-29 07:41:19.505,General Housekeeping,fail,warehouse,conjestiondue to excess scrap from production and excess outside stock,Bruce M working on resolution,Completed,False,1
+2025-01-29::aferguson@moorepackaging.com,2025-01-29,aferguson@moorepackaging.com,2025-01-29 07:40:09.031,2025-01-29 07:41:19.505,Loading Bars,pass,,,,,False,0
+2025-01-29::aferguson@moorepackaging.com,2025-01-29,aferguson@moorepackaging.com,2025-01-29 07:40:09.031,2025-01-29 07:41:19.505,MSD Hazards,pass,,,,,False,0
+2025-01-29::aferguson@moorepackaging.com,2025-01-29,aferguson@moorepackaging.com,2025-01-29 07:40:09.031,2025-01-29 07:41:19.505,Trailers,pass,,,,,False,0
+2025-01-29::aferguson@moorepackaging.com,2025-01-29,aferguson@moorepackaging.com,2025-01-29 07:40:09.031,2025-01-29 07:41:19.505,Units and Stock,pass,,,,,False,0
+2025-02-03::aferguson@moorepackaging.com,2025-02-03,aferguson@moorepackaging.com,2025-02-03 09:35:26.954,2025-02-03 09:36:32.702,Electrical Equipment,pass,,,,,True,0
+2025-02-03::aferguson@moorepackaging.com,2025-02-03,aferguson@moorepackaging.com,2025-02-03 09:35:26.954,2025-02-03 09:36:32.702,Emergency Equipment,pass,,,,,True,0
+2025-02-03::aferguson@moorepackaging.com,2025-02-03,aferguson@moorepackaging.com,2025-02-03 09:35:26.954,2025-02-03 09:36:32.702,Employee PPE,pass,,,,,True,0
+2025-02-03::aferguson@moorepackaging.com,2025-02-03,aferguson@moorepackaging.com,2025-02-03 09:35:26.954,2025-02-03 09:36:32.702,Forklift Inspection Records,pass,,,,,True,0
+2025-02-03::aferguson@moorepackaging.com,2025-02-03,aferguson@moorepackaging.com,2025-02-03 09:35:26.954,2025-02-03 09:36:32.702,Forklift Operation,pass,,,,,True,0
+2025-02-03::aferguson@moorepackaging.com,2025-02-03,aferguson@moorepackaging.com,2025-02-03 09:35:26.954,2025-02-03 09:36:32.702,General Housekeeping,pass,,,,,True,0
+2025-02-03::aferguson@moorepackaging.com,2025-02-03,aferguson@moorepackaging.com,2025-02-03 09:35:26.954,2025-02-03 09:36:32.702,Loading Bars,pass,,,,,True,0
+2025-02-03::aferguson@moorepackaging.com,2025-02-03,aferguson@moorepackaging.com,2025-02-03 09:35:26.954,2025-02-03 09:36:32.702,MSD Hazards,pass,,,,,True,0
+2025-02-03::aferguson@moorepackaging.com,2025-02-03,aferguson@moorepackaging.com,2025-02-03 09:35:26.954,2025-02-03 09:36:32.702,Trailers,pass,,,,,True,0
+2025-02-03::aferguson@moorepackaging.com,2025-02-03,aferguson@moorepackaging.com,2025-02-03 09:35:26.954,2025-02-03 09:36:32.702,Units and Stock,pass,,,,,True,0
+2025-02-10::aferguson@moorepackaging.com,2025-02-10,aferguson@moorepackaging.com,2025-02-10 08:57:06.339,2025-02-10 08:57:58.159,Forklift Operation,pass,,,,,False,0
+2025-02-10::aferguson@moorepackaging.com,2025-02-10,aferguson@moorepackaging.com,2025-02-10 08:57:06.339,2025-02-10 08:57:58.159,General Housekeeping,pass,,,,,False,1
+2025-02-10::aferguson@moorepackaging.com,2025-02-10,aferguson@moorepackaging.com,2025-02-10 08:57:06.339,2025-02-10 08:57:58.159,Loading Bars,pass,,,,,False,0
+2025-02-10::aferguson@moorepackaging.com,2025-02-10,aferguson@moorepackaging.com,2025-02-10 08:57:06.339,2025-02-10 08:57:58.159,Trailers,pass,,,,,False,0
+2025-02-10::aferguson@moorepackaging.com,2025-02-10,aferguson@moorepackaging.com,2025-02-10 08:57:06.339,2025-02-10 08:57:58.159,Units and Stock,pass,,,,,False,0
+2025-02-17::aferguson@moorepackaging.com,2025-02-17,aferguson@moorepackaging.com,2025-02-17 10:25:29.599,2025-02-17 10:27:03.550,Electrical Equipment,pass,,,,,False,0
+2025-02-17::aferguson@moorepackaging.com,2025-02-17,aferguson@moorepackaging.com,2025-02-17 10:25:29.599,2025-02-17 10:27:03.550,Emergency Equipment,pass,,,,,False,0
+2025-02-17::aferguson@moorepackaging.com,2025-02-17,aferguson@moorepackaging.com,2025-02-17 10:25:29.599,2025-02-17 10:27:03.550,Employee PPE,pass,,,,,False,0
+2025-02-17::aferguson@moorepackaging.com,2025-02-17,aferguson@moorepackaging.com,2025-02-17 10:25:29.599,2025-02-17 10:27:03.550,Forklift Inspection Records,pass,,,,,False,0
+2025-02-17::aferguson@moorepackaging.com,2025-02-17,aferguson@moorepackaging.com,2025-02-17 10:25:29.599,2025-02-17 10:27:03.550,Forklift Operation,pass,,,,,False,0
+2025-02-17::aferguson@moorepackaging.com,2025-02-17,aferguson@moorepackaging.com,2025-02-17 10:25:29.599,2025-02-17 10:27:03.550,General Housekeeping,pass,,,,,False,0
+2025-02-17::aferguson@moorepackaging.com,2025-02-17,aferguson@moorepackaging.com,2025-02-17 10:25:29.599,2025-02-17 10:27:03.550,Loading Bars,pass,,,,,False,0
+2025-02-17::aferguson@moorepackaging.com,2025-02-17,aferguson@moorepackaging.com,2025-02-17 10:25:29.599,2025-02-17 10:27:03.550,MSD Hazards,pass,,,,,False,0
+2025-02-17::aferguson@moorepackaging.com,2025-02-17,aferguson@moorepackaging.com,2025-02-17 10:25:29.599,2025-02-17 10:27:03.550,Trailers,pass,,,,,False,0
+2025-02-17::aferguson@moorepackaging.com,2025-02-17,aferguson@moorepackaging.com,2025-02-17 10:25:29.599,2025-02-17 10:27:03.550,Units and Stock,pass,,,,,False,0
+2025-02-28::aferguson@moorepackaging.com,2025-02-28,aferguson@moorepackaging.com,2025-02-28 07:00:56.181,2025-02-28 07:04:08.195,Electrical Equipment,pass,,,,,False,0
+2025-02-28::aferguson@moorepackaging.com,2025-02-28,aferguson@moorepackaging.com,2025-02-28 07:00:56.181,2025-02-28 07:04:08.195,Emergency Equipment,pass,,,,,False,0
+2025-02-28::aferguson@moorepackaging.com,2025-02-28,aferguson@moorepackaging.com,2025-02-28 07:00:56.181,2025-02-28 07:04:08.195,Employee PPE,pass,,,,,False,0
+2025-02-28::aferguson@moorepackaging.com,2025-02-28,aferguson@moorepackaging.com,2025-02-28 07:00:56.181,2025-02-28 07:04:08.195,Forklift Inspection Records,pass,,,,,False,0
+2025-02-28::aferguson@moorepackaging.com,2025-02-28,aferguson@moorepackaging.com,2025-02-28 07:00:56.181,2025-02-28 07:04:08.195,Forklift Operation,pass,,,,,False,0
+2025-02-28::aferguson@moorepackaging.com,2025-02-28,aferguson@moorepackaging.com,2025-02-28 07:00:56.181,2025-02-28 07:04:08.195,General Housekeeping,fail,walkway by door 2 was cleared of pallets,palletbroke,clear the pallets,Completed,False,0
+2025-02-28::aferguson@moorepackaging.com,2025-02-28,aferguson@moorepackaging.com,2025-02-28 07:00:56.181,2025-02-28 07:04:08.195,Loading Bars,pass,,,,,False,0
+2025-02-28::aferguson@moorepackaging.com,2025-02-28,aferguson@moorepackaging.com,2025-02-28 07:00:56.181,2025-02-28 07:04:08.195,MSD Hazards,pass,,,,,False,0
+2025-02-28::aferguson@moorepackaging.com,2025-02-28,aferguson@moorepackaging.com,2025-02-28 07:00:56.181,2025-02-28 07:04:08.195,Trailers,pass,,,,,False,0
+2025-02-28::aferguson@moorepackaging.com,2025-02-28,aferguson@moorepackaging.com,2025-02-28 07:00:56.181,2025-02-28 07:04:08.195,Units and Stock,fail,warehouse is at capacity,at capacity,wàrehouse safely and monitor conditions,Completed,False,0
+2025-03-06::aferguson@moorepackaging.com,2025-03-06,aferguson@moorepackaging.com,2025-03-06 12:36:07.968,2025-03-06 12:37:51.273,Electrical Equipment,pass,,,,,True,0
+2025-03-06::aferguson@moorepackaging.com,2025-03-06,aferguson@moorepackaging.com,2025-03-06 12:36:07.968,2025-03-06 12:37:51.273,Emergency Equipment,pending,,,,,False,0
+2025-03-06::aferguson@moorepackaging.com,2025-03-06,aferguson@moorepackaging.com,2025-03-06 12:36:07.968,2025-03-06 12:37:51.273,Employee PPE,pending,,,,,False,0
+2025-03-06::aferguson@moorepackaging.com,2025-03-06,aferguson@moorepackaging.com,2025-03-06 12:36:07.968,2025-03-06 12:37:51.273,Forklift Inspection Records,pass,,,,,False,0
+2025-03-06::aferguson@moorepackaging.com,2025-03-06,aferguson@moorepackaging.com,2025-03-06 12:36:07.968,2025-03-06 12:37:51.273,Forklift Operation,pass,,,,,False,0
+2025-03-06::aferguson@moorepackaging.com,2025-03-06,aferguson@moorepackaging.com,2025-03-06 12:36:07.968,2025-03-06 12:37:51.273,General Housekeeping,fail,warehouse shipping hold area,excess amounts of customer units & outside stock,,Completed,False,1
+2025-03-06::aferguson@moorepackaging.com,2025-03-06,aferguson@moorepackaging.com,2025-03-06 12:36:07.968,2025-03-06 12:37:51.273,Loading Bars,pass,,,,,False,0
+2025-03-06::aferguson@moorepackaging.com,2025-03-06,aferguson@moorepackaging.com,2025-03-06 12:36:07.968,2025-03-06 12:37:51.273,MSD Hazards,pass,,,,,False,0
+2025-03-06::aferguson@moorepackaging.com,2025-03-06,aferguson@moorepackaging.com,2025-03-06 12:36:07.968,2025-03-06 12:37:51.273,Trailers,pass,,,,,False,0
+2025-03-06::aferguson@moorepackaging.com,2025-03-06,aferguson@moorepackaging.com,2025-03-06 12:36:07.968,2025-03-06 12:37:51.273,Units and Stock,pass,,,,,False,0
+2025-03-14::aferguson@moorepackaging.com,2025-03-14,aferguson@moorepackaging.com,2025-03-14 06:44:32.028,2025-03-14 06:47:21.544,Electrical Equipment,pass,,,,,False,0
+2025-03-14::aferguson@moorepackaging.com,2025-03-14,aferguson@moorepackaging.com,2025-03-14 06:44:32.028,2025-03-14 06:47:21.544,Emergency Equipment,pass,,,,,False,0
+2025-03-14::aferguson@moorepackaging.com,2025-03-14,aferguson@moorepackaging.com,2025-03-14 06:44:32.028,2025-03-14 06:47:21.544,Employee PPE,pass,,,,,False,0
+2025-03-14::aferguson@moorepackaging.com,2025-03-14,aferguson@moorepackaging.com,2025-03-14 06:44:32.028,2025-03-14 06:47:21.544,Forklift Inspection Records,pass,,,,,False,0
+2025-03-14::aferguson@moorepackaging.com,2025-03-14,aferguson@moorepackaging.com,2025-03-14 06:44:32.028,2025-03-14 06:47:21.544,Forklift Operation,pass,,,,,False,0
+2025-03-14::aferguson@moorepackaging.com,2025-03-14,aferguson@moorepackaging.com,2025-03-14 06:44:32.028,2025-03-14 06:47:21.544,General Housekeeping,fail,warehouse is conjested with outside stock.,overstocked,bruce is adjusting as much as possible and utilizing trailers as buffer to reduce risks,Completed,False,0
+2025-03-14::aferguson@moorepackaging.com,2025-03-14,aferguson@moorepackaging.com,2025-03-14 06:44:32.028,2025-03-14 06:47:21.544,Loading Bars,pass,,,,,False,0
+2025-03-14::aferguson@moorepackaging.com,2025-03-14,aferguson@moorepackaging.com,2025-03-14 06:44:32.028,2025-03-14 06:47:21.544,MSD Hazards,pass,,,,,False,0
+2025-03-14::aferguson@moorepackaging.com,2025-03-14,aferguson@moorepackaging.com,2025-03-14 06:44:32.028,2025-03-14 06:47:21.544,Trailers,pass,,,,,False,0
+2025-03-14::aferguson@moorepackaging.com,2025-03-14,aferguson@moorepackaging.com,2025-03-14 06:44:32.028,2025-03-14 06:47:21.544,Units and Stock,pass,,,,,False,0
+2025-03-18::aferguson@moorepackaging.com,2025-03-18,aferguson@moorepackaging.com,2025-03-18 09:24:30.111,2025-03-18 10:34:35.066,Electrical Equipment,pass,,,,,False,0
+2025-03-18::aferguson@moorepackaging.com,2025-03-18,aferguson@moorepackaging.com,2025-03-18 09:24:30.111,2025-03-18 10:34:35.066,Emergency Equipment,pass,,,,,False,0
+2025-03-18::aferguson@moorepackaging.com,2025-03-18,aferguson@moorepackaging.com,2025-03-18 09:24:30.111,2025-03-18 10:34:35.066,Employee PPE,pass,,,,,False,0
+2025-03-18::aferguson@moorepackaging.com,2025-03-18,aferguson@moorepackaging.com,2025-03-18 09:24:30.111,2025-03-18 10:34:35.066,Forklift Inspection Records,pass,,,,,False,0
+2025-03-18::aferguson@moorepackaging.com,2025-03-18,aferguson@moorepackaging.com,2025-03-18 09:24:30.111,2025-03-18 10:34:35.066,Forklift Operation,pass,,,,,False,0
+2025-03-18::aferguson@moorepackaging.com,2025-03-18,aferguson@moorepackaging.com,2025-03-18 09:24:30.111,2025-03-18 10:34:35.066,General Housekeeping,pass,,,,,False,0
+2025-03-18::aferguson@moorepackaging.com,2025-03-18,aferguson@moorepackaging.com,2025-03-18 09:24:30.111,2025-03-18 10:34:35.066,Loading Bars,pass,,,,,False,0
+2025-03-18::aferguson@moorepackaging.com,2025-03-18,aferguson@moorepackaging.com,2025-03-18 09:24:30.111,2025-03-18 10:34:35.066,MSD Hazards,pass,,,,,False,0
+2025-03-18::aferguson@moorepackaging.com,2025-03-18,aferguson@moorepackaging.com,2025-03-18 09:24:30.111,2025-03-18 10:34:35.066,Trailers,pass,,,,,True,0
+2025-03-18::aferguson@moorepackaging.com,2025-03-18,aferguson@moorepackaging.com,2025-03-18 09:24:30.111,2025-03-18 10:34:35.066,Units and Stock,fail,warehouse,"warehouse full, rows/units neeed to be straightened up",,,True,0
+2025-03-24::aferguson@moorepackaging.com,2025-03-24,aferguson@moorepackaging.com,2025-03-24 04:34:18.534,2025-03-24 04:35:44.737,Electrical Equipment,pass,,,,,False,0
+2025-03-24::aferguson@moorepackaging.com,2025-03-24,aferguson@moorepackaging.com,2025-03-24 04:34:18.534,2025-03-24 04:35:44.737,Emergency Equipment,pass,,,,,False,0
+2025-03-24::aferguson@moorepackaging.com,2025-03-24,aferguson@moorepackaging.com,2025-03-24 04:34:18.534,2025-03-24 04:35:44.737,Employee PPE,pass,,,,,False,0
+2025-03-24::aferguson@moorepackaging.com,2025-03-24,aferguson@moorepackaging.com,2025-03-24 04:34:18.534,2025-03-24 04:35:44.737,Forklift Inspection Records,pass,,,,,False,0
+2025-03-24::aferguson@moorepackaging.com,2025-03-24,aferguson@moorepackaging.com,2025-03-24 04:34:18.534,2025-03-24 04:35:44.737,Forklift Operation,pass,,,,,False,0
+2025-03-24::aferguson@moorepackaging.com,2025-03-24,aferguson@moorepackaging.com,2025-03-24 04:34:18.534,2025-03-24 04:35:44.737,General Housekeeping,pass,,,,,False,0
+2025-03-24::aferguson@moorepackaging.com,2025-03-24,aferguson@moorepackaging.com,2025-03-24 04:34:18.534,2025-03-24 04:35:44.737,Loading Bars,pass,,,,,False,0
+2025-03-24::aferguson@moorepackaging.com,2025-03-24,aferguson@moorepackaging.com,2025-03-24 04:34:18.534,2025-03-24 04:35:44.737,MSD Hazards,pass,,,,,False,0
+2025-03-24::aferguson@moorepackaging.com,2025-03-24,aferguson@moorepackaging.com,2025-03-24 04:34:18.534,2025-03-24 04:35:44.737,Trailers,pass,,,,,False,0
+2025-03-24::aferguson@moorepackaging.com,2025-03-24,aferguson@moorepackaging.com,2025-03-24 04:34:18.534,2025-03-24 04:35:44.737,Units and Stock,pass,,,,,False,0
+2025-04-09::mbrown@moorepackaging.com,2025-04-09,mbrown@moorepackaging.com,2025-04-09 07:40:08.581,2025-04-09 07:41:24.372,Electrical Equipment,pass,,,,,False,0
+2025-04-09::mbrown@moorepackaging.com,2025-04-09,mbrown@moorepackaging.com,2025-04-09 07:40:08.581,2025-04-09 07:41:24.372,Emergency Equipment,pass,,,,,False,0
+2025-04-09::mbrown@moorepackaging.com,2025-04-09,mbrown@moorepackaging.com,2025-04-09 07:40:08.581,2025-04-09 07:41:24.372,Employee PPE,pass,,,,,False,0
+2025-04-09::mbrown@moorepackaging.com,2025-04-09,mbrown@moorepackaging.com,2025-04-09 07:40:08.581,2025-04-09 07:41:24.372,Forklift Inspection Records,pass,,,,,False,0
+2025-04-09::mbrown@moorepackaging.com,2025-04-09,mbrown@moorepackaging.com,2025-04-09 07:40:08.581,2025-04-09 07:41:24.372,Forklift Operation,pass,,,,,True,0
+2025-04-09::mbrown@moorepackaging.com,2025-04-09,mbrown@moorepackaging.com,2025-04-09 07:40:08.581,2025-04-09 07:41:24.372,General Housekeeping,pass,,,,,False,1
+2025-04-09::mbrown@moorepackaging.com,2025-04-09,mbrown@moorepackaging.com,2025-04-09 07:40:08.581,2025-04-09 07:41:24.372,Loading Bars,pass,,,,,False,0
+2025-04-09::mbrown@moorepackaging.com,2025-04-09,mbrown@moorepackaging.com,2025-04-09 07:40:08.581,2025-04-09 07:41:24.372,MSD Hazards,pass,,,,,False,0
+2025-04-09::mbrown@moorepackaging.com,2025-04-09,mbrown@moorepackaging.com,2025-04-09 07:40:08.581,2025-04-09 07:41:24.372,Trailers,pass,,,,,False,0
+2025-04-09::mbrown@moorepackaging.com,2025-04-09,mbrown@moorepackaging.com,2025-04-09 07:40:08.581,2025-04-09 07:41:24.372,Units and Stock,pass,,,,,False,0
+2025-04-17::mbrown@moorepackaging.com,2025-04-17,mbrown@moorepackaging.com,2025-04-17 05:29:12.689,2025-04-17 05:30:40.177,Electrical Equipment,pass,,,,,False,0
+2025-04-17::mbrown@moorepackaging.com,2025-04-17,mbrown@moorepackaging.com,2025-04-17 05:29:12.689,2025-04-17 05:30:40.177,Emergency Equipment,pass,,,,,False,0
+2025-04-17::mbrown@moorepackaging.com,2025-04-17,mbrown@moorepackaging.com,2025-04-17 05:29:12.689,2025-04-17 05:30:40.177,Employee PPE,pass,,,,,False,0
+2025-04-17::mbrown@moorepackaging.com,2025-04-17,mbrown@moorepackaging.com,2025-04-17 05:29:12.689,2025-04-17 05:30:40.177,Forklift Inspection Records,pass,,,,,False,0
+2025-04-17::mbrown@moorepackaging.com,2025-04-17,mbrown@moorepackaging.com,2025-04-17 05:29:12.689,2025-04-17 05:30:40.177,Forklift Operation,pass,,,,,False,0
+2025-04-17::mbrown@moorepackaging.com,2025-04-17,mbrown@moorepackaging.com,2025-04-17 05:29:12.689,2025-04-17 05:30:40.177,General Housekeeping,pass,,,,,False,1
+2025-04-17::mbrown@moorepackaging.com,2025-04-17,mbrown@moorepackaging.com,2025-04-17 05:29:12.689,2025-04-17 05:30:40.177,Loading Bars,pass,,,,,False,0
+2025-04-17::mbrown@moorepackaging.com,2025-04-17,mbrown@moorepackaging.com,2025-04-17 05:29:12.689,2025-04-17 05:30:40.177,MSD Hazards,pass,,,,,False,0
+2025-04-17::mbrown@moorepackaging.com,2025-04-17,mbrown@moorepackaging.com,2025-04-17 05:29:12.689,2025-04-17 05:30:40.177,Trailers,pass,,,,,False,0
+2025-04-17::mbrown@moorepackaging.com,2025-04-17,mbrown@moorepackaging.com,2025-04-17 05:29:12.689,2025-04-17 05:30:40.177,Units and Stock,pass,,,,,False,0
+2025-04-22::mbrown@moorepackaging.com,2025-04-22,mbrown@moorepackaging.com,2025-04-22 06:38:06.113,2025-04-22 06:40:35.235,Electrical Equipment,pass,,,,,False,0
+2025-04-22::mbrown@moorepackaging.com,2025-04-22,mbrown@moorepackaging.com,2025-04-22 06:38:06.113,2025-04-22 06:40:35.235,Emergency Equipment,pass,,,,,False,0
+2025-04-22::mbrown@moorepackaging.com,2025-04-22,mbrown@moorepackaging.com,2025-04-22 06:38:06.113,2025-04-22 06:40:35.235,Employee PPE,pass,,,,,False,0
+2025-04-22::mbrown@moorepackaging.com,2025-04-22,mbrown@moorepackaging.com,2025-04-22 06:38:06.113,2025-04-22 06:40:35.235,Forklift Inspection Records,pass,,,,,False,0
+2025-04-22::mbrown@moorepackaging.com,2025-04-22,mbrown@moorepackaging.com,2025-04-22 06:38:06.113,2025-04-22 06:40:35.235,Forklift Operation,pass,,,,,False,0
+2025-04-22::mbrown@moorepackaging.com,2025-04-22,mbrown@moorepackaging.com,2025-04-22 06:38:06.113,2025-04-22 06:40:35.235,General Housekeeping,pass,,,,,False,0
+2025-04-22::mbrown@moorepackaging.com,2025-04-22,mbrown@moorepackaging.com,2025-04-22 06:38:06.113,2025-04-22 06:40:35.235,Loading Bars,pass,,,,,False,0
+2025-04-22::mbrown@moorepackaging.com,2025-04-22,mbrown@moorepackaging.com,2025-04-22 06:38:06.113,2025-04-22 06:40:35.235,MSD Hazards,pass,,,,,False,0
+2025-04-22::mbrown@moorepackaging.com,2025-04-22,mbrown@moorepackaging.com,2025-04-22 06:38:06.113,2025-04-22 06:40:35.235,Trailers,pass,,,,,False,0
+2025-04-22::mbrown@moorepackaging.com,2025-04-22,mbrown@moorepackaging.com,2025-04-22 06:38:06.113,2025-04-22 06:40:35.235,Units and Stock,pass,,,,,False,0
+2025-04-28::mbrown@moorepackaging.com,2025-04-28,mbrown@moorepackaging.com,2025-04-28 07:51:03.076,2025-04-28 07:52:02.698,Electrical Equipment,pass,,,,,False,0
+2025-04-28::mbrown@moorepackaging.com,2025-04-28,mbrown@moorepackaging.com,2025-04-28 07:51:03.076,2025-04-28 07:52:02.698,Emergency Equipment,pass,,,,,False,0
+2025-04-28::mbrown@moorepackaging.com,2025-04-28,mbrown@moorepackaging.com,2025-04-28 07:51:03.076,2025-04-28 07:52:02.698,Employee PPE,pass,,,,,False,0
+2025-04-28::mbrown@moorepackaging.com,2025-04-28,mbrown@moorepackaging.com,2025-04-28 07:51:03.076,2025-04-28 07:52:02.698,Forklift Inspection Records,pass,,,,,False,0
+2025-04-28::mbrown@moorepackaging.com,2025-04-28,mbrown@moorepackaging.com,2025-04-28 07:51:03.076,2025-04-28 07:52:02.698,Forklift Operation,pass,,,,,False,0
+2025-04-28::mbrown@moorepackaging.com,2025-04-28,mbrown@moorepackaging.com,2025-04-28 07:51:03.076,2025-04-28 07:52:02.698,General Housekeeping,pass,,,,,False,1
+2025-04-28::mbrown@moorepackaging.com,2025-04-28,mbrown@moorepackaging.com,2025-04-28 07:51:03.076,2025-04-28 07:52:02.698,Loading Bars,pass,,,,,False,0
+2025-04-28::mbrown@moorepackaging.com,2025-04-28,mbrown@moorepackaging.com,2025-04-28 07:51:03.076,2025-04-28 07:52:02.698,MSD Hazards,pass,,,,,False,0
+2025-04-28::mbrown@moorepackaging.com,2025-04-28,mbrown@moorepackaging.com,2025-04-28 07:51:03.076,2025-04-28 07:52:02.698,Trailers,pass,,,,,False,0
+2025-04-28::mbrown@moorepackaging.com,2025-04-28,mbrown@moorepackaging.com,2025-04-28 07:51:03.076,2025-04-28 07:52:02.698,Units and Stock,pass,,,,,False,0
+2025-05-05::mbrown@moorepackaging.com,2025-05-05,mbrown@moorepackaging.com,2025-05-05 06:11:39.729,2025-05-05 06:22:50.442,Electrical Equipment,pass,,,,,False,0
+2025-05-05::mbrown@moorepackaging.com,2025-05-05,mbrown@moorepackaging.com,2025-05-05 06:11:39.729,2025-05-05 06:22:50.442,Emergency Equipment,pass,,,,,False,0
+2025-05-05::mbrown@moorepackaging.com,2025-05-05,mbrown@moorepackaging.com,2025-05-05 06:11:39.729,2025-05-05 06:22:50.442,Employee PPE,pass,,,,,False,0
+2025-05-05::mbrown@moorepackaging.com,2025-05-05,mbrown@moorepackaging.com,2025-05-05 06:11:39.729,2025-05-05 06:22:50.442,Forklift Inspection Records,pass,,,,,False,0
+2025-05-05::mbrown@moorepackaging.com,2025-05-05,mbrown@moorepackaging.com,2025-05-05 06:11:39.729,2025-05-05 06:22:50.442,Forklift Operation,pass,,,,,True,0
+2025-05-05::mbrown@moorepackaging.com,2025-05-05,mbrown@moorepackaging.com,2025-05-05 06:11:39.729,2025-05-05 06:22:50.442,General Housekeeping,pass,,,,,False,0
+2025-05-05::mbrown@moorepackaging.com,2025-05-05,mbrown@moorepackaging.com,2025-05-05 06:11:39.729,2025-05-05 06:22:50.442,Loading Bars,pass,,,,,False,0
+2025-05-05::mbrown@moorepackaging.com,2025-05-05,mbrown@moorepackaging.com,2025-05-05 06:11:39.729,2025-05-05 06:22:50.442,MSD Hazards,pass,,,,,False,0
+2025-05-05::mbrown@moorepackaging.com,2025-05-05,mbrown@moorepackaging.com,2025-05-05 06:11:39.729,2025-05-05 06:22:50.442,Trailers,pass,,,,,False,0
+2025-05-05::mbrown@moorepackaging.com,2025-05-05,mbrown@moorepackaging.com,2025-05-05 06:11:39.729,2025-05-05 06:22:50.442,Units and Stock,fail,"scrap area by wall is overflowing and baler does not seem to have capacity to reduce scrap from lines, corrugator, as well as the excess build up being stored by wall. Bruce will arrange a live load to get scrap back to a safe level",excess waste being stored,Bruce to arrange pick up to reduce level,Completed,False,0
+2025-05-12::mbrown@moorepackaging.com,2025-05-12,mbrown@moorepackaging.com,2025-05-12 08:56:38.166,2025-05-12 09:01:04.727,Electrical Equipment,pass,,,,,False,0
+2025-05-12::mbrown@moorepackaging.com,2025-05-12,mbrown@moorepackaging.com,2025-05-12 08:56:38.166,2025-05-12 09:01:04.727,Emergency Equipment,fail,warehouse shipping,"exit Q exit light out. / emergency light dor exit M, O, P, Q , R & K not working, battery dead. work order 8222 issued may 12th.",,,False,0
+2025-05-12::mbrown@moorepackaging.com,2025-05-12,mbrown@moorepackaging.com,2025-05-12 08:56:38.166,2025-05-12 09:01:04.727,Employee PPE,pass,,,,,False,0
+2025-05-12::mbrown@moorepackaging.com,2025-05-12,mbrown@moorepackaging.com,2025-05-12 08:56:38.166,2025-05-12 09:01:04.727,Forklift Inspection Records,pass,,,,,False,0
+2025-05-12::mbrown@moorepackaging.com,2025-05-12,mbrown@moorepackaging.com,2025-05-12 08:56:38.166,2025-05-12 09:01:04.727,Forklift Operation,pass,,,,,False,0
+2025-05-12::mbrown@moorepackaging.com,2025-05-12,mbrown@moorepackaging.com,2025-05-12 08:56:38.166,2025-05-12 09:01:04.727,General Housekeeping,pass,,,,,False,0
+2025-05-12::mbrown@moorepackaging.com,2025-05-12,mbrown@moorepackaging.com,2025-05-12 08:56:38.166,2025-05-12 09:01:04.727,Loading Bars,pass,,,,,False,0
+2025-05-12::mbrown@moorepackaging.com,2025-05-12,mbrown@moorepackaging.com,2025-05-12 08:56:38.166,2025-05-12 09:01:04.727,MSD Hazards,pass,,,,,False,0
+2025-05-12::mbrown@moorepackaging.com,2025-05-12,mbrown@moorepackaging.com,2025-05-12 08:56:38.166,2025-05-12 09:01:04.727,Trailers,pass,,,,,False,0
+2025-05-12::mbrown@moorepackaging.com,2025-05-12,mbrown@moorepackaging.com,2025-05-12 08:56:38.166,2025-05-12 09:01:04.727,Units and Stock,pass,,,,,False,0
+2025-05-22::mbrown@moorepackaging.com,2025-05-22,mbrown@moorepackaging.com,2025-05-22 09:57:05.250,2025-05-22 10:00:59.939,Electrical Equipment,pass,,,,,False,0
+2025-05-22::mbrown@moorepackaging.com,2025-05-22,mbrown@moorepackaging.com,2025-05-22 09:57:05.250,2025-05-22 10:00:59.939,Emergency Equipment,pass,,,,,False,0
+2025-05-22::mbrown@moorepackaging.com,2025-05-22,mbrown@moorepackaging.com,2025-05-22 09:57:05.250,2025-05-22 10:00:59.939,Employee PPE,pass,,,,,False,0
+2025-05-22::mbrown@moorepackaging.com,2025-05-22,mbrown@moorepackaging.com,2025-05-22 09:57:05.250,2025-05-22 10:00:59.939,Forklift Inspection Records,pass,,,,,False,0
+2025-05-22::mbrown@moorepackaging.com,2025-05-22,mbrown@moorepackaging.com,2025-05-22 09:57:05.250,2025-05-22 10:00:59.939,Forklift Operation,pass,,,,,False,0
+2025-05-22::mbrown@moorepackaging.com,2025-05-22,mbrown@moorepackaging.com,2025-05-22 09:57:05.250,2025-05-22 10:00:59.939,General Housekeeping,fail,loc 113,leak in roof,maintenance notified to get roof leak repaired,Assign to:,True,0
+2025-05-22::mbrown@moorepackaging.com,2025-05-22,mbrown@moorepackaging.com,2025-05-22 09:57:05.250,2025-05-22 10:00:59.939,Loading Bars,pass,,,,,False,0
+2025-05-22::mbrown@moorepackaging.com,2025-05-22,mbrown@moorepackaging.com,2025-05-22 09:57:05.250,2025-05-22 10:00:59.939,MSD Hazards,pass,,,,,False,0
+2025-05-22::mbrown@moorepackaging.com,2025-05-22,mbrown@moorepackaging.com,2025-05-22 09:57:05.250,2025-05-22 10:00:59.939,Trailers,pass,,,,,False,0
+2025-05-22::mbrown@moorepackaging.com,2025-05-22,mbrown@moorepackaging.com,2025-05-22 09:57:05.250,2025-05-22 10:00:59.939,Units and Stock,fail,between label racks and unitizer is over jammed with WASTE,bailer not keeping up with WASTE volumes causing space concerns in whse,bail more waste or ship waste out loose,Completed,False,0
+2025-05-29::mbrown@moorepackaging.com,2025-05-29,mbrown@moorepackaging.com,2025-05-29 07:49:29.783,2025-05-29 07:55:52.919,Electrical Equipment,pass,,,,,False,0
+2025-05-29::mbrown@moorepackaging.com,2025-05-29,mbrown@moorepackaging.com,2025-05-29 07:49:29.783,2025-05-29 07:55:52.919,Emergency Equipment,fail,warehouse,"ex lighting on doors, batteries dead, need replaced. work order issued",,,True,0
+2025-05-29::mbrown@moorepackaging.com,2025-05-29,mbrown@moorepackaging.com,2025-05-29 07:49:29.783,2025-05-29 07:55:52.919,Employee PPE,pass,,,,,False,0
+2025-05-29::mbrown@moorepackaging.com,2025-05-29,mbrown@moorepackaging.com,2025-05-29 07:49:29.783,2025-05-29 07:55:52.919,Forklift Inspection Records,pass,,,,,False,0
+2025-05-29::mbrown@moorepackaging.com,2025-05-29,mbrown@moorepackaging.com,2025-05-29 07:49:29.783,2025-05-29 07:55:52.919,Forklift Operation,pass,,,,,False,0
+2025-05-29::mbrown@moorepackaging.com,2025-05-29,mbrown@moorepackaging.com,2025-05-29 07:49:29.783,2025-05-29 07:55:52.919,General Housekeeping,fail,wall area in shipping,excessive amount of waste units,Atlantic quad to remove,Completed,False,1
+2025-05-29::mbrown@moorepackaging.com,2025-05-29,mbrown@moorepackaging.com,2025-05-29 07:49:29.783,2025-05-29 07:55:52.919,Loading Bars,pass,,,,,False,0
+2025-05-29::mbrown@moorepackaging.com,2025-05-29,mbrown@moorepackaging.com,2025-05-29 07:49:29.783,2025-05-29 07:55:52.919,MSD Hazards,pass,,,,,False,0
+2025-05-29::mbrown@moorepackaging.com,2025-05-29,mbrown@moorepackaging.com,2025-05-29 07:49:29.783,2025-05-29 07:55:52.919,Trailers,pass,,,,,True,0
+2025-05-29::mbrown@moorepackaging.com,2025-05-29,mbrown@moorepackaging.com,2025-05-29 07:49:29.783,2025-05-29 07:55:52.919,Units and Stock,pass,,,,,False,0
+2025-06-03::mbrown@moorepackaging.com,2025-06-03,mbrown@moorepackaging.com,2025-06-03 06:10:06.224,2025-06-03 06:15:22.610,Electrical Equipment,pass,,,,,False,0
+2025-06-03::mbrown@moorepackaging.com,2025-06-03,mbrown@moorepackaging.com,2025-06-03 06:10:06.224,2025-06-03 06:15:22.610,Emergency Equipment,pending,,,,,False,0
+2025-06-03::mbrown@moorepackaging.com,2025-06-03,mbrown@moorepackaging.com,2025-06-03 06:10:06.224,2025-06-03 06:15:22.610,Employee PPE,pass,,,,,False,0
+2025-06-03::mbrown@moorepackaging.com,2025-06-03,mbrown@moorepackaging.com,2025-06-03 06:10:06.224,2025-06-03 06:15:22.610,Forklift Inspection Records,pass,,,,,False,0
+2025-06-03::mbrown@moorepackaging.com,2025-06-03,mbrown@moorepackaging.com,2025-06-03 06:10:06.224,2025-06-03 06:15:22.610,Forklift Operation,pass,,,,,False,0
+2025-06-03::mbrown@moorepackaging.com,2025-06-03,mbrown@moorepackaging.com,2025-06-03 06:10:06.224,2025-06-03 06:15:22.610,General Housekeeping,pass,,,,,False,0
+2025-06-03::mbrown@moorepackaging.com,2025-06-03,mbrown@moorepackaging.com,2025-06-03 06:10:06.224,2025-06-03 06:15:22.610,Loading Bars,pass,,,,,False,0
+2025-06-03::mbrown@moorepackaging.com,2025-06-03,mbrown@moorepackaging.com,2025-06-03 06:10:06.224,2025-06-03 06:15:22.610,MSD Hazards,pass,,,,,False,0
+2025-06-03::mbrown@moorepackaging.com,2025-06-03,mbrown@moorepackaging.com,2025-06-03 06:10:06.224,2025-06-03 06:15:22.610,Trailers,pass,,,,,False,0
+2025-06-03::mbrown@moorepackaging.com,2025-06-03,mbrown@moorepackaging.com,2025-06-03 06:10:06.224,2025-06-03 06:15:22.610,Units and Stock,fail,scrap from production,"the scrap is being stored in the warehouse in a safe manner, however the volume of scrap being stored in the warehouse is taking up too much floor space and creating into drive isles",bruce is coordinating relief,Completed,True,0
+2025-06-13::mbrown@moorepackaging.com,2025-06-13,mbrown@moorepackaging.com,2025-06-13 10:31:25.675,2025-06-13 10:35:45.470,Electrical Equipment,pass,,,,,False,0
+2025-06-13::mbrown@moorepackaging.com,2025-06-13,mbrown@moorepackaging.com,2025-06-13 10:31:25.675,2025-06-13 10:35:45.470,Emergency Equipment,fail,warehouse,ex lighting over exit signs on man door P & M not lit. need battery replaced,replace battery,Completed,False,0
+2025-06-13::mbrown@moorepackaging.com,2025-06-13,mbrown@moorepackaging.com,2025-06-13 10:31:25.675,2025-06-13 10:35:45.470,Employee PPE,pass,,,,,False,0
+2025-06-13::mbrown@moorepackaging.com,2025-06-13,mbrown@moorepackaging.com,2025-06-13 10:31:25.675,2025-06-13 10:35:45.470,Forklift Inspection Records,pass,,,,,False,0
+2025-06-13::mbrown@moorepackaging.com,2025-06-13,mbrown@moorepackaging.com,2025-06-13 10:31:25.675,2025-06-13 10:35:45.470,Forklift Operation,pass,,,,,False,0
+2025-06-13::mbrown@moorepackaging.com,2025-06-13,mbrown@moorepackaging.com,2025-06-13 10:31:25.675,2025-06-13 10:35:45.470,General Housekeeping,pass,,,,,False,1
+2025-06-13::mbrown@moorepackaging.com,2025-06-13,mbrown@moorepackaging.com,2025-06-13 10:31:25.675,2025-06-13 10:35:45.470,Loading Bars,pass,,,,,False,0
+2025-06-13::mbrown@moorepackaging.com,2025-06-13,mbrown@moorepackaging.com,2025-06-13 10:31:25.675,2025-06-13 10:35:45.470,MSD Hazards,pass,,,,,False,0
+2025-06-13::mbrown@moorepackaging.com,2025-06-13,mbrown@moorepackaging.com,2025-06-13 10:31:25.675,2025-06-13 10:35:45.470,Trailers,pass,,,,,False,0
+2025-06-13::mbrown@moorepackaging.com,2025-06-13,mbrown@moorepackaging.com,2025-06-13 10:31:25.675,2025-06-13 10:35:45.470,Units and Stock,pass,,,,,False,0
+2025-06-18::mbrown@moorepackaging.com,2025-06-18,mbrown@moorepackaging.com,2025-06-18 06:34:24.710,2025-06-18 06:37:10.123,Electrical Equipment,pass,,,,,False,0
+2025-06-18::mbrown@moorepackaging.com,2025-06-18,mbrown@moorepackaging.com,2025-06-18 06:34:24.710,2025-06-18 06:37:10.123,Emergency Equipment,pass,,,,,False,0
+2025-06-18::mbrown@moorepackaging.com,2025-06-18,mbrown@moorepackaging.com,2025-06-18 06:34:24.710,2025-06-18 06:37:10.123,Employee PPE,pass,,,,,False,0
+2025-06-18::mbrown@moorepackaging.com,2025-06-18,mbrown@moorepackaging.com,2025-06-18 06:34:24.710,2025-06-18 06:37:10.123,Forklift Inspection Records,pass,,,,,False,0
+2025-06-18::mbrown@moorepackaging.com,2025-06-18,mbrown@moorepackaging.com,2025-06-18 06:34:24.710,2025-06-18 06:37:10.123,Forklift Operation,pass,,,,,False,0
+2025-06-18::mbrown@moorepackaging.com,2025-06-18,mbrown@moorepackaging.com,2025-06-18 06:34:24.710,2025-06-18 06:37:10.123,General Housekeeping,pass,,,,,False,1
+2025-06-18::mbrown@moorepackaging.com,2025-06-18,mbrown@moorepackaging.com,2025-06-18 06:34:24.710,2025-06-18 06:37:10.123,Loading Bars,pass,,,,,False,0
+2025-06-18::mbrown@moorepackaging.com,2025-06-18,mbrown@moorepackaging.com,2025-06-18 06:34:24.710,2025-06-18 06:37:10.123,MSD Hazards,pass,,,,,False,0
+2025-06-18::mbrown@moorepackaging.com,2025-06-18,mbrown@moorepackaging.com,2025-06-18 06:34:24.710,2025-06-18 06:37:10.123,Trailers,pass,,,,,False,0
+2025-06-18::mbrown@moorepackaging.com,2025-06-18,mbrown@moorepackaging.com,2025-06-18 06:34:24.710,2025-06-18 06:37:10.123,Units and Stock,fail,warehouse between labels and unitizer,scrap from production storage,bruce working on disposition,Assign to:,False,0
+2025-06-24::mbrown@moorepackaging.com,2025-06-24,mbrown@moorepackaging.com,2025-06-24 07:11:48.514,2025-06-24 07:17:10.422,Electrical Equipment,pass,,,,,False,0
+2025-06-24::mbrown@moorepackaging.com,2025-06-24,mbrown@moorepackaging.com,2025-06-24 07:11:48.514,2025-06-24 07:17:10.422,Emergency Equipment,fail,warehouse,"emergency lights above man door exit light not working, need battery replaced",replace batteries - work order issued,,False,0
+2025-06-24::mbrown@moorepackaging.com,2025-06-24,mbrown@moorepackaging.com,2025-06-24 07:11:48.514,2025-06-24 07:17:10.422,Employee PPE,pass,,,,,False,0
+2025-06-24::mbrown@moorepackaging.com,2025-06-24,mbrown@moorepackaging.com,2025-06-24 07:11:48.514,2025-06-24 07:17:10.422,Forklift Inspection Records,pass,,,,,False,0
+2025-06-24::mbrown@moorepackaging.com,2025-06-24,mbrown@moorepackaging.com,2025-06-24 07:11:48.514,2025-06-24 07:17:10.422,Forklift Operation,pass,,,,,False,0
+2025-06-24::mbrown@moorepackaging.com,2025-06-24,mbrown@moorepackaging.com,2025-06-24 07:11:48.514,2025-06-24 07:17:10.422,General Housekeeping,pass,,,,,False,1
+2025-06-24::mbrown@moorepackaging.com,2025-06-24,mbrown@moorepackaging.com,2025-06-24 07:11:48.514,2025-06-24 07:17:10.422,Loading Bars,pass,,,,,False,0
+2025-06-24::mbrown@moorepackaging.com,2025-06-24,mbrown@moorepackaging.com,2025-06-24 07:11:48.514,2025-06-24 07:17:10.422,MSD Hazards,pass,,,,,False,0
+2025-06-24::mbrown@moorepackaging.com,2025-06-24,mbrown@moorepackaging.com,2025-06-24 07:11:48.514,2025-06-24 07:17:10.422,Trailers,pass,,,,,False,0
+2025-06-24::mbrown@moorepackaging.com,2025-06-24,mbrown@moorepackaging.com,2025-06-24 07:11:48.514,2025-06-24 07:17:10.422,Units and Stock,pass,,,,,False,0
+2025-07-01::mbrown@moorepackaging.com,2025-07-01,mbrown@moorepackaging.com,2025-07-01 09:49:56.360,2025-07-01 10:21:34.709,Electrical Equipment,pass,,,,,True,0
+2025-07-01::mbrown@moorepackaging.com,2025-07-01,mbrown@moorepackaging.com,2025-07-01 09:49:56.360,2025-07-01 10:21:34.709,Emergency Equipment,pass,,,,,True,0
+2025-07-01::mbrown@moorepackaging.com,2025-07-01,mbrown@moorepackaging.com,2025-07-01 09:49:56.360,2025-07-01 10:21:34.709,Employee PPE,pass,,,,,True,0
+2025-07-01::mbrown@moorepackaging.com,2025-07-01,mbrown@moorepackaging.com,2025-07-01 09:49:56.360,2025-07-01 10:21:34.709,Forklift Inspection Records,pass,,,,,True,0
+2025-07-01::mbrown@moorepackaging.com,2025-07-01,mbrown@moorepackaging.com,2025-07-01 09:49:56.360,2025-07-01 10:21:34.709,Forklift Operation,pass,,,,,True,0
+2025-07-01::mbrown@moorepackaging.com,2025-07-01,mbrown@moorepackaging.com,2025-07-01 09:49:56.360,2025-07-01 10:21:34.709,General Housekeeping,pass,,,,,True,0
+2025-07-01::mbrown@moorepackaging.com,2025-07-01,mbrown@moorepackaging.com,2025-07-01 09:49:56.360,2025-07-01 10:21:34.709,Loading Bars,pass,,,,,True,0
+2025-07-01::mbrown@moorepackaging.com,2025-07-01,mbrown@moorepackaging.com,2025-07-01 09:49:56.360,2025-07-01 10:21:34.709,MSD Hazards,pass,,,,,True,0
+2025-07-01::mbrown@moorepackaging.com,2025-07-01,mbrown@moorepackaging.com,2025-07-01 09:49:56.360,2025-07-01 10:21:34.709,Trailers,pass,,,,,True,0
+2025-07-01::mbrown@moorepackaging.com,2025-07-01,mbrown@moorepackaging.com,2025-07-01 09:49:56.360,2025-07-01 10:21:34.709,Units and Stock,pass,,,,,True,0
+2025-07-07::mbrown@moorepackaging.com,2025-07-07,mbrown@moorepackaging.com,2025-07-07 10:12:27.255,2025-07-07 10:15:39.823,Electrical Equipment,pass,,,,,True,0
+2025-07-07::mbrown@moorepackaging.com,2025-07-07,mbrown@moorepackaging.com,2025-07-07 10:12:27.255,2025-07-07 10:15:39.823,Emergency Equipment,fail,warehouse,ex light on door M & P not working. need battery replaced,"replace battery
+repeat.  this one closed, other is left open",Completed,True,0
+2025-07-07::mbrown@moorepackaging.com,2025-07-07,mbrown@moorepackaging.com,2025-07-07 10:12:27.255,2025-07-07 10:15:39.823,Employee PPE,pass,,,,,True,0
+2025-07-07::mbrown@moorepackaging.com,2025-07-07,mbrown@moorepackaging.com,2025-07-07 10:12:27.255,2025-07-07 10:15:39.823,Forklift Inspection Records,pass,,,,,True,0
+2025-07-07::mbrown@moorepackaging.com,2025-07-07,mbrown@moorepackaging.com,2025-07-07 10:12:27.255,2025-07-07 10:15:39.823,Forklift Operation,pass,,,,,True,0
+2025-07-07::mbrown@moorepackaging.com,2025-07-07,mbrown@moorepackaging.com,2025-07-07 10:12:27.255,2025-07-07 10:15:39.823,General Housekeeping,pass,,,,,True,0
+2025-07-07::mbrown@moorepackaging.com,2025-07-07,mbrown@moorepackaging.com,2025-07-07 10:12:27.255,2025-07-07 10:15:39.823,Loading Bars,pass,,,,,True,0
+2025-07-07::mbrown@moorepackaging.com,2025-07-07,mbrown@moorepackaging.com,2025-07-07 10:12:27.255,2025-07-07 10:15:39.823,Trailers,pass,,,,,True,0
+2025-07-07::mbrown@moorepackaging.com,2025-07-07,mbrown@moorepackaging.com,2025-07-07 10:12:27.255,2025-07-07 10:15:39.823,Units and Stock,pass,,,,,True,0
+2025-07-14::mbrown@moorepackaging.com,2025-07-14,mbrown@moorepackaging.com,2025-07-14 05:20:38.746,2025-07-14 05:22:41.398,Electrical Equipment,pass,,,,,False,0
+2025-07-14::mbrown@moorepackaging.com,2025-07-14,mbrown@moorepackaging.com,2025-07-14 05:20:38.746,2025-07-14 05:22:41.398,Emergency Equipment,pass,,,,,False,0
+2025-07-14::mbrown@moorepackaging.com,2025-07-14,mbrown@moorepackaging.com,2025-07-14 05:20:38.746,2025-07-14 05:22:41.398,Employee PPE,pass,,,,,False,0
+2025-07-14::mbrown@moorepackaging.com,2025-07-14,mbrown@moorepackaging.com,2025-07-14 05:20:38.746,2025-07-14 05:22:41.398,Forklift Inspection Records,pass,,,,,False,0
+2025-07-14::mbrown@moorepackaging.com,2025-07-14,mbrown@moorepackaging.com,2025-07-14 05:20:38.746,2025-07-14 05:22:41.398,Forklift Operation,pass,,,,,False,0
+2025-07-14::mbrown@moorepackaging.com,2025-07-14,mbrown@moorepackaging.com,2025-07-14 05:20:38.746,2025-07-14 05:22:41.398,General Housekeeping,pass,,,,,False,0
+2025-07-14::mbrown@moorepackaging.com,2025-07-14,mbrown@moorepackaging.com,2025-07-14 05:20:38.746,2025-07-14 05:22:41.398,MSD Hazards,pass,,,,,False,0
+2025-07-14::mbrown@moorepackaging.com,2025-07-14,mbrown@moorepackaging.com,2025-07-14 05:20:38.746,2025-07-14 05:22:41.398,Units and Stock,pass,,,,,False,0
+2025-07-21::mbrown@moorepackaging.com,2025-07-21,mbrown@moorepackaging.com,2025-07-21 07:28:56.589,2025-07-21 07:31:49.504,Electrical Equipment,pass,,,,,False,0
+2025-07-21::mbrown@moorepackaging.com,2025-07-21,mbrown@moorepackaging.com,2025-07-21 07:28:56.589,2025-07-21 07:31:49.504,Emergency Equipment,fail,warehouse,ex lights over door M & P not lighting up,"replace battery
+repeat.  this one closed, other is left open",Completed,False,0
+2025-07-21::mbrown@moorepackaging.com,2025-07-21,mbrown@moorepackaging.com,2025-07-21 07:28:56.589,2025-07-21 07:31:49.504,Employee PPE,pass,,,,,False,0
+2025-07-21::mbrown@moorepackaging.com,2025-07-21,mbrown@moorepackaging.com,2025-07-21 07:28:56.589,2025-07-21 07:31:49.504,Forklift Inspection Records,pass,,,,,False,0
+2025-07-21::mbrown@moorepackaging.com,2025-07-21,mbrown@moorepackaging.com,2025-07-21 07:28:56.589,2025-07-21 07:31:49.504,Forklift Operation,pass,,,,,False,0
+2025-07-21::mbrown@moorepackaging.com,2025-07-21,mbrown@moorepackaging.com,2025-07-21 07:28:56.589,2025-07-21 07:31:49.504,General Housekeeping,fail,warehouse,excessive jit stock,,,False,0
+2025-07-21::mbrown@moorepackaging.com,2025-07-21,mbrown@moorepackaging.com,2025-07-21 07:28:56.589,2025-07-21 07:31:49.504,Loading Bars,pass,,,,,False,0
+2025-07-21::mbrown@moorepackaging.com,2025-07-21,mbrown@moorepackaging.com,2025-07-21 07:28:56.589,2025-07-21 07:31:49.504,MSD Hazards,pass,,,,,False,0
+2025-07-21::mbrown@moorepackaging.com,2025-07-21,mbrown@moorepackaging.com,2025-07-21 07:28:56.589,2025-07-21 07:31:49.504,Trailers,pass,,,,,False,0
+2025-07-21::mbrown@moorepackaging.com,2025-07-21,mbrown@moorepackaging.com,2025-07-21 07:28:56.589,2025-07-21 07:31:49.504,Units and Stock,pass,,,,,False,0
+2025-07-30::mbrown@moorepackaging.com,2025-07-30,mbrown@moorepackaging.com,2025-07-30 05:15:01.384,2025-07-30 05:23:02.259,Electrical Equipment,pass,,,,,False,0
+2025-07-30::mbrown@moorepackaging.com,2025-07-30,mbrown@moorepackaging.com,2025-07-30 05:15:01.384,2025-07-30 05:23:02.259,Emergency Equipment,fail,some emergency exit lights,some lights require replacement of batteries,"inspect and replace batteries as needed, work order previously submitted by WW",Assign to: maintenance,False,0
+2025-07-30::mbrown@moorepackaging.com,2025-07-30,mbrown@moorepackaging.com,2025-07-30 05:15:01.384,2025-07-30 05:23:02.259,Employee PPE,pass,,,,,False,0
+2025-07-30::mbrown@moorepackaging.com,2025-07-30,mbrown@moorepackaging.com,2025-07-30 05:15:01.384,2025-07-30 05:23:02.259,Forklift Inspection Records,pass,,,,,False,0
+2025-07-30::mbrown@moorepackaging.com,2025-07-30,mbrown@moorepackaging.com,2025-07-30 05:15:01.384,2025-07-30 05:23:02.259,Forklift Operation,pass,,,,,False,0
+2025-07-30::mbrown@moorepackaging.com,2025-07-30,mbrown@moorepackaging.com,2025-07-30 05:15:01.384,2025-07-30 05:23:02.259,General Housekeeping,pass,,,,,False,0
+2025-07-30::mbrown@moorepackaging.com,2025-07-30,mbrown@moorepackaging.com,2025-07-30 05:15:01.384,2025-07-30 05:23:02.259,Loading Bars,pass,,,,,False,0
+2025-07-30::mbrown@moorepackaging.com,2025-07-30,mbrown@moorepackaging.com,2025-07-30 05:15:01.384,2025-07-30 05:23:02.259,MSD Hazards,fail,by wrapper,"two drums of old glue with no lid and insecure lid, maintenance and production aware",maint or production to put in proper disposal containers on a pallet,Assign to: maint,False,0
+2025-07-30::mbrown@moorepackaging.com,2025-07-30,mbrown@moorepackaging.com,2025-07-30 05:15:01.384,2025-07-30 05:23:02.259,Trailers,pass,,,,,False,0
+2025-07-30::mbrown@moorepackaging.com,2025-07-30,mbrown@moorepackaging.com,2025-07-30 05:15:01.384,2025-07-30 05:23:02.259,Units and Stock,pass,,,,,False,0
+2025-08-26::kryan@moorepackaging.com,2025-08-26,kryan@moorepackaging.com,2025-08-26 14:12:28.857,2025-08-26 14:13:08.917,Electrical Equipment,pass,,,,,False,0
+2025-08-26::kryan@moorepackaging.com,2025-08-26,kryan@moorepackaging.com,2025-08-26 14:12:28.857,2025-08-26 14:13:08.917,Emergency Equipment,pass,,,,,False,0
+2025-08-26::kryan@moorepackaging.com,2025-08-26,kryan@moorepackaging.com,2025-08-26 14:12:28.857,2025-08-26 14:13:08.917,Employee PPE,pass,,,,,False,0
+2025-08-26::kryan@moorepackaging.com,2025-08-26,kryan@moorepackaging.com,2025-08-26 14:12:28.857,2025-08-26 14:13:08.917,Forklift Inspection Records,pass,,,,,False,0
+2025-08-26::kryan@moorepackaging.com,2025-08-26,kryan@moorepackaging.com,2025-08-26 14:12:28.857,2025-08-26 14:13:08.917,Forklift Operation,pass,,,,,False,0
+2025-08-26::kryan@moorepackaging.com,2025-08-26,kryan@moorepackaging.com,2025-08-26 14:12:28.857,2025-08-26 14:13:08.917,General Housekeeping,pass,,,,,False,0
+2025-08-26::kryan@moorepackaging.com,2025-08-26,kryan@moorepackaging.com,2025-08-26 14:12:28.857,2025-08-26 14:13:08.917,Loading Bars,pass,,,,,False,0
+2025-08-26::kryan@moorepackaging.com,2025-08-26,kryan@moorepackaging.com,2025-08-26 14:12:28.857,2025-08-26 14:13:08.917,MSD Hazards,pass,,,,,False,0
+2025-08-26::kryan@moorepackaging.com,2025-08-26,kryan@moorepackaging.com,2025-08-26 14:12:28.857,2025-08-26 14:13:08.917,Trailers,pass,,,,,False,0
+2025-08-26::kryan@moorepackaging.com,2025-08-26,kryan@moorepackaging.com,2025-08-26 14:12:28.857,2025-08-26 14:13:08.917,Units and Stock,pass,,,,,False,0
+2025-08-28::mbrown@moorepackaging.com,2025-08-28,mbrown@moorepackaging.com,2025-08-28 06:03:09.699,2025-08-28 06:04:33.412,Electrical Equipment,pass,,,,,False,0
+2025-08-28::mbrown@moorepackaging.com,2025-08-28,mbrown@moorepackaging.com,2025-08-28 06:03:09.699,2025-08-28 06:04:33.412,Emergency Equipment,pass,,,,,False,0
+2025-08-28::mbrown@moorepackaging.com,2025-08-28,mbrown@moorepackaging.com,2025-08-28 06:03:09.699,2025-08-28 06:04:33.412,Employee PPE,pass,,,,,False,0
+2025-08-28::mbrown@moorepackaging.com,2025-08-28,mbrown@moorepackaging.com,2025-08-28 06:03:09.699,2025-08-28 06:04:33.412,Forklift Inspection Records,pass,,,,,False,0
+2025-08-28::mbrown@moorepackaging.com,2025-08-28,mbrown@moorepackaging.com,2025-08-28 06:03:09.699,2025-08-28 06:04:33.412,Forklift Operation,pass,,,,,False,0
+2025-08-28::mbrown@moorepackaging.com,2025-08-28,mbrown@moorepackaging.com,2025-08-28 06:03:09.699,2025-08-28 06:04:33.412,General Housekeeping,pass,,,,,False,1
+2025-08-28::mbrown@moorepackaging.com,2025-08-28,mbrown@moorepackaging.com,2025-08-28 06:03:09.699,2025-08-28 06:04:33.412,Loading Bars,pass,,,,,False,0
+2025-08-28::mbrown@moorepackaging.com,2025-08-28,mbrown@moorepackaging.com,2025-08-28 06:03:09.699,2025-08-28 06:04:33.412,MSD Hazards,pass,,,,,False,0
+2025-08-28::mbrown@moorepackaging.com,2025-08-28,mbrown@moorepackaging.com,2025-08-28 06:03:09.699,2025-08-28 06:04:33.412,Trailers,pass,,,,,False,0
+2025-08-28::mbrown@moorepackaging.com,2025-08-28,mbrown@moorepackaging.com,2025-08-28 06:03:09.699,2025-08-28 06:04:33.412,Units and Stock,pass,,,,,False,0
+2025-09-02::mbrown@moorepackaging.com,2025-09-02,mbrown@moorepackaging.com,2025-09-02 08:02:53.445,2025-09-02 08:06:06.380,Electrical Equipment,pass,,,,,False,0
+2025-09-02::mbrown@moorepackaging.com,2025-09-02,mbrown@moorepackaging.com,2025-09-02 08:02:53.445,2025-09-02 08:06:06.380,Emergency Equipment,fail,warehouse,emergency lighting over door M&P not working,replace light box battery work order 8811 issued,,False,0
+2025-09-02::mbrown@moorepackaging.com,2025-09-02,mbrown@moorepackaging.com,2025-09-02 08:02:53.445,2025-09-02 08:06:06.380,Employee PPE,pass,,,,,False,0
+2025-09-02::mbrown@moorepackaging.com,2025-09-02,mbrown@moorepackaging.com,2025-09-02 08:02:53.445,2025-09-02 08:06:06.380,Forklift Inspection Records,pass,,,,,False,0
+2025-09-02::mbrown@moorepackaging.com,2025-09-02,mbrown@moorepackaging.com,2025-09-02 08:02:53.445,2025-09-02 08:06:06.380,Forklift Operation,pass,,,,,False,0
+2025-09-02::mbrown@moorepackaging.com,2025-09-02,mbrown@moorepackaging.com,2025-09-02 08:02:53.445,2025-09-02 08:06:06.380,General Housekeeping,pass,,,,,False,0
+2025-09-02::mbrown@moorepackaging.com,2025-09-02,mbrown@moorepackaging.com,2025-09-02 08:02:53.445,2025-09-02 08:06:06.380,Loading Bars,pass,,,,,False,0
+2025-09-02::mbrown@moorepackaging.com,2025-09-02,mbrown@moorepackaging.com,2025-09-02 08:02:53.445,2025-09-02 08:06:06.380,MSD Hazards,pass,,,,,False,0
+2025-09-02::mbrown@moorepackaging.com,2025-09-02,mbrown@moorepackaging.com,2025-09-02 08:02:53.445,2025-09-02 08:06:06.380,Trailers,pass,,,,,False,0
+2025-09-02::mbrown@moorepackaging.com,2025-09-02,mbrown@moorepackaging.com,2025-09-02 08:02:53.445,2025-09-02 08:06:06.380,Units and Stock,pass,,,,,False,0
+2025-09-10::mbrown@moorepackaging.com,2025-09-10,mbrown@moorepackaging.com,2025-09-10 07:21:58.871,2025-09-10 07:23:41.450,Electrical Equipment,pass,,,,,False,0
+2025-09-10::mbrown@moorepackaging.com,2025-09-10,mbrown@moorepackaging.com,2025-09-10 07:21:58.871,2025-09-10 07:23:41.450,Emergency Equipment,pass,,,,,False,0
+2025-09-10::mbrown@moorepackaging.com,2025-09-10,mbrown@moorepackaging.com,2025-09-10 07:21:58.871,2025-09-10 07:23:41.450,Employee PPE,pass,,,,,False,0
+2025-09-10::mbrown@moorepackaging.com,2025-09-10,mbrown@moorepackaging.com,2025-09-10 07:21:58.871,2025-09-10 07:23:41.450,Forklift Inspection Records,pass,,,,,False,0
+2025-09-10::mbrown@moorepackaging.com,2025-09-10,mbrown@moorepackaging.com,2025-09-10 07:21:58.871,2025-09-10 07:23:41.450,Forklift Operation,pass,,,,,False,0
+2025-09-10::mbrown@moorepackaging.com,2025-09-10,mbrown@moorepackaging.com,2025-09-10 07:21:58.871,2025-09-10 07:23:41.450,General Housekeeping,pass,,,,,False,0
+2025-09-10::mbrown@moorepackaging.com,2025-09-10,mbrown@moorepackaging.com,2025-09-10 07:21:58.871,2025-09-10 07:23:41.450,Loading Bars,pass,,,,,False,0
+2025-09-10::mbrown@moorepackaging.com,2025-09-10,mbrown@moorepackaging.com,2025-09-10 07:21:58.871,2025-09-10 07:23:41.450,MSD Hazards,pass,,,,,False,0
+2025-09-10::mbrown@moorepackaging.com,2025-09-10,mbrown@moorepackaging.com,2025-09-10 07:21:58.871,2025-09-10 07:23:41.450,Trailers,pass,,,,,False,0
+2025-09-10::mbrown@moorepackaging.com,2025-09-10,mbrown@moorepackaging.com,2025-09-10 07:21:58.871,2025-09-10 07:23:41.450,Units and Stock,pass,,,,,False,0
+2025-09-22::mbrown@moorepackaging.com,2025-09-22,mbrown@moorepackaging.com,2025-09-22 09:37:05.433,2025-09-22 09:38:13.922,Electrical Equipment,pass,,,,,False,0
+2025-09-22::mbrown@moorepackaging.com,2025-09-22,mbrown@moorepackaging.com,2025-09-22 09:37:05.433,2025-09-22 09:38:13.922,Emergency Equipment,pass,,,,,False,0
+2025-09-22::mbrown@moorepackaging.com,2025-09-22,mbrown@moorepackaging.com,2025-09-22 09:37:05.433,2025-09-22 09:38:13.922,Employee PPE,pass,,,,,False,0
+2025-09-22::mbrown@moorepackaging.com,2025-09-22,mbrown@moorepackaging.com,2025-09-22 09:37:05.433,2025-09-22 09:38:13.922,Forklift Inspection Records,pass,,,,,False,0
+2025-09-22::mbrown@moorepackaging.com,2025-09-22,mbrown@moorepackaging.com,2025-09-22 09:37:05.433,2025-09-22 09:38:13.922,Forklift Operation,pass,,,,,False,0
+2025-09-22::mbrown@moorepackaging.com,2025-09-22,mbrown@moorepackaging.com,2025-09-22 09:37:05.433,2025-09-22 09:38:13.922,General Housekeeping,pass,,,,,False,1
+2025-09-22::mbrown@moorepackaging.com,2025-09-22,mbrown@moorepackaging.com,2025-09-22 09:37:05.433,2025-09-22 09:38:13.922,Loading Bars,pass,,,,,False,0
+2025-09-22::mbrown@moorepackaging.com,2025-09-22,mbrown@moorepackaging.com,2025-09-22 09:37:05.433,2025-09-22 09:38:13.922,MSD Hazards,pass,,,,,False,0
+2025-09-22::mbrown@moorepackaging.com,2025-09-22,mbrown@moorepackaging.com,2025-09-22 09:37:05.433,2025-09-22 09:38:13.922,Trailers,pass,,,,,False,0
+2025-09-22::mbrown@moorepackaging.com,2025-09-22,mbrown@moorepackaging.com,2025-09-22 09:37:05.433,2025-09-22 09:38:13.922,Units and Stock,pass,,,,,False,0
+2025-10-07::mbrown@moorepackaging.com,2025-10-07,mbrown@moorepackaging.com,2025-10-07 06:47:18.277,2025-10-07 06:47:35.264,Electrical Equipment,fail,"lights above unitizer and above door 7, work orders 8947 and 8948 submitted","lights above unitizer and above door 7, work orders 8947 and 8948 submitted",please execute work orders,Assign to:,False,1
+2025-10-07::mbrown@moorepackaging.com,2025-10-07,mbrown@moorepackaging.com,2025-10-07 06:47:18.277,2025-10-07 06:47:35.264,MSD Hazards,pass,,,,,False,0
+2025-10-15::mbrown@moorepackaging.com,2025-10-15,mbrown@moorepackaging.com,2025-10-15 07:44:16.089,2025-10-15 07:46:02.210,Electrical Equipment,pass,,,,,False,0
+2025-10-15::mbrown@moorepackaging.com,2025-10-15,mbrown@moorepackaging.com,2025-10-15 07:44:16.089,2025-10-15 07:46:02.210,Emergency Equipment,pass,,,,,False,0
+2025-10-15::mbrown@moorepackaging.com,2025-10-15,mbrown@moorepackaging.com,2025-10-15 07:44:16.089,2025-10-15 07:46:02.210,Employee PPE,pass,,,,,False,0
+2025-10-15::mbrown@moorepackaging.com,2025-10-15,mbrown@moorepackaging.com,2025-10-15 07:44:16.089,2025-10-15 07:46:02.210,Forklift Inspection Records,pass,,,,,False,0
+2025-10-15::mbrown@moorepackaging.com,2025-10-15,mbrown@moorepackaging.com,2025-10-15 07:44:16.089,2025-10-15 07:46:02.210,Forklift Operation,pass,,,,,False,0
+2025-10-15::mbrown@moorepackaging.com,2025-10-15,mbrown@moorepackaging.com,2025-10-15 07:44:16.089,2025-10-15 07:46:02.210,General Housekeeping,pass,,,,,False,0
+2025-10-15::mbrown@moorepackaging.com,2025-10-15,mbrown@moorepackaging.com,2025-10-15 07:44:16.089,2025-10-15 07:46:02.210,Loading Bars,pass,,,,,False,0
+2025-10-15::mbrown@moorepackaging.com,2025-10-15,mbrown@moorepackaging.com,2025-10-15 07:44:16.089,2025-10-15 07:46:02.210,MSD Hazards,pass,,,,,False,0
+2025-10-15::mbrown@moorepackaging.com,2025-10-15,mbrown@moorepackaging.com,2025-10-15 07:44:16.089,2025-10-15 07:46:02.210,Trailers,pass,,,,,False,0
+2025-10-15::mbrown@moorepackaging.com,2025-10-15,mbrown@moorepackaging.com,2025-10-15 07:44:16.089,2025-10-15 07:46:02.210,Units and Stock,pass,,,,,False,0
+2025-10-21::mbrown@moorepackaging.com,2025-10-21,mbrown@moorepackaging.com,2025-10-21 07:36:50.119,2025-10-21 07:38:44.104,Electrical Equipment,pass,,,,,False,0
+2025-10-21::mbrown@moorepackaging.com,2025-10-21,mbrown@moorepackaging.com,2025-10-21 07:36:50.119,2025-10-21 07:38:44.104,Emergency Equipment,pass,,,,,False,0
+2025-10-21::mbrown@moorepackaging.com,2025-10-21,mbrown@moorepackaging.com,2025-10-21 07:36:50.119,2025-10-21 07:38:44.104,Employee PPE,pass,,,,,False,0
+2025-10-21::mbrown@moorepackaging.com,2025-10-21,mbrown@moorepackaging.com,2025-10-21 07:36:50.119,2025-10-21 07:38:44.104,Forklift Inspection Records,pass,,,,,False,0
+2025-10-21::mbrown@moorepackaging.com,2025-10-21,mbrown@moorepackaging.com,2025-10-21 07:36:50.119,2025-10-21 07:38:44.104,Forklift Operation,pass,,,,,False,0
+2025-10-21::mbrown@moorepackaging.com,2025-10-21,mbrown@moorepackaging.com,2025-10-21 07:36:50.119,2025-10-21 07:38:44.104,General Housekeeping,pass,,,,,False,0
+2025-10-21::mbrown@moorepackaging.com,2025-10-21,mbrown@moorepackaging.com,2025-10-21 07:36:50.119,2025-10-21 07:38:44.104,Loading Bars,pass,,,,,False,0
+2025-10-21::mbrown@moorepackaging.com,2025-10-21,mbrown@moorepackaging.com,2025-10-21 07:36:50.119,2025-10-21 07:38:44.104,MSD Hazards,pass,,,,,False,0
+2025-10-21::mbrown@moorepackaging.com,2025-10-21,mbrown@moorepackaging.com,2025-10-21 07:36:50.119,2025-10-21 07:38:44.104,Trailers,pass,,,,,False,0
+2025-10-21::mbrown@moorepackaging.com,2025-10-21,mbrown@moorepackaging.com,2025-10-21 07:36:50.119,2025-10-21 07:38:44.104,Units and Stock,pass,,,,,False,0
+2025-10-27::mbrown@moorepackaging.com,2025-10-27,mbrown@moorepackaging.com,2025-10-27 08:03:39.997,2025-10-27 08:08:42.326,Electrical Equipment,pass,,,,,False,0
+2025-10-27::mbrown@moorepackaging.com,2025-10-27,mbrown@moorepackaging.com,2025-10-27 08:03:39.997,2025-10-27 08:08:42.326,Emergency Equipment,pass,,,,,True,0
+2025-10-27::mbrown@moorepackaging.com,2025-10-27,mbrown@moorepackaging.com,2025-10-27 08:03:39.997,2025-10-27 08:08:42.326,Employee PPE,pass,,,,,False,0
+2025-10-27::mbrown@moorepackaging.com,2025-10-27,mbrown@moorepackaging.com,2025-10-27 08:03:39.997,2025-10-27 08:08:42.326,Forklift Inspection Records,pass,,,,,False,0
+2025-10-27::mbrown@moorepackaging.com,2025-10-27,mbrown@moorepackaging.com,2025-10-27 08:03:39.997,2025-10-27 08:08:42.326,Forklift Operation,pass,,,,,False,0
+2025-10-27::mbrown@moorepackaging.com,2025-10-27,mbrown@moorepackaging.com,2025-10-27 08:03:39.997,2025-10-27 08:08:42.326,General Housekeeping,pass,,,,,False,0
+2025-10-27::mbrown@moorepackaging.com,2025-10-27,mbrown@moorepackaging.com,2025-10-27 08:03:39.997,2025-10-27 08:08:42.326,Loading Bars,pass,,,,,False,0
+2025-10-27::mbrown@moorepackaging.com,2025-10-27,mbrown@moorepackaging.com,2025-10-27 08:03:39.997,2025-10-27 08:08:42.326,MSD Hazards,pass,,,,,False,0
+2025-10-27::mbrown@moorepackaging.com,2025-10-27,mbrown@moorepackaging.com,2025-10-27 08:03:39.997,2025-10-27 08:08:42.326,Trailers,pass,,,,,False,0
+2025-10-27::mbrown@moorepackaging.com,2025-10-27,mbrown@moorepackaging.com,2025-10-27 08:03:39.997,2025-10-27 08:08:42.326,Units and Stock,pass,,,,,False,0
+2025-11-03::mbrown@moorepackaging.com,2025-11-03,mbrown@moorepackaging.com,2025-11-03 07:02:42.173,2025-11-03 07:06:07.646,Electrical Equipment,pass,,,,,False,0
+2025-11-03::mbrown@moorepackaging.com,2025-11-03,mbrown@moorepackaging.com,2025-11-03 07:02:42.173,2025-11-03 07:06:07.646,Emergency Equipment,pass,,,,,False,0
+2025-11-03::mbrown@moorepackaging.com,2025-11-03,mbrown@moorepackaging.com,2025-11-03 07:02:42.173,2025-11-03 07:06:07.646,Employee PPE,pass,,,,,False,0
+2025-11-03::mbrown@moorepackaging.com,2025-11-03,mbrown@moorepackaging.com,2025-11-03 07:02:42.173,2025-11-03 07:06:07.646,Forklift Inspection Records,pass,,,,,False,0
+2025-11-03::mbrown@moorepackaging.com,2025-11-03,mbrown@moorepackaging.com,2025-11-03 07:02:42.173,2025-11-03 07:06:07.646,Forklift Operation,pass,,,,,False,0
+2025-11-03::mbrown@moorepackaging.com,2025-11-03,mbrown@moorepackaging.com,2025-11-03 07:02:42.173,2025-11-03 07:06:07.646,General Housekeeping,pass,,,,,False,0
+2025-11-03::mbrown@moorepackaging.com,2025-11-03,mbrown@moorepackaging.com,2025-11-03 07:02:42.173,2025-11-03 07:06:07.646,Loading Bars,pass,,,,,False,0
+2025-11-03::mbrown@moorepackaging.com,2025-11-03,mbrown@moorepackaging.com,2025-11-03 07:02:42.173,2025-11-03 07:06:07.646,MSD Hazards,fail,still two drums of old oil from production by the wrapping machine. These need to be properly labeled and disposed of.,still two drums of old oil from production by the wrapping machine. These need to be properly labeled and disposed of.,Mark H aware,Assign to: mark hodgin,False,0
+2025-11-03::mbrown@moorepackaging.com,2025-11-03,mbrown@moorepackaging.com,2025-11-03 07:02:42.173,2025-11-03 07:06:07.646,Trailers,pass,,,,,False,0
+2025-11-03::mbrown@moorepackaging.com,2025-11-03,mbrown@moorepackaging.com,2025-11-03 07:02:42.173,2025-11-03 07:06:07.646,Units and Stock,pass,,,,,False,0
+2025-11-10::mbrown@moorepackaging.com,2025-11-10,mbrown@moorepackaging.com,2025-11-10 08:52:00.892,2025-11-10 09:01:35.505,Electrical Equipment,pass,,,,,False,0
+2025-11-10::mbrown@moorepackaging.com,2025-11-10,mbrown@moorepackaging.com,2025-11-10 08:52:00.892,2025-11-10 09:01:35.505,Emergency Equipment,pass,,,,,True,0
+2025-11-10::mbrown@moorepackaging.com,2025-11-10,mbrown@moorepackaging.com,2025-11-10 08:52:00.892,2025-11-10 09:01:35.505,Employee PPE,pass,,,,,False,0
+2025-11-10::mbrown@moorepackaging.com,2025-11-10,mbrown@moorepackaging.com,2025-11-10 08:52:00.892,2025-11-10 09:01:35.505,Forklift Inspection Records,pass,,,,,False,0
+2025-11-10::mbrown@moorepackaging.com,2025-11-10,mbrown@moorepackaging.com,2025-11-10 08:52:00.892,2025-11-10 09:01:35.505,Forklift Operation,pass,,,,,True,0
+2025-11-10::mbrown@moorepackaging.com,2025-11-10,mbrown@moorepackaging.com,2025-11-10 08:52:00.892,2025-11-10 09:01:35.505,General Housekeeping,pass,,,,,False,0
+2025-11-10::mbrown@moorepackaging.com,2025-11-10,mbrown@moorepackaging.com,2025-11-10 08:52:00.892,2025-11-10 09:01:35.505,Loading Bars,pass,,,,,False,0
+2025-11-10::mbrown@moorepackaging.com,2025-11-10,mbrown@moorepackaging.com,2025-11-10 08:52:00.892,2025-11-10 09:01:35.505,MSD Hazards,pass,,,,,False,0
+2025-11-10::mbrown@moorepackaging.com,2025-11-10,mbrown@moorepackaging.com,2025-11-10 08:52:00.892,2025-11-10 09:01:35.505,Trailers,pass,,,,,False,0
+2025-11-10::mbrown@moorepackaging.com,2025-11-10,mbrown@moorepackaging.com,2025-11-10 08:52:00.892,2025-11-10 09:01:35.505,Units and Stock,pass,,,,,False,0
+2025-11-17::mbrown@moorepackaging.com,2025-11-17,mbrown@moorepackaging.com,2025-11-17 08:15:21.858,2025-11-17 08:19:45.764,Electrical Equipment,fail,door Q exit light no on,door Q exit light not on,maint to repair work order 9158,Assign to: Bruce m,False,0
+2025-11-17::mbrown@moorepackaging.com,2025-11-17,mbrown@moorepackaging.com,2025-11-17 08:15:21.858,2025-11-17 08:19:45.764,Emergency Equipment,fail,door Q,emergency light not working,maint to repair 9158,Assign to: Bruce m,False,0
+2025-11-17::mbrown@moorepackaging.com,2025-11-17,mbrown@moorepackaging.com,2025-11-17 08:15:21.858,2025-11-17 08:19:45.764,Employee PPE,pass,,,,,False,0
+2025-11-17::mbrown@moorepackaging.com,2025-11-17,mbrown@moorepackaging.com,2025-11-17 08:15:21.858,2025-11-17 08:19:45.764,Forklift Inspection Records,pass,,,,,False,0
+2025-11-17::mbrown@moorepackaging.com,2025-11-17,mbrown@moorepackaging.com,2025-11-17 08:15:21.858,2025-11-17 08:19:45.764,Forklift Operation,pass,,,,,False,0
+2025-11-17::mbrown@moorepackaging.com,2025-11-17,mbrown@moorepackaging.com,2025-11-17 08:15:21.858,2025-11-17 08:19:45.764,General Housekeeping,pass,,,,,True,0
+2025-11-17::mbrown@moorepackaging.com,2025-11-17,mbrown@moorepackaging.com,2025-11-17 08:15:21.858,2025-11-17 08:19:45.764,Loading Bars,pass,,,,,False,0
+2025-11-17::mbrown@moorepackaging.com,2025-11-17,mbrown@moorepackaging.com,2025-11-17 08:15:21.858,2025-11-17 08:19:45.764,MSD Hazards,pass,,,,,False,0
+2025-11-17::mbrown@moorepackaging.com,2025-11-17,mbrown@moorepackaging.com,2025-11-17 08:15:21.858,2025-11-17 08:19:45.764,Trailers,pass,,,,,False,0
+2025-11-17::mbrown@moorepackaging.com,2025-11-17,mbrown@moorepackaging.com,2025-11-17 08:15:21.858,2025-11-17 08:19:45.764,Units and Stock,pass,,,,,False,0
+2025-11-24::mbrown@moorepackaging.com,2025-11-24,mbrown@moorepackaging.com,2025-11-24 07:31:30.867,2025-11-24 07:32:56.225,Electrical Equipment,pass,,,,,False,0
+2025-11-24::mbrown@moorepackaging.com,2025-11-24,mbrown@moorepackaging.com,2025-11-24 07:31:30.867,2025-11-24 07:32:56.225,Emergency Equipment,pass,,,,,False,0
+2025-11-24::mbrown@moorepackaging.com,2025-11-24,mbrown@moorepackaging.com,2025-11-24 07:31:30.867,2025-11-24 07:32:56.225,Employee PPE,pass,,,,,False,0
+2025-11-24::mbrown@moorepackaging.com,2025-11-24,mbrown@moorepackaging.com,2025-11-24 07:31:30.867,2025-11-24 07:32:56.225,Forklift Inspection Records,pass,,,,,False,0
+2025-11-24::mbrown@moorepackaging.com,2025-11-24,mbrown@moorepackaging.com,2025-11-24 07:31:30.867,2025-11-24 07:32:56.225,Forklift Operation,pass,,,,,False,0
+2025-11-24::mbrown@moorepackaging.com,2025-11-24,mbrown@moorepackaging.com,2025-11-24 07:31:30.867,2025-11-24 07:32:56.225,General Housekeeping,pass,,,,,False,0
+2025-11-24::mbrown@moorepackaging.com,2025-11-24,mbrown@moorepackaging.com,2025-11-24 07:31:30.867,2025-11-24 07:32:56.225,Loading Bars,pass,,,,,False,0
+2025-11-24::mbrown@moorepackaging.com,2025-11-24,mbrown@moorepackaging.com,2025-11-24 07:31:30.867,2025-11-24 07:32:56.225,MSD Hazards,pass,,,,,False,0
+2025-11-24::mbrown@moorepackaging.com,2025-11-24,mbrown@moorepackaging.com,2025-11-24 07:31:30.867,2025-11-24 07:32:56.225,Trailers,pass,,,,,False,0
+2025-11-24::mbrown@moorepackaging.com,2025-11-24,mbrown@moorepackaging.com,2025-11-24 07:31:30.867,2025-11-24 07:32:56.225,Units and Stock,pass,,,,,False,0

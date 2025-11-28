@@ -43,6 +43,7 @@ def list_inspections(db: Session, user: User) -> list[Inspection]:
             selectinload(Inspection.responses).selectinload(InspectionResponse.media_files),
             selectinload(Inspection.template),
             selectinload(Inspection.created_by),
+            selectinload(Inspection.rejected_by),
         )
         .order_by(Inspection.started_at.desc())
     )
@@ -153,6 +154,7 @@ def get_inspection(db: Session, inspection_id: int, user: User) -> Inspection | 
             selectinload(Inspection.inspector),
             selectinload(Inspection.template),
             selectinload(Inspection.note_entries).selectinload(InspectionNote.author),
+            selectinload(Inspection.rejected_by),
         )
         .filter(Inspection.id == inspection_id)
     )
@@ -209,10 +211,23 @@ def update_inspection(db: Session, inspection: Inspection, payload: InspectionUp
     return inspection
 
 
+def delete_inspection(db: Session, inspection: Inspection) -> None:
+    if inspection.status != InspectionStatus.draft.value:
+        raise ValueError("Only draft inspections can be deleted")
+    db.delete(inspection)
+    db.commit()
+
+
 def submit_inspection(db: Session, inspection: Inspection) -> Inspection:
     _validate_submission_requirements(db, inspection)
     inspection.status = InspectionStatus.submitted.value
     inspection.submitted_at = datetime.utcnow()
+    inspection.rejected_at = None
+    inspection.rejection_reason = None
+    inspection.rejected_by_id = None
+    now = datetime.utcnow()
+    for entry in inspection.rejection_entries:
+        entry.resolved_at = now
     inspection.overall_score = _calculate_overall_score(inspection)
     if inspection.scheduled_inspection_id:
         assignments_service.mark_scheduled_completed(
@@ -228,16 +243,58 @@ def approve_inspection(db: Session, inspection: Inspection) -> Inspection:
         raise ValueError("Inspection must be submitted before approval")
     inspection.status = InspectionStatus.approved.value
     inspection.approved_at = datetime.utcnow()
+    inspection.rejected_at = None
+    inspection.rejection_reason = None
+    inspection.rejected_by_id = None
     db.commit()
     db.refresh(inspection)
     return inspection
 
 
-def reject_inspection(db: Session, inspection: Inspection) -> Inspection:
+def reject_inspection(
+    db: Session,
+    inspection: Inspection,
+    reviewer: User,
+    reason: str,
+    follow_up_instructions: str | None = None,
+    item_ids: list[str] | None = None,
+) -> Inspection:
     if inspection.status != InspectionStatus.submitted.value:
         raise ValueError("Inspection must be submitted before rejection")
+    rejection_reason = (reason or "").strip()
+    if not rejection_reason:
+        raise ValueError("Rejection reason is required")
+    instructions = (follow_up_instructions or "").strip()
     inspection.status = InspectionStatus.rejected.value
     inspection.rejected_at = datetime.utcnow()
+    inspection.rejection_reason = rejection_reason
+    inspection.rejected_by_id = reviewer.id
+    target_item_ids: list[str] = [item_id for item_id in (item_ids or []) if item_id]
+    if not target_item_ids:
+        target_item_ids = [response.template_item_id for response in inspection.responses if response.result == "fail"]
+    if not target_item_ids:
+        raise ValueError("Select at least one checklist item to reject")
+    for template_item_id in target_item_ids:
+        if not template_item_id:
+            continue
+        entry = InspectionRejectionEntry(
+            inspection_id=inspection.id,
+            template_item_id=template_item_id,
+            reason=rejection_reason,
+            follow_up_instructions=instructions or None,
+            created_by_id=reviewer.id,
+        )
+        db.add(entry)
+    note_lines = [f"Rejected – {rejection_reason}"]
+    if instructions:
+        note_lines.append(f"Follow-up: {instructions}")
+    note_history_service.add_inspection_note(
+        db,
+        inspection.id,
+        reviewer.id,
+        "\n".join(note_lines),
+    )
+    assignments_service.create_rejection_followup(db, inspection, rejection_reason, instructions)
     db.commit()
     db.refresh(inspection)
     return inspection
@@ -291,6 +348,7 @@ def get_response(db: Session, response_id: str, user: User) -> InspectionRespons
 def update_response(
     db: Session, response: InspectionResponse, payload: InspectionResponseUpdate, user: User
 ) -> InspectionResponse:
+    previous_result = response.result
     if payload.result is not None:
         response.result = payload.result
     if payload.note is not None:
@@ -301,6 +359,22 @@ def update_response(
             note_history_service.add_response_note(db, response.id, user.id, payload.note)
     if payload.media_urls is not None:
         _sync_media_files(db, response, payload.media_urls, user.id)
+    if response.inspection and response.inspection.status == InspectionStatus.rejected.value:
+        open_items = {
+            entry.template_item_id
+            for entry in response.inspection.rejection_entries
+            if entry.resolved_at is None and entry.template_item_id
+        }
+        if response.template_item_id in open_items:
+            note_history_service.add_response_note(
+                db,
+                response.id,
+                user.id,
+                f"Rework update • result set to {response.result or previous_result}",
+            )
+            for entry in response.inspection.rejection_entries:
+                if entry.template_item_id == response.template_item_id and entry.resolved_at is None:
+                    entry.resolved_at = datetime.utcnow()
     db.commit()
     db.refresh(response)
     return response
@@ -450,8 +524,7 @@ def _set_status(db: Session, inspection: Inspection, new_status: str) -> bool:
         approve_inspection(db, inspection)
         return True
     if new_status == InspectionStatus.rejected.value:
-        reject_inspection(db, inspection)
-        return True
+        raise ValueError("Use the reject endpoint to provide a reason")
     inspection.status = new_status
     return False
 

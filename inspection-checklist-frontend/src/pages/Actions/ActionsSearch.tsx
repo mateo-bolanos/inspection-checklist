@@ -28,7 +28,8 @@ type StatusFilter = (typeof STATUS_FILTERS)[number]
 type DueFilter = (typeof DUE_FILTERS)[number]['value']
 
 export const ActionsSearchPage = () => {
-  const { user } = useAuth()
+  const { user, hasRole } = useAuth()
+  const canSeeAll = hasRole(['admin', 'reviewer'])
   const assigneesQuery = useActionAssigneesQuery()
   const assigneeOptions = assigneesQuery.data ?? []
   const [severity, setSeverity] = useState<'all' | (typeof ACTION_SEVERITIES)[number]>('all')
@@ -41,14 +42,17 @@ export const ActionsSearchPage = () => {
   const inspectionParam = searchParams.get('inspectionId')
   const assigneeParam = searchParams.get('assigneeId')
   const mineParam = searchParams.get('mine')
+  const locationParam = searchParams.get('location')
   const [inspectionIdFilter, setInspectionIdFilter] = useState(inspectionParam ?? '')
   const [assigneeFilter, setAssigneeFilter] = useState(assigneeParam ?? '')
-  const [mineOnlyState, setMineOnlyState] = useState(mineParam === '1')
-  const isActionOwner = user?.role === 'action_owner'
-  const mineOnly = isActionOwner ? true : mineOnlyState
+  const [locationFilter, setLocationFilter] = useState(locationParam ?? '')
+  const [mineOnlyState, setMineOnlyState] = useState(mineParam === '1' || !canSeeAll)
+  const mineOnly = !canSeeAll || mineOnlyState
+  const isActionOwner = !canSeeAll
   const assignedToParam = mineOnly ? user?.id ?? undefined : assigneeFilter || undefined
   const { data, isLoading } = useActionsQuery({
     assignedTo: assignedToParam,
+    location: locationFilter || null,
     enabled: !mineOnly || Boolean(user?.id),
   })
 
@@ -72,10 +76,14 @@ export const ActionsSearchPage = () => {
   }, [assigneeParam])
 
   useEffect(() => {
-    if (!isActionOwner) {
+    setLocationFilter(locationParam ?? '')
+  }, [locationParam])
+
+  useEffect(() => {
+    if (canSeeAll) {
       setMineOnlyState(mineParam === '1')
     }
-  }, [mineParam, isActionOwner])
+  }, [mineParam, canSeeAll])
 
   const updateSearchParams = (entries: Record<string, string | null>) => {
     const next = new URLSearchParams(searchParams)
@@ -93,6 +101,7 @@ export const ActionsSearchPage = () => {
     if (!data) return []
     const normalizedQuery = query.trim().toLowerCase()
     const numericInspectionId = inspectionIdFilter ? Number(inspectionIdFilter) : null
+    const normalizedLocation = locationFilter.trim().toLowerCase()
     const withinDueWindow = (action: ActionRecord) => {
       if (dueFilter === 'all') return true
       if (!action.due_date) return false
@@ -112,6 +121,10 @@ export const ActionsSearchPage = () => {
       if (severity !== 'all' && action.severity !== severity) return false
       const displayStatus = getActionDisplayStatus(action.status)
       if (statusFilter !== 'all' && displayStatus !== statusFilter) return false
+      if (normalizedLocation) {
+        const locationValue = (action.inspection_location ?? '').toLowerCase()
+        if (!locationValue.includes(normalizedLocation)) return false
+      }
       if (!withinDueWindow(action)) return false
       if (numericInspectionId && action.inspection_id !== numericInspectionId) return false
       if (!normalizedQuery) return true
@@ -123,6 +136,7 @@ export const ActionsSearchPage = () => {
         action.closed_by?.full_name,
         action.assignee?.full_name,
         action.assignee?.email,
+        action.inspection_location,
         action.id.toString(),
         action.inspection_id.toString(),
       ]
@@ -130,7 +144,7 @@ export const ActionsSearchPage = () => {
         .map((value) => value?.toString().toLowerCase())
       return haystack.some((value) => value?.includes(normalizedQuery))
     })
-  }, [data, dueFilter, inspectionIdFilter, query, severity, statusFilter])
+  }, [data, dueFilter, inspectionIdFilter, locationFilter, query, severity, statusFilter])
 
   const selectedAction =
     selectedActionId && data ? data.find((action) => action.id === selectedActionId) ?? null : null
@@ -149,8 +163,13 @@ export const ActionsSearchPage = () => {
     updateSearchParams({ assigneeId: value.trim().length > 0 ? value : null })
   }
 
+  const handleLocationFilterChange = (value: string) => {
+    setLocationFilter(value)
+    updateSearchParams({ location: value.trim().length > 0 ? value : null })
+  }
+
   const handleMineOnlyChange = (checked: boolean) => {
-    if (isActionOwner) return
+    if (!canSeeAll) return
     setMineOnlyState(checked)
     updateSearchParams({ mine: checked ? '1' : null })
   }
@@ -205,6 +224,13 @@ export const ActionsSearchPage = () => {
                 </option>
               ))}
             </Select>
+          </div>
+          <div className="min-w-[12rem] flex-shrink-0">
+            <Input
+              value={locationFilter}
+              onChange={(event) => handleLocationFilterChange(event.target.value)}
+              placeholder="Filter by department/location"
+            />
           </div>
           <div className="min-w-[12rem] flex-shrink-0">
             <Select value={dueFilter} onChange={(event) => setDueFilter(event.target.value as DueFilter)}>

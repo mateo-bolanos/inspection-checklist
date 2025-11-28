@@ -7,6 +7,7 @@ import { getErrorMessage } from '@/api/client'
 import type { components } from '@/api/gen/schema'
 import { useAuth } from '@/auth/useAuth'
 import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
 import { Select } from '@/components/ui/Select'
 import { Textarea } from '@/components/ui/Textarea'
@@ -36,8 +37,11 @@ export const ActionDetailsModal = ({ action, onClose }: ActionDetailsModalProps)
   const [noteDraft, setNoteDraft] = useState('')
   const [latestResolutionNote, setLatestResolutionNote] = useState(action.resolution_notes ?? '')
   const [assigneeId, setAssigneeId] = useState(action.assigned_to_id ?? '')
+  const [workOrderRequired, setWorkOrderRequired] = useState<boolean>(action.work_order_required ?? false)
+  const [workOrderNumber, setWorkOrderNumber] = useState<string>(action.work_order_number ?? '')
   const navigate = useNavigate()
   const canReassign = hasRole(['admin', 'reviewer'])
+  const canClose = hasRole(['admin', 'reviewer'])
   const canViewInspection = hasRole(['admin', 'reviewer', 'inspector'])
 
   useEffect(() => {
@@ -45,6 +49,8 @@ export const ActionDetailsModal = ({ action, onClose }: ActionDetailsModalProps)
     setPendingFile(null)
     setAssigneeId(action.assigned_to_id ?? '')
     setLatestResolutionNote(action.resolution_notes ?? '')
+    setWorkOrderRequired(action.work_order_required ?? false)
+    setWorkOrderNumber(action.work_order_number ?? '')
   }, [action.id, action.assigned_to_id, action.resolution_notes])
 
   const handleDownload = async (file: components['schemas']['MediaFileRead']) => {
@@ -92,6 +98,10 @@ export const ActionDetailsModal = ({ action, onClose }: ActionDetailsModalProps)
   }
 
   const handleCloseAction = async () => {
+    if (!canClose) {
+      push({ title: 'Only managers can close actions', variant: 'warning' })
+      return
+    }
     if (displayStatus === 'closed') {
       push({ title: 'Action already closed', variant: 'warning' })
       return
@@ -132,6 +142,21 @@ export const ActionDetailsModal = ({ action, onClose }: ActionDetailsModalProps)
       push({ title: 'Assignee updated', variant: 'success' })
     } catch (error) {
       push({ title: 'Unable to update assignee', description: String((error as Error).message), variant: 'error' })
+    }
+  }
+
+  const handleWorkOrderUpdate = async () => {
+    try {
+      await updateAction.mutateAsync({
+        actionId: action.id,
+        data: {
+          work_order_required: workOrderRequired,
+          work_order_number: workOrderNumber || undefined,
+        },
+      })
+      push({ title: 'Work order updated', variant: 'success' })
+    } catch (error) {
+      push({ title: 'Unable to update work order', description: String((error as Error).message), variant: 'error' })
     }
   }
 
@@ -192,6 +217,16 @@ export const ActionDetailsModal = ({ action, onClose }: ActionDetailsModalProps)
                   <dt className="text-xs text-slate-500">Started by</dt>
                   <dd className="text-sm font-medium text-slate-900">{action.started_by?.full_name ?? 'Unknown'}</dd>
                 </div>
+                <div>
+                  <dt className="text-xs text-slate-500">Work order required</dt>
+                  <dd className="text-sm font-medium text-slate-900">{action.work_order_required ? 'Yes' : 'No'}</dd>
+                </div>
+                {action.work_order_number && (
+                  <div>
+                    <dt className="text-xs text-slate-500">Work order #</dt>
+                    <dd className="text-sm font-medium text-slate-900">{action.work_order_number}</dd>
+                  </div>
+                )}
                 {action.closed_by && (
                   <div className="sm:col-span-2">
                     <dt className="text-xs text-slate-500">Closed by</dt>
@@ -251,6 +286,34 @@ export const ActionDetailsModal = ({ action, onClose }: ActionDetailsModalProps)
           )}
         </section>
 
+        {canClose && (
+          <section className="rounded-xl border border-slate-100 p-4 space-y-3">
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Work order</h3>
+            <div className="flex flex-wrap items-center gap-3">
+              <label className="flex items-center gap-2 text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={workOrderRequired}
+                  onChange={(event) => setWorkOrderRequired(event.target.checked)}
+                />
+                Work order required to close
+              </label>
+              <Input
+                value={workOrderNumber}
+                onChange={(event) => setWorkOrderNumber(event.target.value)}
+                placeholder="WO-1234"
+                className="w-48"
+              />
+              <Button type="button" variant="secondary" onClick={handleWorkOrderUpdate} disabled={isSaving}>
+                Save work order
+              </Button>
+            </div>
+            {action.work_order_required && !action.work_order_number && (
+              <p className="text-xs text-amber-700">A work order number is required before closing this action.</p>
+            )}
+          </section>
+        )}
+
         <section className="rounded-xl border border-slate-100 p-4">
           <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Notes</h3>
           <p className="mt-2 text-xs text-slate-500">Use notes to track progress before closing the action.</p>
@@ -266,7 +329,11 @@ export const ActionDetailsModal = ({ action, onClose }: ActionDetailsModalProps)
             <Button type="button" variant="secondary" onClick={handleAddNote} disabled={isSaving}>
               Save note
             </Button>
-            <Button type="button" onClick={handleCloseAction} disabled={displayStatus === 'closed' || isSaving}>
+            <Button
+              type="button"
+              onClick={handleCloseAction}
+              disabled={displayStatus === 'closed' || isSaving || !canClose}
+            >
               {displayStatus === 'closed' ? 'Action closed' : 'Close action'}
             </Button>
             {displayStatus === 'closed' && action.closed_at && (

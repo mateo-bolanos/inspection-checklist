@@ -83,9 +83,20 @@ class Assignment(Base):
     active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     start_due_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
     end_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    priority: Mapped[str] = mapped_column(String, default="normal", nullable=False)
+    tag: Mapped[str | None] = mapped_column(String, nullable=True)
+    notes: Mapped[str | None] = mapped_column(Text(), nullable=True)
+    source_inspection_id: Mapped[int | None] = mapped_column(
+        ForeignKey("inspections.id", ondelete="SET NULL"),
+        nullable=True,
+    )
 
     assignee: Mapped[User] = relationship(back_populates="assignments")
     template: Mapped["ChecklistTemplate | None"] = relationship(back_populates="assignments")
+    source_inspection: Mapped["Inspection | None"] = relationship(
+        foreign_keys=[source_inspection_id],
+        primaryjoin="Assignment.source_inspection_id==Inspection.id",
+    )
     scheduled_inspections: Mapped[list["ScheduledInspection"]] = relationship(
         back_populates="assignment", cascade="all, delete-orphan"
     )
@@ -198,6 +209,8 @@ class Inspection(Base):
     submitted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     approved_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     rejected_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    rejection_reason: Mapped[str | None] = mapped_column(Text(), nullable=True)
+    rejected_by_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     inspection_origin: Mapped[str] = mapped_column(
         String,
         default=InspectionOrigin.independent.value,
@@ -213,6 +226,10 @@ class Inspection(Base):
         back_populates="inspections_created",
         foreign_keys=[created_by_id],
     )
+    rejected_by: Mapped[User | None] = relationship(
+        foreign_keys=[rejected_by_id],
+        primaryjoin="Inspection.rejected_by_id==User.id",
+    )
     location_ref: Mapped[Location | None] = relationship(back_populates="inspections")
     scheduled_inspection: Mapped[ScheduledInspection | None] = relationship(back_populates="inspection")
     responses: Mapped[list["InspectionResponse"]] = relationship(
@@ -223,6 +240,11 @@ class Inspection(Base):
         back_populates="inspection",
         cascade="all, delete-orphan",
         order_by="InspectionNote.created_at",
+    )
+    rejection_entries: Mapped[list["InspectionRejectionEntry"]] = relationship(
+        back_populates="inspection",
+        cascade="all, delete-orphan",
+        order_by="InspectionRejectionEntry.created_at.desc()",
     )
 
 
@@ -271,6 +293,8 @@ class CorrectiveAction(Base):
     title: Mapped[str] = mapped_column(String)
     description: Mapped[str | None] = mapped_column(Text(), nullable=True)
     severity: Mapped[str] = mapped_column(String, default=ActionSeverity.medium.value)
+    occurrence_severity: Mapped[str | None] = mapped_column(String, nullable=True)
+    injury_severity: Mapped[str | None] = mapped_column(String, nullable=True)
     due_date: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     assigned_to_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     status: Mapped[str] = mapped_column(String, default=ActionStatus.open.value)
@@ -279,6 +303,8 @@ class CorrectiveAction(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     closed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     resolution_notes: Mapped[str | None] = mapped_column(Text(), nullable=True)
+    work_order_required: Mapped[bool] = mapped_column(Boolean, default=False)
+    work_order_number: Mapped[str | None] = mapped_column(String, nullable=True)
 
     inspection: Mapped[Inspection] = relationship(back_populates="actions")
     response: Mapped[InspectionResponse | None] = relationship(back_populates="actions")
@@ -304,6 +330,14 @@ class CorrectiveAction(Base):
     @property
     def media_urls(self) -> list[str]:
         return [media.file_url for media in self.media_files]
+
+    @property
+    def inspection_location(self) -> str | None:
+        return self.inspection.location if self.inspection else None
+
+    @property
+    def inspection_template_name(self) -> str | None:
+        return self.inspection.template.name if self.inspection and self.inspection.template else None
 
 
 class MediaFile(Base):
@@ -353,6 +387,22 @@ class InspectionResponseNote(Base):
 
     response: Mapped[InspectionResponse] = relationship(back_populates="note_entries")
     author: Mapped[User] = relationship()
+
+
+class InspectionRejectionEntry(Base):
+    __tablename__ = "inspection_rejection_entries"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    inspection_id: Mapped[int] = mapped_column(ForeignKey("inspections.id", ondelete="CASCADE"), nullable=False)
+    template_item_id: Mapped[str | None] = mapped_column(String, nullable=True)
+    reason: Mapped[str] = mapped_column(Text(), nullable=False)
+    follow_up_instructions: Mapped[str | None] = mapped_column(Text(), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    created_by_id: Mapped[str] = mapped_column(ForeignKey("users.id"), nullable=False)
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+    inspection: Mapped["Inspection"] = relationship(back_populates="rejection_entries")
+    created_by: Mapped[User] = relationship()
 
 
 class CorrectiveActionNote(Base):

@@ -23,6 +23,8 @@ from app.models.entities import (
 )
 from app.services import reports as report_service
 
+ASSIGNEE_EMAIL = "supervisor@example.com"
+ASSIGNEE_PASSWORD = "supervisorpass"
 
 def authenticate(client: TestClient, username: str, password: str) -> Dict[str, str]:
     response = client.post(
@@ -49,21 +51,12 @@ def create_temp_inspector(email: str, password: str) -> None:
         db.commit()
 
 
-def ensure_action_owner(email: str = "employee@example.com", password: str = "employeepass") -> None:
-    with SessionLocal() as db:
-        if db.query(User).filter(User.email == email).first():
-            return
-        owner = User(
-            email=email,
-            full_name="Action Owner",
-            role=UserRole.action_owner.value,
-            hashed_password=get_password_hash(password),
-        )
-        db.add(owner)
-        db.commit()
+def ensure_assigned_supervisor(email: str = ASSIGNEE_EMAIL, password: str = ASSIGNEE_PASSWORD) -> None:
+    create_temp_inspector(email, password)
 
 
-def create_action_for_owner(owner_email: str = "employee@example.com") -> int:
+def create_action_for_owner(owner_email: str = ASSIGNEE_EMAIL) -> int:
+    ensure_assigned_supervisor(owner_email, ASSIGNEE_PASSWORD)
     create_submitted_inspection()
     with SessionLocal() as db:
         owner = db.query(User).filter(User.email == owner_email).first()
@@ -76,6 +69,8 @@ def create_action_for_owner(owner_email: str = "employee@example.com") -> int:
             inspection_id=inspection.id,
             title="Repair guard rail",
             severity=ActionSeverity.medium.value,
+            occurrence_severity=ActionSeverity.medium.value,
+            injury_severity=ActionSeverity.medium.value,
             status=ActionStatus.open.value,
             started_by_id=inspector.id,
             assigned_to_id=owner.id,
@@ -168,16 +163,15 @@ def test_actions_dashboard_available_to_inspector(client: TestClient) -> None:
 
 
 def test_assignee_listing_available_to_all_active_users(client: TestClient) -> None:
-    ensure_action_owner()
     headers = authenticate(client, "inspector@example.com", "inspectorpass")
     response = client.get("/users/assignees", headers=headers)
     assert response.status_code == 200
     payload = response.json()
     assert isinstance(payload, list)
+    roles = {user["role"] for user in payload}
+    assert roles.issubset({UserRole.inspector.value, UserRole.reviewer.value, UserRole.admin.value})
     emails = [user["email"] for user in payload]
-    assert "employee@example.com" in emails
-    assert "inspector@example.com" not in emails
-    assert all(user["role"] == UserRole.action_owner.value for user in payload)
+    assert "inspector@example.com" in emails
 
 
 def test_inspection_submission_rules(client: TestClient) -> None:
@@ -240,6 +234,36 @@ def test_inspection_submission_rules(client: TestClient) -> None:
     action_id = action_body["id"]
 
 
+def test_inspector_can_delete_draft_inspection(client: TestClient) -> None:
+    headers = authenticate(client, "inspector@example.com", "inspectorpass")
+    templates = client.get("/templates/", headers=headers).json()
+    template_id = templates[0]["id"]
+
+    created = client.post("/inspections/", json={"template_id": template_id}, headers=headers)
+    assert created.status_code == 201
+    inspection_id = created.json()["id"]
+
+    deleted = client.delete(f"/inspections/{inspection_id}", headers=headers)
+    assert deleted.status_code == 204
+
+    missing = client.get(f"/inspections/{inspection_id}", headers=headers)
+    assert missing.status_code == 404
+
+
+def test_submitted_inspection_cannot_be_deleted(client: TestClient) -> None:
+    headers = authenticate(client, "inspector@example.com", "inspectorpass")
+    create_submitted_inspection()
+    with SessionLocal() as db:
+        inspection = db.query(Inspection).filter(Inspection.status == InspectionStatus.submitted.value).first()
+        assert inspection is not None
+        inspection_id = inspection.id
+
+    forbidden = client.delete(f"/inspections/{inspection_id}", headers=headers)
+    assert forbidden.status_code == 400
+    still_there = client.get(f"/inspections/{inspection_id}", headers=headers)
+    assert still_there.status_code == 200
+
+
 def test_inspection_note_history_tracks_authors(client: TestClient) -> None:
     headers = authenticate(client, "inspector@example.com", "inspectorpass")
     templates = client.get("/templates/", headers=headers).json()
@@ -264,8 +288,8 @@ def test_inspection_note_history_tracks_authors(client: TestClient) -> None:
     assert all(entry["author"]["email"] == "inspector@example.com" for entry in notes)
 
 
-def test_action_owner_sees_only_assigned_actions(client: TestClient) -> None:
-    ensure_action_owner()
+def test_assigned_supervisor_sees_only_assigned_actions(client: TestClient) -> None:
+    ensure_assigned_supervisor()
     owner_action_id = create_action_for_owner()
     with SessionLocal() as db:
         inspector = db.query(User).filter(User.email == "inspector@example.com").first()
@@ -281,20 +305,20 @@ def test_action_owner_sees_only_assigned_actions(client: TestClient) -> None:
         )
         db.add(extra)
         db.commit()
-    headers = authenticate(client, "employee@example.com", "employeepass")
+    headers = authenticate(client, ASSIGNEE_EMAIL, ASSIGNEE_PASSWORD)
     response = client.get("/actions/", headers=headers)
     assert response.status_code == 200
     payload = response.json()
-    assert payload, "Expected at least one action for owner"
-    owner_assignee = payload[0]["assigned_to_id"]
-    assert all(action["assigned_to_id"] == owner_assignee for action in payload)
+    assert payload, "Expected at least one action for assignee"
+    assignee_id = payload[0]["assigned_to_id"]
+    assert all(action["assigned_to_id"] == assignee_id for action in payload)
     action_ids = {action["id"] for action in payload}
     assert owner_action_id in action_ids
 
 
-def test_action_owner_cannot_update_unassigned_action(client: TestClient) -> None:
-    ensure_action_owner()
-    headers = authenticate(client, "employee@example.com", "employeepass")
+def test_assigned_supervisor_cannot_update_unassigned_action(client: TestClient) -> None:
+    ensure_assigned_supervisor()
+    headers = authenticate(client, ASSIGNEE_EMAIL, ASSIGNEE_PASSWORD)
     create_submitted_inspection()
     with SessionLocal() as db:
         inspector = db.query(User).filter(User.email == "inspector@example.com").first()
@@ -319,10 +343,10 @@ def test_action_owner_cannot_update_unassigned_action(client: TestClient) -> Non
     assert response.status_code == 404
 
 
-def test_action_owner_updates_notes_on_owned_action(client: TestClient) -> None:
-    ensure_action_owner()
+def test_assigned_supervisor_updates_notes_on_owned_action(client: TestClient) -> None:
+    ensure_assigned_supervisor()
     owner_action_id = create_action_for_owner()
-    headers = authenticate(client, "employee@example.com", "employeepass")
+    headers = authenticate(client, ASSIGNEE_EMAIL, ASSIGNEE_PASSWORD)
     response = client.put(
         f"/actions/{owner_action_id}",
         json={"resolution_notes": "Investigating root cause"},
@@ -339,9 +363,9 @@ def test_action_owner_updates_notes_on_owned_action(client: TestClient) -> None:
 
 
 def test_action_note_history_tracks_multiple_authors(client: TestClient) -> None:
-    ensure_action_owner()
+    ensure_assigned_supervisor()
     owner_action_id = create_action_for_owner()
-    owner_headers = authenticate(client, "employee@example.com", "employeepass")
+    owner_headers = authenticate(client, ASSIGNEE_EMAIL, ASSIGNEE_PASSWORD)
     admin_headers = authenticate(client, "admin@example.com", "adminpass")
 
     first = client.put(
@@ -361,13 +385,13 @@ def test_action_note_history_tracks_multiple_authors(client: TestClient) -> None
     detail = client.get(f"/actions/{owner_action_id}", headers=admin_headers).json()
     assert [entry["body"] for entry in detail["note_entries"]] == ["Owner update", "Admin follow-up"]
     authors = [entry["author"]["email"] for entry in detail["note_entries"]]
-    assert authors == ["employee@example.com", "admin@example.com"]
+    assert authors == [ASSIGNEE_EMAIL, "admin@example.com"]
 
 
-def test_action_owner_can_upload_attachment(client: TestClient) -> None:
-    ensure_action_owner()
+def test_assigned_supervisor_can_upload_attachment(client: TestClient) -> None:
+    ensure_assigned_supervisor()
     owner_action_id = create_action_for_owner()
-    headers = authenticate(client, "employee@example.com", "employeepass")
+    headers = authenticate(client, ASSIGNEE_EMAIL, ASSIGNEE_PASSWORD)
     files = {"file": ("evidence.jpg", b"123456", "image/jpeg")}
     response = client.post(
         "/files/",

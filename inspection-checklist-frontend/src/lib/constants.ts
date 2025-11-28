@@ -2,7 +2,6 @@ export const ROLE_HOME_ROUTE: Record<string, string> = {
   admin: '/dash/overview',
   reviewer: '/reviews',
   inspector: '/inspections/new',
-  action_owner: '/actions',
 }
 
 export const INSPECTION_RESULTS = ['pass', 'fail', 'na'] as const

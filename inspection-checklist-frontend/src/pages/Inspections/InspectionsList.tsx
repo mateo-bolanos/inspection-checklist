@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
-import { useInspectionsQuery, useTemplatesQuery } from '@/api/hooks'
+import { getErrorMessage } from '@/api/client'
+import { useDeleteInspectionMutation, useInspectionsQuery, useTemplatesQuery } from '@/api/hooks'
 import { useAuth } from '@/auth/useAuth'
 import { EmptyState } from '@/components/feedback/EmptyState'
 import { ErrorState } from '@/components/feedback/ErrorState'
@@ -10,6 +11,7 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
+import { useToast } from '@/components/ui/toastContext'
 import { INSPECTION_STATUSES } from '@/lib/constants'
 import { formatDate, formatInspectionName, formatScore } from '@/lib/formatters'
 
@@ -20,6 +22,8 @@ export const InspectionsListPage = () => {
   const { hasRole } = useAuth()
   const inspectionsQuery = useInspectionsQuery()
   const templatesQuery = useTemplatesQuery()
+  const deleteMutation = useDeleteInspectionMutation()
+  const { push } = useToast()
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
 
@@ -57,6 +61,16 @@ export const InspectionsListPage = () => {
 
   const canCreateInspection = hasRole(['admin', 'inspector'])
   const canEditInspections = canCreateInspection
+
+  const handleDelete = async (inspectionId: number) => {
+    if (!window.confirm('Delete this draft inspection? This cannot be undone.')) return
+    try {
+      await deleteMutation.mutateAsync(inspectionId)
+      push({ title: 'Inspection deleted', variant: 'success' })
+    } catch (error) {
+      push({ title: 'Unable to delete inspection', description: getErrorMessage(error), variant: 'error' })
+    }
+  }
 
   if (inspectionsQuery.isLoading) {
     return <LoadingState label="Loading inspections..." />
@@ -159,9 +173,22 @@ export const InspectionsListPage = () => {
                             View
                           </Link>
                           {canEditInspections && inspection.status === 'draft' && (
-                            <Link className="text-slate-600 hover:text-brand-600" to={`/inspections/${inspection.id}/edit`}>
-                              Edit
-                            </Link>
+                            <>
+                              <Link
+                                className="text-slate-600 hover:text-brand-600"
+                                to={`/inspections/${inspection.id}/edit`}
+                              >
+                                Edit
+                              </Link>
+                              <button
+                                type="button"
+                                className="text-red-600 hover:underline disabled:opacity-60"
+                                disabled={deleteMutation.isPending}
+                                onClick={() => handleDelete(inspection.id)}
+                              >
+                                Delete
+                              </button>
+                            </>
                           )}
                         </div>
                       </td>

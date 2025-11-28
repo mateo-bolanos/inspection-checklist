@@ -60,7 +60,7 @@ src/
 - JWT tokens live in memory with a sessionStorage backup. `401` responses clear auth and redirect to `/login`.
 - API data is strictly typed via the generated OpenAPI schema. React Query handles caching/invalidation per feature.
 - Forms rely on `react-hook-form` + `zod` mirrors of backend DTOs.
-- Role-based guards hide unauthorized routes/buttons (`admin` full access, `reviewer` dashboard/reviews, `inspector` inspections/files, `action_owner` limited to the actions workspace).
+- Role-based guards hide unauthorized routes/buttons (`admin` full access, `reviewer` dashboard/reviews, `inspector` inspections/files).
 - Action owners land on `/actions`, only see their assigned items, and can upload evidence/notes without viewing the underlying inspection; admins/reviewers can reassign actions directly from the modal.
 - File uploads leverage `/files` via multipart form data with automatic refetches of affected queries.
 

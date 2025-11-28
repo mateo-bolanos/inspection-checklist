@@ -15,6 +15,7 @@ from app.schemas.inspection import (
     InspectionResponseCreate,
     InspectionResponseRead,
     InspectionResponseUpdate,
+    InspectionReject,
     InspectionUpdate,
 )
 from app.services import auth as auth_service
@@ -42,6 +43,9 @@ def create_inspection(
         return inspection_service.create_inspection(db, current_user, payload)
     except ValueError as exc:  # noqa: BLE001
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    except Exception as exc:  # noqa: BLE001
+        logger.exception("Failed to reject inspection %s", inspection_id)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Unable to reject inspection") from exc
 
 
 @router.get("/{inspection_id}", response_model=InspectionDetail)
@@ -65,6 +69,21 @@ def update_inspection(
         return inspection_service.update_inspection(db, inspection, payload, current_user)
     except ValueError as exc:  # noqa: BLE001
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+
+@router.delete("/{inspection_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_inspection(
+    inspection_id: int,
+    db: Session = Depends(get_db),
+    current_user = Depends(auth_service.get_current_active_user),
+) -> Response:
+    inspection = _get_inspection_or_404(db, inspection_id, current_user)
+    _ensure_owner_or_admin(inspection, current_user)
+    try:
+        inspection_service.delete_inspection(db, inspection)
+    except ValueError as exc:  # noqa: BLE001
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.post("/{inspection_id}/submit", response_model=InspectionRead)
@@ -102,12 +121,20 @@ def approve_inspection(
 @router.post("/{inspection_id}/reject", response_model=InspectionRead)
 def reject_inspection(
     inspection_id: int,
+    payload: InspectionReject,
     db: Session = Depends(get_db),
     current_user = Depends(auth_service.require_role([UserRole.admin.value, UserRole.reviewer.value])),
 ) -> InspectionRead:
     inspection = _get_inspection_or_404(db, inspection_id, current_user)
     try:
-        return inspection_service.reject_inspection(db, inspection)
+        return inspection_service.reject_inspection(
+            db,
+            inspection,
+            current_user,
+            payload.reason,
+            payload.follow_up_instructions,
+            payload.item_ids,
+        )
     except ValueError as exc:  # noqa: BLE001
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 

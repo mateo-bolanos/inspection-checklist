@@ -16,6 +16,10 @@ class AssignmentBase(BaseModel):
     active: bool = Field(default=True)
     start_due_at: datetime
     end_date: date | None = None
+    priority: Literal["normal", "urgent"] = Field(default="normal")
+    tag: str | None = None
+    notes: str | None = None
+    source_inspection_id: int | None = None
 
 
 class AssignmentCreate(AssignmentBase):

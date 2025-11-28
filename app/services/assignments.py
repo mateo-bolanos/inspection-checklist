@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.core.config import settings
 from app.core.profile import is_company_profile
-from app.models.entities import Assignment, ChecklistTemplate, ScheduledInspection, User, UserRole
+from app.models.entities import Assignment, ChecklistTemplate, Inspection, ScheduledInspection, User, UserRole
 from app.schemas.assignment import AssignmentCreate
 from app.services import email as email_service
 from app.services.notification_utils import build_frontend_url, format_date, format_datetime
@@ -71,10 +71,76 @@ def create_assignment(db: Session, current_user: User, payload: AssignmentCreate
         active=payload.active,
         start_due_at=start_due_at,
         end_date=payload.end_date,
+        priority=payload.priority,
+        tag=payload.tag,
+        notes=payload.notes,
+        source_inspection_id=payload.source_inspection_id,
     )
     db.add(assignment)
     db.commit()
     db.refresh(assignment)
+    return assignment
+
+
+def create_rejection_followup(
+    db: Session,
+    inspection: Inspection,
+    reason: str,
+    follow_up_instructions: str | None = None,
+) -> Assignment:
+    """
+    Create or refresh an urgent assignment for the inspector to rework a rejected inspection.
+    """
+
+    assignee_id = inspection.inspector_id
+    if not assignee_id:
+        raise ValueError("Inspection is missing an inspector")
+    template_id = inspection.template_id
+    if not template_id:
+        raise ValueError("Inspection is missing a template")
+
+    existing = (
+        db.query(Assignment)
+        .filter(
+            Assignment.source_inspection_id == inspection.id,
+            Assignment.active.is_(True),
+        )
+        .first()
+    )
+
+    now = datetime.utcnow()
+    end_date = now.date()
+    combined_notes = reason if not follow_up_instructions else f"{reason}\nNext steps: {follow_up_instructions}"
+    if existing:
+        existing.priority = "urgent"
+        existing.tag = "denied"
+        existing.notes = combined_notes
+        existing.start_due_at = now
+        existing.end_date = end_date
+        if not existing.template_id:
+            existing.template_id = template_id
+        if not existing.location and inspection.location:
+            existing.location = inspection.location
+        db.flush()
+        ensure_pending_schedule(db, existing)
+        return existing
+
+    assignment = Assignment(
+        assigned_to_id=assignee_id,
+        template_id=template_id,
+        location=inspection.location,
+        frequency=DAILY_FREQUENCY,
+        active=True,
+        start_due_at=now,
+        end_date=end_date,
+        priority="urgent",
+        tag="denied",
+        notes=combined_notes,
+        source_inspection_id=inspection.id,
+    )
+    db.add(assignment)
+    db.flush()
+    ensure_pending_schedule(db, assignment)
     return assignment
 
 
@@ -300,6 +366,91 @@ def send_day_before_due_reminders(db: Session) -> int:
             template_name="day_before_due_reminder.html",
             to=assignee.email,
             subject="Reminder: inspection due tomorrow",
+            context={
+                "user_name": assignee.full_name or assignee.email,
+                "template_name": assignment.template.name if assignment and assignment.template else "Inspection",
+                "location": assignment.location if assignment else None,
+                "due_at": format_datetime(scheduled.due_at),
+                "inspection_link": dashboard_link,
+            },
+    )
+    if success:
+        sent += 1
+    return sent
+
+
+def send_monday_assignment_kickoff(db: Session) -> int:
+    """Send Monday morning reminders for all pending/overdue inspections due this week."""
+    today = datetime.utcnow().date()
+    if today.weekday() != 0:  # Monday
+        return 0
+    week_end = today + timedelta(days=4)  # Monday-Friday window
+    start_dt = datetime.combine(today, time.min)
+    end_dt = datetime.combine(week_end, time.max)
+    scheduled_items: list[ScheduledInspection] = (
+        db.query(ScheduledInspection)
+        .options(selectinload(ScheduledInspection.assignment).selectinload(Assignment.assignee).selectinload(Assignment.template))
+        .filter(
+            ScheduledInspection.status.in_([SCHEDULED_PENDING, SCHEDULED_OVERDUE]),
+            ScheduledInspection.due_at >= start_dt,
+            ScheduledInspection.due_at <= end_dt,
+        )
+        .all()
+    )
+    sent = 0
+    dashboard_link = build_frontend_url(settings.inspections_dashboard_path)
+    for scheduled in scheduled_items:
+        assignment = scheduled.assignment
+        assignee = assignment.assignee if assignment else None
+        if not assignee or not assignee.email:
+            continue
+        success = email_service.send_templated_email(
+            template_name="assignment_created.html",
+            to=assignee.email,
+            subject="Weekly inspection assignment",
+            context={
+                "user_name": assignee.full_name or assignee.email,
+                "template_name": assignment.template.name if assignment and assignment.template else "Inspection",
+                "location": assignment.location if assignment else None,
+                "period_start": format_date(scheduled.period_start),
+                "due_at": format_datetime(scheduled.due_at),
+                "inspection_link": dashboard_link,
+            },
+        )
+        if success:
+            sent += 1
+    return sent
+
+
+def send_friday_pending_reminders(db: Session) -> int:
+    """Send Friday reminder for any inspections still pending for the current week."""
+    today = datetime.utcnow().date()
+    if today.weekday() != 4:  # Friday
+        return 0
+    monday = today - timedelta(days=4)
+    start_dt = datetime.combine(monday, time.min)
+    end_dt = datetime.combine(today, time.max)
+    scheduled_items: list[ScheduledInspection] = (
+        db.query(ScheduledInspection)
+        .options(selectinload(ScheduledInspection.assignment).selectinload(Assignment.assignee).selectinload(Assignment.template))
+        .filter(
+            ScheduledInspection.status == SCHEDULED_PENDING,
+            ScheduledInspection.due_at >= start_dt,
+            ScheduledInspection.due_at <= end_dt,
+        )
+        .all()
+    )
+    sent = 0
+    dashboard_link = build_frontend_url(settings.inspections_dashboard_path)
+    for scheduled in scheduled_items:
+        assignment = scheduled.assignment
+        assignee = assignment.assignee if assignment else None
+        if not assignee or not assignee.email:
+            continue
+        success = email_service.send_templated_email(
+            template_name="day_before_due_reminder.html",
+            to=assignee.email,
+            subject="Reminder: inspection due this week",
             context={
                 "user_name": assignee.full_name or assignee.email,
                 "template_name": assignment.template.name if assignment and assignment.template else "Inspection",

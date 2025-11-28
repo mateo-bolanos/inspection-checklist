@@ -14,8 +14,12 @@ class CorrectiveActionBase(BaseModel):
     title: str
     description: str | None = None
     severity: str = Field(default=ActionSeverity.medium.value)
+    occurrence_severity: str | None = None
+    injury_severity: str | None = None
     due_date: datetime | None = None
     assigned_to_id: str | None = None
+    work_order_required: bool = False
+    work_order_number: str | None = None
 
 
 class CorrectiveActionCreate(CorrectiveActionBase):
@@ -28,10 +32,14 @@ class CorrectiveActionUpdate(BaseModel):
     title: str | None = None
     description: str | None = None
     severity: str | None = None
+    occurrence_severity: str | None = None
+    injury_severity: str | None = None
     due_date: datetime | None = None
     assigned_to_id: str | None = None
     status: str | None = None
     resolution_notes: str | None = None
+    work_order_required: bool | None = None
+    work_order_number: str | None = None
 
 
 class CorrectiveActionRead(CorrectiveActionBase):
@@ -39,6 +47,8 @@ class CorrectiveActionRead(CorrectiveActionBase):
     inspection_id: int
     response_id: str | None = None
     status: str
+    inspection_location: str | None = None
+    inspection_template_name: str | None = None
     assignee: UserRead | None = None
     created_at: datetime
     closed_at: datetime | None = None
