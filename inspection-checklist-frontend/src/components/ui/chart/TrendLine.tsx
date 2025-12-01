@@ -1,4 +1,4 @@
-import { Area, AreaChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Area, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 import { ChartEmpty } from './ChartEmpty'
 import { ChartTooltip } from './ChartTooltip'
@@ -50,10 +50,10 @@ export const TrendLine = ({
           />
           <Tooltip
             content={({ active, payload, label }) => {
-              const firstEntry = payload && payload.length > 0 ? [payload[0]] : undefined
+              const firstEntry = payload && payload.length > 0 ? [payload[0]] : []
               return (
                 <ChartTooltip
-                  active={active}
+                  active={Boolean(active)}
                   payload={firstEntry}
                   label={label}
                   valueFormatter={(value) => numberFormatter.format(Number(value))}

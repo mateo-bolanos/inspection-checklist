@@ -29,10 +29,8 @@ export const ReviewQueuePage = () => {
   const [reason, setReason] = useState('')
   const [followUp, setFollowUp] = useState('')
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set())
-  const inspectionDetail = useInspectionQuery(rejecting?.id ?? '', { enabled: Boolean(rejecting?.id) })
-  const templateDetail = useTemplateQuery(inspectionDetail.data?.template_id, {
-    enabled: Boolean(inspectionDetail.data?.template_id),
-  })
+  const inspectionDetail = useInspectionQuery(rejecting?.id ?? '')
+  const templateDetail = useTemplateQuery(inspectionDetail.data?.template_id)
 
   const allTemplateItems = useMemo(() => {
     const template = templateDetail.data

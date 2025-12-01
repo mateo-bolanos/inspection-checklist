@@ -494,7 +494,8 @@ export const useRejectInspectionMutation = () => {
       })
       return data
     },
-    onSuccess: (_, inspectionId) => {
+    onSuccess: (_, variables) => {
+      const { inspectionId } = variables
       queryClient.invalidateQueries({ queryKey: queryKeys.inspection(inspectionId) })
       queryClient.invalidateQueries({ queryKey: queryKeys.inspections })
     },

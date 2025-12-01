@@ -1,25 +1,24 @@
-import type { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent'
-import type { TooltipProps } from 'recharts'
+import type { NameType, Payload, ValueType } from 'recharts/types/component/DefaultTooltipContent'
+import type { TooltipContentProps } from 'recharts'
 
-type ChartTooltipProps = TooltipProps<ValueType, NameType> & {
-  labelFormatter?: (label: any) => string
+type ChartTooltipProps = Partial<TooltipContentProps<ValueType, NameType>> & {
   valueFormatter?: (value: ValueType) => string
   unit?: string
 }
 
 export const ChartTooltip = ({ active, payload, label, labelFormatter, valueFormatter, unit }: ChartTooltipProps) => {
-  const items = payload ?? []
+  const items = (payload ?? []) as Payload<ValueType, NameType>[]
 
   if (!active || items.length === 0) {
     return null
   }
 
-  const formattedLabel = labelFormatter ? labelFormatter(label) : String(label)
+  const formattedLabel = labelFormatter ? labelFormatter(label, items) : String(label)
 
   return (
     <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 shadow-lg">
       <p className="text-xs font-semibold text-slate-500">{formattedLabel}</p>
-      {items.map((entry) => {
+      {items.map((entry: Payload<ValueType, NameType>) => {
         const key = entry.dataKey?.toString() ?? entry.name
         const color = entry.color ?? '#2563eb'
         const rawValue = entry.value ?? 0
