@@ -12,6 +12,7 @@ from app.schemas.dashboard import (
     ActionMetrics,
     ItemsMetrics,
     OverviewMetrics,
+    PriorityDashboard,
     WeeklyInspectionKPIs,
     WeeklyPendingUser,
 )
@@ -82,6 +83,38 @@ def read_weekly_pending(
     return dashboard_service.get_weekly_pending_by_user(db, start_date, end_date)
 
 
+@router.get("/priorities", response_model=PriorityDashboard)
+def read_priorities(
+    start: date | None = Query(default=None, description="UTC date (YYYY-MM-DD) start filter"),
+    end: date | None = Query(default=None, description="UTC date (YYYY-MM-DD) end filter"),
+    template_id: str | None = Query(default=None, description="Template id to filter inspections"),
+    location: str | None = Query(default=None, description="Partial location match"),
+    locations: list[str] | None = Query(default=None, description="Multiple partial location matches"),
+    inspector_id: str | None = Query(default=None, description="Inspector id"),
+    item: str | None = Query(default=None, description="Checklist item text search"),
+    calendar_month: str | None = Query(default=None, description="YYYY-MM to scope calendar heatmap"),
+    db: Session = Depends(get_db),
+    _: object = Depends(
+        auth_service.require_role([
+            UserRole.admin.value,
+            UserRole.reviewer.value,
+            UserRole.inspector.value,
+        ])
+    ),
+) -> PriorityDashboard:
+    return dashboard_service.get_priority_dashboard(
+        db,
+        start=start,
+        end=end,
+        template_id=template_id,
+        location=location,
+        locations=locations,
+        inspector_id=inspector_id,
+        item_query=item,
+        calendar_month=calendar_month,
+    )
+
+
 @router.get("/ui", response_class=HTMLResponse, include_in_schema=False)
 def dashboard_ui() -> HTMLResponse:
     html = """
@@ -115,7 +148,7 @@ def dashboard_ui() -> HTMLResponse:
                 <pre id="overview">Awaiting data...</pre>
             </div>
             <div class="card">
-                <h2>Actions</h2>
+                <h2>Issues</h2>
                 <pre id="actions">Awaiting data...</pre>
             </div>
             <div class="card">

@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import logging
 from typing import List
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
 from fastapi.responses import JSONResponse, Response
 from sqlalchemy.orm import Session
 
@@ -11,6 +12,7 @@ from app.models.entities import User, UserRole
 from app.schemas.inspection import (
     InspectionCreate,
     InspectionDetail,
+    InspectionListResponse,
     InspectionRead,
     InspectionResponseCreate,
     InspectionResponseRead,
@@ -23,14 +25,39 @@ from app.services import inspections as inspection_service
 from app.services import reports as report_service
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
-@router.get("/", response_model=List[InspectionRead])
+@router.get("/", response_model=InspectionListResponse)
 def list_inspections(
+    page: int = Query(default=1, ge=1, description="Page number (1-indexed)"),
+    page_size: int = Query(default=30, ge=1, le=30, description="Page size (max 30)"),
+    status_filter: str | None = Query(default=None, alias="status", description="Filter by inspection status"),
+    template_id: str | None = Query(default=None, description="Filter by template ID"),
+    inspector_id: str | None = Query(default=None, description="Filter by inspector ID"),
+    origin: str | None = Query(default=None, description="Filter by inspection origin"),
+    location: str | None = Query(default=None, description="Filter by location/department (contains match)"),
+    search: str | None = Query(
+        default=None, description="Free-text search across template name, creator, location, and inspection ID"
+    ),
     db: Session = Depends(get_db),
     current_user = Depends(auth_service.get_current_active_user),
-) -> List[InspectionRead]:
-    return inspection_service.list_inspections(db, current_user)
+) -> InspectionListResponse:
+    try:
+        return inspection_service.list_inspections(
+            db,
+            current_user,
+            page=page,
+            page_size=page_size,
+            status=status_filter,
+            template_id=template_id,
+            inspector_id=inspector_id,
+            origin=origin,
+            location=location,
+            search=search,
+        )
+    except ValueError as exc:  # noqa: BLE001
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
 
 @router.post("/", response_model=InspectionRead, status_code=status.HTTP_201_CREATED)
@@ -44,8 +71,11 @@ def create_inspection(
     except ValueError as exc:  # noqa: BLE001
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     except Exception as exc:  # noqa: BLE001
-        logger.exception("Failed to reject inspection %s", inspection_id)
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Unable to reject inspection") from exc
+        logger.exception("Failed to create inspection for user %s", getattr(current_user, "id", "unknown"))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unable to create inspection",
+        ) from exc
 
 
 @router.get("/{inspection_id}", response_model=InspectionDetail)

@@ -106,7 +106,7 @@ def render_pdf(summary: dict) -> bytes:
     pdf.ln(2)
 
     pdf.set_font("Helvetica", "B", 13)
-    pdf.cell(0, 8, "Corrective Actions", ln=True)
+    pdf.cell(0, 8, "Issues & Corrective Actions", ln=True)
     pdf.set_font("Helvetica", size=11)
     if summary.get("actions"):
         for action in summary.get("actions", []):
@@ -121,7 +121,7 @@ def render_pdf(summary: dict) -> bytes:
             )
             pdf.ln(1)
     else:
-        pdf.cell(0, 6, "No corrective actions linked to this inspection.", ln=True)
+        pdf.cell(0, 6, "No issues linked to this inspection.", ln=True)
 
     return _pdf_bytes(pdf)
 
@@ -364,16 +364,16 @@ def generate_inspections_range_pdf(
     _render_breakdown("By Location", location_counts)
 
     pdf.set_font("Helvetica", "B", 13)
-    pdf.cell(0, 8, "Corrective Actions Overview", ln=True)
+    pdf.cell(0, 8, "Issues Overview", ln=True)
     pdf.set_font("Helvetica", size=11)
     if open_actions_by_severity:
-        pdf.cell(0, 6, "Open actions:", ln=True)
+        pdf.cell(0, 6, "Open issues:", ln=True)
         for severity, count in _summarize_counter(open_actions_by_severity):
             pdf.cell(0, 6, f"  - {severity.title()}: {count}", ln=True)
     else:
-        pdf.cell(0, 6, "No open actions for this selection.", ln=True)
+        pdf.cell(0, 6, "No open issues for this selection.", ln=True)
     if overdue_actions_by_severity:
-        pdf.cell(0, 6, "Overdue actions:", ln=True)
+        pdf.cell(0, 6, "Overdue issues:", ln=True)
         for severity, count in _summarize_counter(overdue_actions_by_severity):
             pdf.cell(0, 6, f"  - {severity.title()}: {count}", ln=True)
     pdf.ln(3)

@@ -6,6 +6,7 @@ import { HomeRedirect } from '@/routes/HomeRedirect'
 
 import { LoginPage } from '@/pages/Login'
 import { DashboardItemsPage } from '@/pages/Dashboard/Items'
+import { DashboardPrioritiesPage } from '@/pages/Dashboard/DashboardPriorities'
 import { OverviewPage } from '@/pages/Dashboard/Overview'
 import { ReportsPage } from '@/pages/Reports/ReportsPage'
 import { TemplatesListPage } from '@/pages/Templates/TemplatesList'
@@ -38,6 +39,14 @@ export const router = createBrowserRouter([
         element: (
           <ProtectedRoute roles={['admin', 'reviewer']}>
             <OverviewPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'dash/dashboards',
+        element: (
+          <ProtectedRoute roles={['admin', 'inspector', 'reviewer']}>
+            <DashboardPrioritiesPage />
           </ProtectedRoute>
         ),
       },

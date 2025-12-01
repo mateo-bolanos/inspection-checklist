@@ -48,7 +48,7 @@ src/
   api/           # axios client, React Query hooks, generated schema
   auth/          # auth store + helpers
   components/    # UI primitives, layout, feedback components
-  pages/         # Route pages (Auth, Dashboard, Templates, Inspections, Actions, Reviews, Files)
+  pages/         # Route pages (Auth, Dashboard, Templates, Inspections, Issues, Reviews, Files)
   routes/        # React Router config and guards
   styles/        # Tailwind entry point
   lib/           # constants, formatters, utilities
@@ -61,7 +61,7 @@ src/
 - API data is strictly typed via the generated OpenAPI schema. React Query handles caching/invalidation per feature.
 - Forms rely on `react-hook-form` + `zod` mirrors of backend DTOs.
 - Role-based guards hide unauthorized routes/buttons (`admin` full access, `reviewer` dashboard/reviews, `inspector` inspections/files).
-- Action owners land on `/actions`, only see their assigned items, and can upload evidence/notes without viewing the underlying inspection; admins/reviewers can reassign actions directly from the modal.
+- Issue owners land on `/actions`, only see their assigned items, and can upload evidence/notes without viewing the underlying inspection; admins/reviewers can reassign issues directly from the modal.
 - File uploads leverage `/files` via multipart form data with automatic refetches of affected queries.
 
 ## Regenerating the Client

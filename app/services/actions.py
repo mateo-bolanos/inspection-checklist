@@ -173,13 +173,13 @@ def list_open_actions_for_item(db: Session, user: User, template_item_id: str) -
 def create_action(db: Session, user: User, payload: CorrectiveActionCreate) -> CorrectiveAction:
     privileged_roles = {UserRole.admin.value, UserRole.reviewer.value}
     if user.role == UserRole.action_owner.value:
-        raise ValueError("Action owners cannot create corrective actions")
+        raise ValueError("Issue owners cannot create corrective actions")
 
     inspection = db.query(Inspection).filter(Inspection.id == payload.inspection_id).first()
     if not inspection:
         raise ValueError("Inspection not found")
     if user.role not in privileged_roles and inspection.inspector_id != user.id:
-        raise ValueError("Not allowed to create action for this inspection")
+        raise ValueError("Not allowed to create an issue for this inspection")
 
     response = None
     if payload.response_id:
@@ -187,11 +187,9 @@ def create_action(db: Session, user: User, payload: CorrectiveActionCreate) -> C
         if not response or response.inspection_id != inspection.id:
             raise ValueError("Response not found on inspection")
 
-    if not payload.occurrence_severity or not payload.injury_severity:
-        raise ValueError("Provide both occurrence and injury severities for the action")
     assigned_to_id = payload.assigned_to_id or None
     if user.role not in privileged_roles:
-        assigned_to_id = None
+        assigned_to_id = user.id
     elif assigned_to_id:
         assignee = db.query(User).filter(User.id == assigned_to_id, User.is_active.is_(True)).first()
         if not assignee:
@@ -199,10 +197,11 @@ def create_action(db: Session, user: User, payload: CorrectiveActionCreate) -> C
 
     status = payload.status or ActionStatus.open.value
     if status not in VALID_STATUSES:
-        raise ValueError("Invalid status for action")
+        raise ValueError("Invalid status for issue")
     if status == ActionStatus.closed.value:
-        raise ValueError("Actions cannot be created already closed")
-    severity = _derive_risk_level(payload.occurrence_severity, payload.injury_severity, ActionSeverity.medium.value)
+        raise ValueError("Issues cannot be created already closed")
+    fallback_severity = payload.severity or ActionSeverity.medium.value
+    severity = _derive_risk_level(payload.occurrence_severity, payload.injury_severity, fallback_severity)
     normalized_occurrence = _normalize_severity(payload.occurrence_severity, None)
     normalized_injury = _normalize_severity(payload.injury_severity, None)
     now = datetime.utcnow()
@@ -238,7 +237,7 @@ def update_action(db: Session, action: CorrectiveAction, payload: CorrectiveActi
     inspector_is_owner = bool(action.inspection and action.inspection.inspector_id == user.id)
     if not is_privileged:
         if not is_assignee and not inspector_is_owner:
-            raise ValueError("Not allowed to update this action")
+            raise ValueError("Not allowed to update this issue")
         forbidden_fields = [
             payload.title,
             payload.description,
@@ -251,9 +250,9 @@ def update_action(db: Session, action: CorrectiveAction, payload: CorrectiveActi
             payload.work_order_required,
         ]
         if any(value is not None for value in forbidden_fields):
-            raise ValueError("Only managers can change action details or assignment")
+            raise ValueError("Only managers can change issue details or assignment")
         if payload.status == ActionStatus.closed.value:
-            raise ValueError("Only managers can close actions")
+            raise ValueError("Only managers can close issues")
 
     if payload.title is not None:
         action.title = payload.title
@@ -286,19 +285,19 @@ def update_action(db: Session, action: CorrectiveAction, payload: CorrectiveActi
         action.work_order_number = payload.work_order_number
     if payload.status is not None:
         if payload.status not in VALID_STATUSES:
-            raise ValueError("Invalid status for action")
+            raise ValueError("Invalid status for issue")
         current_status = action.status
         closing = payload.status == ActionStatus.closed.value and current_status != ActionStatus.closed.value
         reopening = payload.status != ActionStatus.closed.value and current_status == ActionStatus.closed.value
         if closing and not is_privileged:
-            raise ValueError("Only managers can close actions")
+            raise ValueError("Only managers can close issues")
         action.status = payload.status
         if closing:
             notes = payload.resolution_notes or action.resolution_notes
             if action.work_order_required and not (payload.work_order_number or action.work_order_number):
-                raise ValueError("Work order number required before closing this action")
+                raise ValueError("Work order number required before closing this issue")
             if not notes:
-                raise ValueError("Resolution notes are required to close an action")
+                raise ValueError("Resolution notes are required to close an issue")
             _apply_resolution_notes(db, action, user.id, notes)
             action.closed_at = datetime.utcnow()
             action.closed_by_id = user.id
@@ -341,7 +340,7 @@ def _ensure_action_has_evidence(db: Session, action_id: int) -> None:
         or 0
     )
     if attachments == 0:
-        raise ValueError("Add at least one image attachment before closing an action")
+        raise ValueError("Add at least one image attachment before closing an issue")
 
 
 def _notify_action_assignee(action: CorrectiveAction, db: Session) -> None:
@@ -362,7 +361,7 @@ def _notify_action_assignee(action: CorrectiveAction, db: Session) -> None:
         email_service.send_templated_email(
             template_name="action_assigned.html",
             to=assignee.email,
-            subject=f"New corrective action #{action.id}",
+            subject=f"New issue #{action.id}",
             context=context,
         )
     except Exception:  # noqa: BLE001

@@ -19,6 +19,7 @@ export const queryKeys = {
     items: ['dash', 'items'] as const,
     weeklyOverview: ['dash', 'weekly-overview'] as const,
     weeklyPending: ['dash', 'weekly-pending'] as const,
+    priorities: ['dash', 'priorities'] as const,
   },
   files: ['files'] as const,
   actionFiles: (actionId: number | undefined) => ['files', 'action', actionId] as const,
@@ -67,6 +68,7 @@ type CorrectiveActionRead = components['schemas']['CorrectiveActionRead']
 type OverviewMetrics = components['schemas']['OverviewMetrics']
 type ActionMetrics = components['schemas']['ActionMetrics']
 type ItemsMetrics = components['schemas']['ItemsMetrics']
+type PriorityDashboard = components['schemas']['PriorityDashboard']
 type WeeklyInspectionKPIs = {
   total_expected: number
   submitted: number
@@ -332,11 +334,56 @@ export const useCreateLocationMutation = () => {
   })
 }
 
-export const useInspectionsQuery = () => {
+type InspectionListQueryOptions = {
+  page?: number
+  pageSize?: number
+  status?: string | null
+  templateId?: string | null
+  inspectorId?: string | null
+  origin?: string | null
+  location?: string | null
+  search?: string | null
+  enabled?: boolean
+}
+
+export const useInspectionsQuery = (options?: InspectionListQueryOptions) => {
+  const {
+    page = 1,
+    pageSize = 30,
+    status,
+    templateId,
+    inspectorId,
+    origin,
+    location,
+    search,
+    enabled = true,
+  } = options ?? {}
+  const normalizedPageSize = Math.max(1, Math.min(pageSize, 30))
   return useQuery({
-    queryKey: queryKeys.inspections,
+    queryKey: [
+      ...queryKeys.inspections,
+      page,
+      normalizedPageSize,
+      status ?? null,
+      templateId ?? null,
+      inspectorId ?? null,
+      origin ?? null,
+      location ?? null,
+      search ?? null,
+    ] as const,
+    enabled,
     queryFn: async () => {
-      const { data } = await api.get<InspectionListResponse>('/inspections/')
+      const params: Record<string, string | number> = {
+        page,
+        page_size: normalizedPageSize,
+      }
+      if (status) params.status = status
+      if (templateId) params.template_id = templateId
+      if (inspectorId) params.inspector_id = inspectorId
+      if (origin) params.origin = origin
+      if (location) params.location = location
+      if (search) params.search = search
+      const { data } = await api.get<InspectionListResponse>('/inspections/', { params })
       return data
     },
   })
@@ -608,6 +655,23 @@ export const useDashboardWeeklyPendingQuery = (options?: WeeklyRangeOptions) => 
       const { data } = await api.get<WeeklyPendingUser[]>('/dash/weekly-pending', {
         params: { start, end },
       })
+      return data
+    },
+  })
+}
+
+type PrioritiesFilters = {
+  start?: string
+  end?: string
+  template_id?: string
+  location?: string
+}
+
+export const useDashboardPrioritiesQuery = (filters?: PrioritiesFilters) => {
+  return useQuery({
+    queryKey: [queryKeys.dashboard.priorities, filters] as const,
+    queryFn: async () => {
+      const { data } = await api.get<PriorityDashboard>('/dash/priorities', { params: filters })
       return data
     },
   })

@@ -78,7 +78,7 @@ export const ActionsListPage = () => {
   }
 
   if (isLoading) {
-    return <LoadingState label="Loading actions..." />
+    return <LoadingState label="Loading issues..." />
   }
 
   const showScopeToggle = canSeeAll
@@ -87,18 +87,18 @@ export const ActionsListPage = () => {
     <div className="space-y-6">
       {canSeeOrgMetrics ? (
         <Card
-          title="Action overview"
+          title="Issue overview"
           actions={
             <Link to="/actions/search" className="text-sm font-semibold text-indigo-600 hover:underline">
-              Search actions
+              Search issues
             </Link>
           }
         >
           {dashboard.isLoading ? (
-            <p className="text-sm text-slate-500">Loading action metrics...</p>
+            <p className="text-sm text-slate-500">Loading issue metrics...</p>
           ) : dashboard.isError ? (
             <ErrorState
-              message="Could not load action metrics"
+              message="Could not load issue metrics"
               action={
                 <Button variant="ghost" onClick={() => dashboard.refetch()}>
                   Retry
@@ -125,22 +125,22 @@ export const ActionsListPage = () => {
       ) : (
         <Card
           title="Your assignments"
-          subtitle="You are now responsible for the actions assigned to you"
+          subtitle="You are now responsible for the issues assigned to you"
           actions={
             <Link to="/actions/search" className="text-sm font-semibold text-indigo-600 hover:underline">
-              Search actions
+              Search issues
             </Link>
           }
         >
           <p className="text-sm text-slate-600">
-            New assignments appear below. Close them as soon as you upload evidence and add resolution notes.
+            New issues appear below. Close them as soon as you upload evidence and add resolution notes.
           </p>
         </Card>
       )}
 
       <Card
-        title="Active corrective actions"
-        subtitle="Monitor everything that is still open"
+        title="Active issues"
+        subtitle="Monitor everything that is still open and needs corrective action"
         actions={
           <div className="flex flex-wrap gap-2">
             <Input
@@ -160,14 +160,14 @@ export const ActionsListPage = () => {
             {showScopeToggle && (
               <Select value={scope} onChange={(event) => setScope(event.target.value as 'all' | 'mine')}>
                 <option value="all">All assignees</option>
-                <option value="mine">My actions</option>
+                <option value="mine">My issues</option>
               </Select>
             )}
           </div>
         }
       >
         {activeActions.length === 0 ? (
-          <EmptyState title="No active actions" description="Update filters to see more." />
+          <EmptyState title="No active issues" description="Update filters to see more." />
         ) : (
           <div className="space-y-3">
             {activeActions.map((action) => {
@@ -184,7 +184,7 @@ export const ActionsListPage = () => {
                           className="inline-flex items-center gap-1 rounded px-0 py-0 text-indigo-600 underline-offset-4 hover:underline focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                           onClick={() => handleActionClick(action)}
                         >
-                          Action #{action.id}
+                          Issue #{action.id}
                         </button>{' '}
                         • {action.title}
                       </p>
@@ -225,9 +225,9 @@ export const ActionsListPage = () => {
         )}
       </Card>
 
-      <Card title="Closed / resolved actions" subtitle="Recently completed follow-ups">
+      <Card title="Closed / resolved issues" subtitle="Recently completed follow-ups">
         {closedActions.length === 0 ? (
-          <EmptyState title="No closed actions yet" description="Completed corrective actions will appear here." />
+          <EmptyState title="No closed issues yet" description="Completed corrective actions will appear here." />
         ) : (
           <div className="space-y-3">
             {closedActions.slice(0, 10).map((action) => {
@@ -242,7 +242,7 @@ export const ActionsListPage = () => {
                           className="inline-flex items-center gap-1 rounded px-0 py-0 text-indigo-600 underline-offset-4 hover:underline focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                           onClick={() => handleActionClick(action)}
                         >
-                          Action #{action.id}
+                          Issue #{action.id}
                         </button>{' '}
                         • {action.title}
                       </p>

@@ -115,7 +115,7 @@ export const InspectionViewPage = () => {
               variant="ghost"
               onClick={() => navigate(`/actions/search?inspectionId=${inspection.id}`)}
             >
-              View actions
+              View issues
             </Button>
             {canEditInspection && (
               <>
@@ -247,18 +247,22 @@ export const InspectionViewPage = () => {
                       {actionsForResponse.map((action) => (
                         <div key={action.id} className="rounded-lg border border-slate-100 p-2 text-sm">
                           <div className="flex flex-wrap items-center justify-between gap-2">
-                            <p className="font-semibold text-slate-900">{action.title}</p>
+                            <p className="font-semibold text-slate-900">
+                              Issue #{action.id} • {action.title}
+                            </p>
                             <div className="flex items-center gap-3">
                               <Badge variant="warning">{action.severity}</Badge>
                               <Link
                                 to={`/actions/search?actionId=${action.id}`}
                                 className="text-xs font-semibold text-indigo-600 hover:underline"
                               >
-                                Open action
+                                Open issue
                               </Link>
                             </div>
                           </div>
-                          {action.description && <p className="text-xs text-slate-500">{action.description}</p>}
+                          {action.description && (
+                            <p className="text-xs text-slate-500">Corrective action: {action.description}</p>
+                          )}
                         </div>
                       ))}
                     </div>

@@ -58,7 +58,7 @@ async def upload_media(
             .first()
         )
         if not action:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Action not found")
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Issue not found")
         _ensure_can_access_action(current_user, action)
     content = await file.read()
     try:

@@ -185,19 +185,19 @@ export const ActionsSearchPage = () => {
   }
 
   if (isLoading || !data) {
-    return <LoadingState label="Loading actions..." />
+    return <LoadingState label="Loading issues..." />
   }
 
   return (
     <div className="space-y-6">
       <Card
-        title="Search corrective actions"
+        title="Search issues"
         subtitle="Filter by severity, status, due date, inspection, or keywords"
         actions={
           <Input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search title, description, notes, or IDs"
+            placeholder="Search issue name, corrective action, notes, or IDs"
             className="w-72"
           />
         }
@@ -283,13 +283,13 @@ export const ActionsSearchPage = () => {
 
       <Card>
         {filteredActions.length === 0 ? (
-          <EmptyState title="No matching actions" description="Try adjusting your filters or search keywords." />
+          <EmptyState title="No matching issues" description="Try adjusting your filters or search keywords." />
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
               <thead className="text-left text-xs uppercase tracking-wide text-slate-500">
                 <tr>
-                  <th className="px-4 py-2">Action</th>
+                  <th className="px-4 py-2">Issue</th>
                   <th className="px-4 py-2">Severity</th>
                   <th className="px-4 py-2">Status</th>
                   <th className="px-4 py-2">Due</th>
@@ -304,7 +304,7 @@ export const ActionsSearchPage = () => {
                   return (
                     <tr key={action.id} className="border-t border-slate-100">
                       <td className="px-4 py-3 font-medium text-slate-900">
-                        <div>Action #{action.id}</div>
+                        <div>Issue #{action.id}</div>
                         <div className="text-sm font-normal text-slate-600">{action.title}</div>
                         <div className="text-xs text-slate-500">
                           Started by {action.started_by?.full_name ?? 'Unknown'}
@@ -336,7 +336,7 @@ export const ActionsSearchPage = () => {
                           className="text-sm font-semibold text-indigo-600 hover:underline"
                           onClick={() => handleActionClick(action)}
                         >
-                          Open action
+                          Open issue
                         </button>
                       </td>
                     </tr>

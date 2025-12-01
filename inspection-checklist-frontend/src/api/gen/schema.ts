@@ -175,7 +175,8 @@ export interface paths {
         /** Update Inspection */
         put: operations["update_inspection_inspections__inspection_id__put"];
         post?: never;
-        delete?: never;
+        /** Delete Inspection */
+        delete: operations["delete_inspection_inspections__inspection_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -481,6 +482,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/dash/priorities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Priorities */
+        get: operations["read_priorities_dash_priorities_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/files/": {
         parameters: {
             query?: never;
@@ -763,6 +781,22 @@ export interface components {
              */
             file: string;
         };
+        /** CadenceStat */
+        CadenceStat: {
+            /** Month */
+            month: string;
+            /** Inspections */
+            inspections: number;
+        };
+        /** CalendarCell */
+        CalendarCell: {
+            /** Date */
+            date: string;
+            /** Fail Count */
+            fail_count: number;
+            /** Inspection Count */
+            inspection_count: number;
+        };
         /** ChecklistTemplateCreate */
         ChecklistTemplateCreate: {
             /** Name */
@@ -789,6 +823,17 @@ export interface components {
             name?: string | null;
             /** Description */
             description?: string | null;
+        };
+        /** CompletionHealth */
+        CompletionHealth: {
+            /** Total */
+            total: number;
+            /** Completed */
+            completed: number;
+            /** Open */
+            open: number;
+            /** Completion Rate */
+            completion_rate: number;
         };
         /** CorrectiveActionCreate */
         CorrectiveActionCreate: {
@@ -906,10 +951,46 @@ export interface components {
             /** Work Order Number */
             work_order_number?: string | null;
         };
+        /** DuplicateSummary */
+        DuplicateSummary: {
+            /** Duplicate Records */
+            duplicate_records: number;
+            /** Days With Duplicates */
+            days_with_duplicates: number;
+            /** Max Duplicates In Day */
+            max_duplicates_in_day: number;
+        };
+        /** DurationStats */
+        DurationStats: {
+            /** Average Minutes */
+            average_minutes: number | null;
+            /** Median Minutes */
+            median_minutes: number | null;
+            /** Max Minutes */
+            max_minutes: number | null;
+        };
+        /** FailCategoryStat */
+        FailCategoryStat: {
+            /** Label */
+            label: string;
+            /** Fail Count */
+            fail_count: number;
+            /** Pass Count */
+            pass_count: number;
+            /** Fail Rate */
+            fail_rate: number;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** HotspotStat */
+        HotspotStat: {
+            /** Location */
+            location: string;
+            /** Issue Count */
+            issue_count: number;
         };
         /** InspectionCreate */
         InspectionCreate: {
@@ -964,6 +1045,19 @@ export interface components {
             responses?: components["schemas"]["InspectionResponseRead"][];
             /** Note Entries */
             note_entries?: components["schemas"]["NoteEntryRead"][];
+            /** Rejection Entries */
+            rejection_entries?: components["schemas"]["InspectionRejectionEntryRead"][];
+        };
+        /** InspectionListResponse */
+        InspectionListResponse: {
+            /** Items */
+            items: components["schemas"]["InspectionRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
         };
         /**
          * InspectionOrigin
@@ -1003,6 +1097,36 @@ export interface components {
             /** Rejection Reason */
             rejection_reason?: string | null;
             rejected_by?: components["schemas"]["UserRead"] | null;
+            created_by: components["schemas"]["UserRead"];
+        };
+        /** InspectionReject */
+        InspectionReject: {
+            /** Reason */
+            reason: string;
+            /** Follow Up Instructions */
+            follow_up_instructions?: string | null;
+            /** Item Ids */
+            item_ids?: string[] | null;
+        };
+        /** InspectionRejectionEntryRead */
+        InspectionRejectionEntryRead: {
+            /** Id */
+            id: number;
+            /** Inspection Id */
+            inspection_id: number;
+            /** Template Item Id */
+            template_item_id?: string | null;
+            /** Reason */
+            reason: string;
+            /** Follow Up Instructions */
+            follow_up_instructions?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Resolved At */
+            resolved_at?: string | null;
             created_by: components["schemas"]["UserRead"];
         };
         /** InspectionResponseCreate */
@@ -1053,12 +1177,36 @@ export interface components {
             /** Status */
             status?: string | null;
         };
-        /** InspectionReject */
-        InspectionReject: {
-            /** Reason */
-            reason: string;
-            /** Follow Up Instructions */
-            follow_up_instructions?: string | null;
+        /** InspectorLoad */
+        InspectorLoad: {
+            /** Inspector Id */
+            inspector_id: string;
+            /** Name */
+            name: string;
+            /** Inspection Count */
+            inspection_count: number;
+        };
+        /** IssueClosure */
+        IssueClosure: {
+            /** Total */
+            total: number;
+            /** Closed */
+            closed: number;
+            /** Open */
+            open: number;
+            /** With Corrective Action */
+            with_corrective_action: number;
+            /** Closure Rate */
+            closure_rate: number;
+        };
+        /** IssueDensity */
+        IssueDensity: {
+            /** Average Issues */
+            average_issues: number | null;
+            /** Max Issues */
+            max_issues: number | null;
+            /** Inspections With Issues */
+            inspections_with_issues: number;
         };
         /** ItemFailureMetric */
         ItemFailureMetric: {
@@ -1105,6 +1253,13 @@ export interface components {
             response_id?: string | null;
             uploaded_by?: components["schemas"]["UserRead"] | null;
         };
+        /** MonthlyFailPoint */
+        MonthlyFailPoint: {
+            /** Month */
+            month: string;
+            /** Fail Count */
+            fail_count: number;
+        };
         /** NoteEntryRead */
         NoteEntryRead: {
             /** Id */
@@ -1130,6 +1285,28 @@ export interface components {
             approval_rate: number;
             /** Average Score */
             average_score: number | null;
+        };
+        /** PriorityDashboard */
+        PriorityDashboard: {
+            completion: components["schemas"]["CompletionHealth"];
+            issue_closure: components["schemas"]["IssueClosure"];
+            /** Fail Categories */
+            fail_categories: components["schemas"]["FailCategoryStat"][];
+            /** Monthly Fail Trend */
+            monthly_fail_trend: components["schemas"]["MonthlyFailPoint"][];
+            /** Hotspots */
+            hotspots: components["schemas"]["HotspotStat"][];
+            /** Inspector Workload */
+            inspector_workload: components["schemas"]["InspectorLoad"][];
+            duplicates: components["schemas"]["DuplicateSummary"];
+            duration: components["schemas"]["DurationStats"];
+            issue_density: components["schemas"]["IssueDensity"];
+            /** Cadence */
+            cadence: components["schemas"]["CadenceStat"][];
+            /** Calendar Heatmap */
+            calendar_heatmap: components["schemas"]["CalendarCell"][];
+            /** Longest Gap Days */
+            longest_gap_days: number;
         };
         /** ScheduledInspectionRead */
         ScheduledInspectionRead: {
@@ -1742,7 +1919,24 @@ export interface operations {
     };
     list_inspections_inspections__get: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Page number (1-indexed) */
+                page?: number;
+                /** @description Page size (max 30) */
+                page_size?: number;
+                /** @description Filter by inspection status */
+                status?: string | null;
+                /** @description Filter by template ID */
+                template_id?: string | null;
+                /** @description Filter by inspector ID */
+                inspector_id?: string | null;
+                /** @description Filter by inspection origin */
+                origin?: string | null;
+                /** @description Filter by location/department (contains match) */
+                location?: string | null;
+                /** @description Free-text search across template name, creator, location, and inspection ID */
+                search?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -1755,7 +1949,16 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["InspectionRead"][];
+                    "application/json": components["schemas"]["InspectionListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -1802,11 +2005,7 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["InspectionReject"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {
@@ -1851,6 +2050,35 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["InspectionRead"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_inspection_inspections__inspection_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                inspection_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -1934,7 +2162,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InspectionReject"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -2531,6 +2763,52 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["WeeklyPendingUser"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_priorities_dash_priorities_get: {
+        parameters: {
+            query?: {
+                /** @description UTC date (YYYY-MM-DD) start filter */
+                start?: string | null;
+                /** @description UTC date (YYYY-MM-DD) end filter */
+                end?: string | null;
+                /** @description Template id to filter inspections */
+                template_id?: string | null;
+                /** @description Partial location match */
+                location?: string | null;
+                /** @description Multiple partial location matches */
+                locations?: string[] | null;
+                /** @description Inspector id */
+                inspector_id?: string | null;
+                /** @description Checklist item text search */
+                item?: string | null;
+                /** @description YYYY-MM to scope calendar heatmap */
+                calendar_month?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PriorityDashboard"];
                 };
             };
             /** @description Validation Error */

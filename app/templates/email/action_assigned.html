@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
   <body style="font-family: Arial, sans-serif; color: #0f172a; line-height: 1.5;">
-    <h2 style="color: #0f172a;">New corrective action assigned</h2>
+    <h2 style="color: #0f172a;">New issue assigned</h2>
     <p>Hi {{ assignee_name }},</p>
-    <p>You have been assigned to corrective action <strong>#{{ action_id }}</strong>: <em>{{ action_title }}</em>.</p>
+    <p>You have been assigned to issue <strong>#{{ action_id }}</strong>: <em>{{ action_title }}</em>.</p>
     <ul>
       <li><strong>Severity:</strong> {{ severity|capitalize }}</li>
       <li><strong>Due date:</strong> {{ due_date.strftime('%Y-%m-%d') if due_date else 'Not specified' }}</li>

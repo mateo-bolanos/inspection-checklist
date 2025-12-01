@@ -53,7 +53,7 @@ def get_action(
 ) -> CorrectiveActionRead:
     action = action_service.get_action(db, action_id, current_user)
     if not action:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Action not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Issue not found")
     return action
 
 
@@ -66,7 +66,7 @@ def update_action(
 ) -> CorrectiveActionRead:
     action = action_service.get_action(db, action_id, current_user)
     if not action:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Action not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Issue not found")
     try:
         return action_service.update_action(db, action, payload, current_user)
     except ValueError as exc:  # noqa: BLE001

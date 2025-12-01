@@ -18,7 +18,7 @@ app/routers/files.py (line 17) couples with app/services/files.py (line 22) to u
 app/routers/dashboard.py (line 12) backed by app/services/dashboard.py (line 1) exposes aggregated metrics (overview totals, action severity mix, top failing items) plus a simple HTML preview UI.
 Models & Schemas
 
-app/models/entities.py (line 120) defines Inspection with template linkage, location, notes, timestamps, overall_score, and relationships to responses and corrective actions.
+app/models/entities.py (line 120) defines Inspection with template linkage, location, notes, timestamps, overall_score, and relationships to responses and corrective actions (issues).
 app/models/entities.py (line 146) captures InspectionResponse, including result, note, media_files, and helper media_urls used by the API/clients.
 app/models/entities.py (line 177) models CorrectiveAction (title, severity, due dates, assigned_to_id, status, started/closed metadata) plus relationships back to inspections/responses and attached media.
 app/models/entities.py (line 212) stores MediaFile metadata (file URL, uploader, response/action linkage) representing attachments.
@@ -26,21 +26,21 @@ Template structure feeding inspections is described via ChecklistTemplate, Templ
 Inspection Submission & Validation
 
 Backend submission endpoint lives at app/routers/inspections.py (line 70), delegating to the business rules in app/services/inspections.py (line 95).
-_validate_submission_requirements in app/services/inspections.py (line 208) enforces that all required template items have responses and that every failed response has at least one corrective action attached before allowing submission.
-Front-end gating mirrors those rules via evaluateInspectionSubmitState in inspection-checklist-frontend/src/pages/Inspections/InspectionEdit.tsx (line 520), which blocks the “Submit inspection” button if requirements/actions are missing.
-Attachment handling during submission/editing is wired through inspection-checklist-frontend/src/pages/Inspections/InspectionEdit.tsx (line 204), which uploads files via useUploadMediaMutation before actions can be closed.
+_validate_submission_requirements in app/services/inspections.py (line 208) enforces that all required template items have responses and that every failed response has at least one issue (corrective action) attached before allowing submission.
+Front-end gating mirrors those rules via evaluateInspectionSubmitState in inspection-checklist-frontend/src/pages/Inspections/InspectionEdit.tsx (line 520), which blocks the “Submit inspection” button if requirements/issues are missing.
+Attachment handling during submission/editing is wired through inspection-checklist-frontend/src/pages/Inspections/InspectionEdit.tsx (line 204), which uploads files via useUploadMediaMutation before issues can be closed.
 Frontend
 
 inspection-checklist-frontend/src/pages/Inspections/NewInspection.tsx (line 1) renders the “Start inspection” form (template/location/notes) and posts via useCreateInspectionMutation.
-inspection-checklist-frontend/src/pages/Inspections/InspectionEdit.tsx (line 49) is the main inspection workspace: captures responses, enforces required rules, uploads attachments, spawns corrective actions, and triggers submit/approve mutations.
-inspection-checklist-frontend/src/pages/Inspections/InspectionView.tsx (line 1) shows a read-only inspection with responses, media links, and related actions.
-inspection-checklist-frontend/src/pages/Inspections/InspectionsList.tsx (line 1) provides the overview/search table with status filtering, quick links to view/edit/actions, and entry to /inspections/new.
+inspection-checklist-frontend/src/pages/Inspections/InspectionEdit.tsx (line 49) is the main inspection workspace: captures responses, enforces required rules, uploads attachments, spawns issues with corrective actions, and triggers submit/approve mutations.
+inspection-checklist-frontend/src/pages/Inspections/InspectionView.tsx (line 1) shows a read-only inspection with responses, media links, and related issues.
+inspection-checklist-frontend/src/pages/Inspections/InspectionsList.tsx (line 1) provides the overview/search table with status filtering, quick links to view/edit/issues, and entry to /inspections/new.
 Dashboard KPIs and recent inspections are rendered in inspection-checklist-frontend/src/pages/Dashboard/Overview.tsx (line 1), consuming /dash/overview plus inspection/template queries.
 Domain Concepts
 
 Locations: Inspection.location in app/models/entities.py (line 123) is editable via both backend updates (app/services/inspections.py (line 81)) and the front-end inputs in inspection-checklist-frontend/src/pages/Inspections/InspectionEdit.tsx (line 306)/NewInspection.tsx (line 16).
-Actions/Assignments: CorrectiveAction (app/models/entities.py (line 177)) supports severity, due dates, and assigned_to_id; API logic for creation/update is in app/services/actions.py (line 54), and the UI to create/view them sits inside the inspection editor (inspection-checklist-frontend/src/pages/Inspections/InspectionEdit.tsx (line 252)).
-Assignments and action ownership flow through inspectors and managers only (no separate action_owner role). Inspectors can add notes to actions tied to their inspections; only managers (admin/reviewer) can assign/reassign or close actions. Assignees upload/download attachments for actions they own, and the actions workspace defaults to “My actions” for non-managers.
+Issues/Assignments: CorrectiveAction (app/models/entities.py (line 177)) supports severity, due dates, and assigned_to_id; API logic for creation/update is in app/services/actions.py (line 54), and the UI to create/view them sits inside the inspection editor (inspection-checklist-frontend/src/pages/Inspections/InspectionEdit.tsx (line 252)).
+Assignments and issue ownership flow through inspectors and managers only (no separate action_owner role). Inspectors can add notes to issues tied to their inspections; only managers (admin/reviewer) can assign/reassign or close issues. Assignees upload/download attachments for issues they own, and the issues workspace defaults to “My issues” for non-managers.
 Scheduling: there is no dedicated scheduling module, but due dates plus the overdue monitor in app/main.py (line 61)/app/services/actions.py (line 139) log overdue corrective actions.
 PDF reports: supported via app/services/reports.py (line 10) with PDF rendering handled by FPDF, exposed through the /inspections/{id}/export?format=pdf route at app/routers/inspections.py (line 110).
 Email utilities: app/services/email.py wraps SMTP using SMTP_* env vars declared in app/core/config.py/.env.example. HTML templates live under app/templates/email/.

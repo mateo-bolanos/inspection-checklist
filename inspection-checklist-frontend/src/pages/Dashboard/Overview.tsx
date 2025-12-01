@@ -17,7 +17,7 @@ import { formatDateTime, formatInspectionName, formatScore } from '@/lib/formatt
 
 export const OverviewPage = () => {
   const { data, isLoading, isError, refetch } = useDashboardOverviewQuery()
-  const inspectionsQuery = useInspectionsQuery()
+  const inspectionsQuery = useInspectionsQuery({ pageSize: 4 })
   const templatesQuery = useTemplatesQuery()
   const { hasRole } = useAuth()
   const canSeeWeeklyInsights = hasRole(['admin', 'reviewer'])
@@ -59,7 +59,7 @@ export const OverviewPage = () => {
     )
   }
 
-  const recentInspections = inspectionsQuery.data?.slice(0, 4) ?? []
+  const recentInspections = inspectionsQuery.data?.items ?? []
   const weeklyMetricLabels = ['Total expected', 'Submitted', 'Approved', 'Pending', 'Overdue']
   const weeklyMetricValues = weeklyOverviewQuery.data
     ? [
@@ -193,7 +193,7 @@ export const OverviewPage = () => {
                   <th className="px-4 py-2">Status</th>
                   <th className="px-4 py-2">Location</th>
                   <th className="px-4 py-2">Score</th>
-                  <th className="px-4 py-2 text-right">Actions</th>
+                  <th className="px-4 py-2 text-right">Options</th>
                 </tr>
               </thead>
               <tbody>

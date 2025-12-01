@@ -51,6 +51,13 @@ class InspectionRead(InspectionMutableFields):
         from_attributes = True
 
 
+class InspectionListResponse(BaseModel):
+    items: List[InspectionRead]
+    total: int
+    page: int
+    page_size: int
+
+
 class InspectionDetail(InspectionRead):
     responses: List["InspectionResponseRead"] = Field(default_factory=list)
     note_entries: List[NoteEntryRead] = Field(default_factory=list)

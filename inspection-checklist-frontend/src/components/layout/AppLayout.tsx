@@ -11,6 +11,7 @@ import { TopNav } from './TopNav'
 export const AppLayout = () => {
   const { isHydrated } = useAuth()
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false)
+  const logoSrc = '/moore-logo.png'
 
   const toggleMobileNav = () => setIsMobileNavOpen((prev) => !prev)
   const closeMobileNav = () => setIsMobileNavOpen(false)
@@ -47,7 +48,10 @@ export const AppLayout = () => {
         }`}
       >
         <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
-          <p className="text-sm font-semibold text-slate-700">Navigation</p>
+          <div className="flex items-center gap-2">
+            <img src={logoSrc} alt="Moore brand logo" className="h-7 w-auto brightness-0" />
+            <p className="text-sm font-semibold text-slate-700">Navigation</p>
+          </div>
           <button
             type="button"
             onClick={closeMobileNav}

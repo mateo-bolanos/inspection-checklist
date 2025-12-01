@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from fastapi import FastAPI
+
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
@@ -31,6 +32,8 @@ app = FastAPI(title="Safety Inspection Checklist API", version="0.1.0")
 
 cors_origins = settings.cors_allow_origins or ["*"]
 allow_credentials = "*" not in cors_origins
+if "*" in cors_origins:
+    logger.warning("CORS_ALLOW_ORIGINS includes '*'; do not use this in production")
 
 app.add_middleware(
     CORSMiddleware,
@@ -42,12 +45,28 @@ app.add_middleware(
 )
 
 
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    response.headers.setdefault("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
+    return response
+
+
 @app.on_event("startup")
 async def startup_event() -> None:
-    run_migrations()
-    seed_initial_data()
-    _start_overdue_monitor()
-    _start_scheduling_jobs()
+    if settings.run_migrations_on_startup:
+        run_migrations()
+    if settings.seed_initial_data:
+        if settings.app_profile != "demo":
+            logger.warning("Seeding demo data while APP_PROFILE=%s; disable SEED_INITIAL_DATA in production", settings.app_profile)
+        seed_initial_data()
+    if settings.enable_overdue_monitor:
+        _start_overdue_monitor()
+    if settings.enable_scheduler_jobs:
+        _start_scheduling_jobs()
 
 
 @app.on_event("shutdown")
@@ -82,11 +101,16 @@ def _start_overdue_monitor() -> None:
         from app.services.actions import count_overdue_actions
 
         while True:
-            await asyncio.sleep(60)
-            with SessionLocal() as db:
-                overdue = count_overdue_actions(db)
-            if overdue:
-                logger.info("Overdue corrective actions pending: %s", overdue)
+            try:
+                await asyncio.sleep(60)
+                with SessionLocal() as db:
+                    overdue = count_overdue_actions(db)
+                if overdue:
+                    logger.info("Overdue issues pending: %s", overdue)
+            except asyncio.CancelledError:
+                raise
+            except Exception:
+                logger.exception("Error running overdue monitor loop")
 
     overdue_task = asyncio.create_task(_monitor())
 
@@ -151,4 +175,4 @@ def _stop_scheduling_jobs() -> None:
 
 @app.get("/health")
 def health_check() -> dict[str, str]:
-    return {"status": "ok", "database": settings.database_url}
+    return {"status": "ok"}

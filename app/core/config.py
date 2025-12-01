@@ -22,13 +22,23 @@ class Settings:
             "postgresql+psycopg://user:password@localhost:5432/inspection",
         )
         self.app_profile = self._load_app_profile()
-        self.jwt_secret = os.getenv("JWT_SECRET", "change-me")
+        self.jwt_secret = os.getenv("JWT_SECRET", "")
         self.jwt_algorithm = os.getenv("JWT_ALGORITHM", "HS256")
         self.access_token_expire_minutes = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
         self.cors_allow_origins = self._load_cors_origins()
         self.cors_allow_origin_regex = os.getenv(
             "CORS_ALLOW_ORIGIN_REGEX",
             r"http://(localhost|127\.0\.0\.1)(:\d+)?$",
+        )
+        self.run_migrations_on_startup = self._to_bool(os.getenv("RUN_MIGRATIONS_ON_STARTUP"), default=True)
+        self.seed_initial_data = self._to_bool(os.getenv("SEED_INITIAL_DATA"), default=True)
+        self.enable_overdue_monitor = self._to_bool(
+            os.getenv("ENABLE_OVERDUE_MONITOR"),
+            default=self.app_profile == "demo",
+        )
+        self.enable_scheduler_jobs = self._to_bool(
+            os.getenv("ENABLE_SCHEDULER_JOBS"),
+            default=self.app_profile == "demo",
         )
         self.smtp_host = os.getenv("SMTP_HOST")
         self.smtp_port = int(os.getenv("SMTP_PORT", "587"))
@@ -53,6 +63,7 @@ class Settings:
             "INSPECTION_EDIT_PATH_TEMPLATE",
             "/inspections/{inspection_id}/edit",
         )
+        self._validate_jwt_secret()
 
     @property
     def database_url(self) -> str:
@@ -128,6 +139,18 @@ class Settings:
         if profile not in {"company", "demo"}:
             profile = "company"
         return profile
+
+    def _validate_jwt_secret(self) -> None:
+        """
+        Fail fast when JWT_SECRET is unset or trivially weak.
+        """
+        secret = (self.jwt_secret or "").strip()
+        if not secret:
+            raise ValueError("JWT_SECRET must be set to a strong, random value")
+        if secret.lower() == "change-me":
+            raise ValueError("JWT_SECRET cannot use the default placeholder value 'change-me'")
+        if len(secret) < 16:
+            raise ValueError("JWT_SECRET must be at least 16 characters long")
 
 
 @lru_cache

@@ -150,7 +150,7 @@ const OpenActionsPanel = ({
     return (
       <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-slate-50 px-3 py-1 text-xs text-slate-600">
         <Loader2 className="h-4 w-4 animate-spin text-slate-500" />
-        Checking for existing actions...
+        Checking for existing issues...
       </div>
     )
   }
@@ -159,7 +159,7 @@ const OpenActionsPanel = ({
     return (
       <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-xs text-red-700">
         <AlertTriangle className="h-4 w-4" />
-        Unable to load open actions right now.
+        Unable to load open issues right now.
       </div>
     )
   }
@@ -173,7 +173,7 @@ const OpenActionsPanel = ({
       <div className="flex items-center gap-2 text-amber-800">
         <AlertTriangle className="h-4 w-4" />
         <p className="text-sm font-semibold">
-          Existing open actions for this item — add a note or continue to create a new action.
+          Existing open issues for this item — add a note or continue to create a new issue.
         </p>
       </div>
       <div className="space-y-3">
@@ -182,7 +182,7 @@ const OpenActionsPanel = ({
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
                 <p className="text-sm font-semibold text-slate-900">
-                  Action #{action.id} • {action.title}
+                  Issue #{action.id} • {action.title}
                 </p>
                 <p className="text-xs text-slate-500">
                   Assigned to {action.assignee?.full_name || action.assignee?.email || 'Unassigned'} • Due{' '}
@@ -197,7 +197,7 @@ const OpenActionsPanel = ({
             <Textarea
               className="mt-2"
               rows={2}
-              placeholder="Add note to existing action"
+              placeholder="Add note to existing issue"
               value={drafts[action.id] ?? ''}
               onChange={(event) => onDraftChange(action.id, event.target.value)}
             />
@@ -208,7 +208,7 @@ const OpenActionsPanel = ({
                 onClick={() => void onAddNote(action.id)}
                 disabled={(drafts[action.id] ?? '').trim().length === 0 || isSaving}
               >
-                Add note to action
+                Add note to issue
               </Button>
             </div>
           </div>
@@ -553,7 +553,7 @@ export const InspectionEditPage = () => {
     }
     try {
       await updateAction.mutateAsync({ actionId, data: { resolution_notes: note } })
-      push({ title: 'Note added to action', variant: 'success' })
+      push({ title: 'Note added to issue', variant: 'success' })
       setActionNoteDrafts((current) => ({ ...current, [actionId]: '' }))
     } catch (error) {
       push({ title: 'Unable to add note', description: getErrorMessage(error), variant: 'error' })
@@ -583,12 +583,12 @@ export const InspectionEditPage = () => {
     if (!response) return
     const payload = actionForm.getValues()
     if (!payload.title) {
-      push({ title: 'Action title required', variant: 'warning' })
+      push({ title: 'Issue name required', variant: 'warning' })
       return
     }
     const assignedToId = payload.assigned_to_id?.trim()
     if (isManager && !assignedToId) {
-      push({ title: 'Assign this action to an owner', variant: 'warning' })
+      push({ title: 'Assign this issue to an owner', variant: 'warning' })
       return
     }
     try {
@@ -606,7 +606,7 @@ export const InspectionEditPage = () => {
       assigned_to_id: isManager ? assignedToId : undefined,
       status: 'open',
     })
-      push({ title: 'Action created', variant: 'success' })
+      push({ title: 'Issue created', variant: 'success' })
       actionForm.reset({
         title: '',
         description: '',
@@ -621,7 +621,7 @@ export const InspectionEditPage = () => {
       setActiveActionItem(null)
       actionsQuery.refetch()
     } catch (error) {
-      push({ title: 'Unable to create action', description: String((error as Error).message), variant: 'error' })
+      push({ title: 'Unable to create issue', description: String((error as Error).message), variant: 'error' })
     }
   }
 
@@ -636,7 +636,7 @@ export const InspectionEditPage = () => {
             variant="ghost"
             onClick={() => navigate(`/actions/search?inspectionId=${inspection.id}`)}
           >
-            View actions
+            View issues
           </Button>
         }
       >
@@ -720,10 +720,10 @@ export const InspectionEditPage = () => {
       )}
 
       {submitState.failingResponses.length > 0 && (
-        <Card title="Corrective actions needed" subtitle="Each failed item needs at least one action">
+        <Card title="Issues needed" subtitle="Each failed item needs at least one issue and corrective action">
           <ul className="list-inside list-disc text-sm text-amber-700">
             {submitState.failingResponses.map((response) => (
-              <li key={response.id}>Item {response.template_item_id} is failed with no actions</li>
+              <li key={response.id}>Item {response.template_item_id} is failed with no issues</li>
             ))}
           </ul>
         </Card>
@@ -836,25 +836,25 @@ export const InspectionEditPage = () => {
                   {isFailSelected && (
                     <div className="mt-4 space-y-2">
                       <div className="flex items-center justify-between">
-                        <p className="text-sm font-semibold text-slate-900">Corrective actions</p>
+                        <p className="text-sm font-semibold text-slate-900">Issues</p>
                         <Button
                           type="button"
                           variant="ghost"
                           onClick={() => void handleAddActionClick(item.id)}
                           disabled={!isEditable}
                         >
-                          Add action
+                          Add issue
                         </Button>
                       </div>
                       {actionsForResponse.length === 0 && (
-                        <EmptyState title="No actions" description="Create an action for failed items." />
+                        <EmptyState title="No issues" description="Log an issue with a corrective action for failed items." />
                       )}
                       {actionsForResponse.map((action) => (
                         <div key={action.id} className="rounded-lg border border-slate-100 p-3 text-sm">
                           <div className="flex flex-wrap items-center justify-between gap-2">
                             <div>
                               <p className="font-semibold text-slate-900">
-                                Action #{action.id} • {action.title}
+                                Issue #{action.id} • {action.title}
                               </p>
                               <p className="text-xs text-slate-500">Status • {action.status.replace('_', ' ')}</p>
                             </div>
@@ -864,7 +864,7 @@ export const InspectionEditPage = () => {
                                 to={`/actions/search?actionId=${action.id}`}
                                 className="text-xs font-semibold text-indigo-600 hover:underline"
                               >
-                                Open action
+                                Open issue
                               </Link>
                             </div>
                           </div>
@@ -888,7 +888,7 @@ export const InspectionEditPage = () => {
                           void handleCreateAction(item.id)
                         }}
                       >
-                        <FormField label="Title" error={actionForm.formState.errors.title?.message}>
+                        <FormField label="Issue name" error={actionForm.formState.errors.title?.message}>
                           <Input {...actionForm.register('title')} />
                         </FormField>
                         <FormField label="Severity of occurrence">
@@ -936,7 +936,7 @@ export const InspectionEditPage = () => {
                             </Select>
                           </FormField>
                         ) : null}
-                        <FormField label="Description">
+                        <FormField label="Corrective action">
                           <Textarea rows={2} {...actionForm.register('description')} />
                         </FormField>
                             {assigneesQuery.isError && (
@@ -946,7 +946,7 @@ export const InspectionEditPage = () => {
                               <Button type="button" variant="ghost" onClick={() => setActiveActionItem(null)}>
                                 Cancel
                               </Button>
-                              <Button type="submit">Save action</Button>
+                              <Button type="submit">Save issue</Button>
                             </div>
                           </form>
                         </div>

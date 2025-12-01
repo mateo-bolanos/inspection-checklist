@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Any, Iterable
 
 from fastapi import HTTPException, status
-from sqlalchemy import func
+from sqlalchemy import String, cast, func, or_
 from sqlalchemy.orm import Session, selectinload
 
 from app.core.config import settings
@@ -26,7 +26,13 @@ from app.models.entities import (
     User,
     UserRole,
 )
-from app.schemas.inspection import InspectionCreate, InspectionResponseCreate, InspectionResponseUpdate, InspectionUpdate
+from app.schemas.inspection import (
+    InspectionCreate,
+    InspectionListResponse,
+    InspectionResponseCreate,
+    InspectionResponseUpdate,
+    InspectionUpdate,
+)
 from app.services import assignments as assignments_service
 from app.services import files as files_service
 from app.services import locations as locations_service
@@ -35,21 +41,80 @@ from app.services import email as email_service
 from app.services.notification_utils import build_frontend_url, format_datetime
 
 
-def list_inspections(db: Session, user: User) -> list[Inspection]:
+def list_inspections(
+    db: Session,
+    user: User,
+    *,
+    page: int = 1,
+    page_size: int = 30,
+    status: str | None = None,
+    template_id: str | None = None,
+    inspector_id: str | None = None,
+    origin: str | None = None,
+    location: str | None = None,
+    search: str | None = None,
+) -> InspectionListResponse:
+    normalized_page = max(page, 1)
+    normalized_page_size = min(max(page_size, 1), 30)
     query = (
         db.query(Inspection)
         .options(
-            selectinload(Inspection.responses).selectinload(InspectionResponse.item),
-            selectinload(Inspection.responses).selectinload(InspectionResponse.media_files),
             selectinload(Inspection.template),
             selectinload(Inspection.created_by),
             selectinload(Inspection.rejected_by),
         )
         .order_by(Inspection.started_at.desc())
     )
-    if user.role not in {UserRole.admin.value, UserRole.reviewer.value}:
+    is_privileged = user.role in {UserRole.admin.value, UserRole.reviewer.value}
+    if not is_privileged:
         query = query.filter(Inspection.inspector_id == user.id)
-    return query.all()
+    elif inspector_id:
+        query = query.filter(Inspection.inspector_id == inspector_id)
+
+    if status:
+        if status not in InspectionStatus._value2member_map_:
+            raise ValueError("Invalid inspection status")
+        query = query.filter(Inspection.status == status)
+
+    if template_id:
+        query = query.filter(Inspection.template_id == template_id)
+
+    if origin:
+        if origin not in InspectionOrigin._value2member_map_:
+            raise ValueError("Invalid inspection origin")
+        query = query.filter(Inspection.inspection_origin == origin)
+
+    if location:
+        query = query.filter(func.lower(Inspection.location).like(f"%{location.lower()}%"))
+
+    if search:
+        pattern = f"%{search.lower()}%"
+        query = (
+            query.join(ChecklistTemplate, ChecklistTemplate.id == Inspection.template_id)
+            .join(User, User.id == Inspection.created_by_id)
+            .filter(
+                or_(
+                    func.lower(ChecklistTemplate.name).like(pattern),
+                    func.lower(Inspection.location).like(pattern),
+                    func.lower(User.full_name).like(pattern),
+                    func.lower(User.email).like(pattern),
+                    cast(Inspection.id, String).ilike(pattern),
+                )
+            )
+        )
+
+    total = query.order_by(None).count()
+    items = (
+        query.offset((normalized_page - 1) * normalized_page_size)
+        .limit(normalized_page_size)
+        .all()
+    )
+    return InspectionListResponse(
+        items=items,
+        total=total,
+        page=normalized_page,
+        page_size=normalized_page_size,
+    )
 
 
 def create_inspection(

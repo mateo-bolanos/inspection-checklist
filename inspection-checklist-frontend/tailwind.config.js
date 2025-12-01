@@ -14,6 +14,13 @@ export default {
           600: '#2563eb',
           700: '#1d4ed8',
         },
+        chart: {
+          blue: '#2563eb',
+          emerald: '#10b981',
+          red: '#ef4444',
+          amber: '#f59e0b',
+          slate: '#0f172a',
+        },
       },
       animation: {
         shimmer: 'shimmer 2s linear infinite',

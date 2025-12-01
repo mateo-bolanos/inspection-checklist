@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { getErrorMessage } from '@/api/client'
@@ -16,16 +16,30 @@ import { INSPECTION_STATUSES } from '@/lib/constants'
 import { formatDate, formatInspectionName, formatScore } from '@/lib/formatters'
 
 type StatusFilter = 'all' | (typeof INSPECTION_STATUSES)[number]
+type OriginFilter = 'all' | 'assignment' | 'independent'
+const PAGE_SIZE = 30
 
 export const InspectionsListPage = () => {
   const navigate = useNavigate()
   const { hasRole } = useAuth()
-  const inspectionsQuery = useInspectionsQuery()
+  const [page, setPage] = useState(1)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+  const [templateFilter, setTemplateFilter] = useState<'all' | string>('all')
+  const [originFilter, setOriginFilter] = useState<OriginFilter>('all')
+  const [locationFilter, setLocationFilter] = useState('')
+  const inspectionsQuery = useInspectionsQuery({
+    page,
+    pageSize: PAGE_SIZE,
+    status: statusFilter === 'all' ? null : statusFilter,
+    templateId: templateFilter === 'all' ? null : templateFilter,
+    origin: originFilter === 'all' ? null : originFilter,
+    location: locationFilter.trim() || null,
+    search: searchTerm.trim() || null,
+  })
   const templatesQuery = useTemplatesQuery()
   const deleteMutation = useDeleteInspectionMutation()
   const { push } = useToast()
-  const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
 
   const templateNameMap = useMemo(() => {
     const map = new Map<string, string>()
@@ -35,32 +49,22 @@ export const InspectionsListPage = () => {
     return map
   }, [templatesQuery.data])
 
-  const filteredInspections = useMemo(() => {
-    if (!inspectionsQuery.data) return []
-    const normalizedSearch = searchTerm.trim().toLowerCase()
-    return inspectionsQuery.data.filter((inspection) => {
-      const templateName = templateNameMap.get(inspection.template_id) ?? ''
-      const inspectionLabel = formatInspectionName(templateName || 'Inspection', inspection.started_at, inspection.id)
-      const searchTarget = [
-        inspectionLabel,
-        templateName,
-        inspection.location ?? '',
-        inspection.status,
-        inspection.id,
-        inspection.created_by?.full_name ?? '',
-        inspection.created_by?.email ?? '',
-        inspection.inspection_origin ?? '',
-      ]
-        .join(' ')
-        .toLowerCase()
-      const matchesSearch = normalizedSearch === '' || searchTarget.includes(normalizedSearch)
-      const matchesStatus = statusFilter === 'all' || inspection.status === statusFilter
-      return matchesSearch && matchesStatus
-    })
-  }, [inspectionsQuery.data, templateNameMap, searchTerm, statusFilter])
+  useEffect(() => {
+    if (!inspectionsQuery.data) return
+    const totalPages = Math.max(1, Math.ceil((inspectionsQuery.data.total || 0) / PAGE_SIZE))
+    if (page > totalPages) {
+      setPage(totalPages)
+    }
+  }, [inspectionsQuery.data, page])
 
   const canCreateInspection = hasRole(['admin', 'inspector'])
   const canEditInspections = canCreateInspection
+
+  const inspections = inspectionsQuery.data?.items ?? []
+  const totalCount = inspectionsQuery.data?.total ?? 0
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
+  const showingStart = inspections.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1
+  const showingEnd = inspections.length === 0 ? 0 : (page - 1) * PAGE_SIZE + inspections.length
 
   const handleDelete = async (inspectionId: number) => {
     if (!window.confirm('Delete this draft inspection? This cannot be undone.')) return
@@ -89,8 +93,6 @@ export const InspectionsListPage = () => {
     )
   }
 
-  const totalCount = inspectionsQuery.data?.length ?? 0
-
   return (
     <Card
       title="Inspections"
@@ -102,14 +104,33 @@ export const InspectionsListPage = () => {
       }
     >
       <div className="space-y-4">
-        <div className="flex flex-col gap-3 border-b border-slate-100 pb-4 md:flex-row">
+        <div className="flex flex-col gap-3 border-b border-slate-100 pb-4 md:flex-row md:flex-wrap">
           <Input
             value={searchTerm}
-            onChange={(event) => setSearchTerm(event.target.value)}
-            placeholder="Search by type, template, status, location, or ID"
+            onChange={(event) => {
+              setSearchTerm(event.target.value)
+              setPage(1)
+            }}
+            placeholder="Search by template, location, creator, or ID"
             className="md:flex-1"
           />
-          <Select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as StatusFilter)} className="md:w-48">
+          <Input
+            value={locationFilter}
+            onChange={(event) => {
+              setLocationFilter(event.target.value)
+              setPage(1)
+            }}
+            placeholder="Filter by location/department"
+            className="md:w-64"
+          />
+          <Select
+            value={statusFilter}
+            onChange={(event) => {
+              setStatusFilter(event.target.value as StatusFilter)
+              setPage(1)
+            }}
+            className="md:w-44"
+          >
             <option value="all">All statuses</option>
             {INSPECTION_STATUSES.map((status) => (
               <option key={status} value={status}>
@@ -117,13 +138,54 @@ export const InspectionsListPage = () => {
               </option>
             ))}
           </Select>
+          <Select
+            value={templateFilter}
+            onChange={(event) => {
+              setTemplateFilter(event.target.value as 'all' | string)
+              setPage(1)
+            }}
+            className="md:w-56"
+          >
+            <option value="all">All templates</option>
+            {templatesQuery.data?.map((template) => (
+              <option key={template.id} value={template.id}>
+                {template.name}
+              </option>
+            ))}
+          </Select>
+          <Select
+            value={originFilter}
+            onChange={(event) => {
+              setOriginFilter(event.target.value as OriginFilter)
+              setPage(1)
+            }}
+            className="md:w-48"
+          >
+            <option value="all">All origins</option>
+            <option value="assignment">Assignment</option>
+            <option value="independent">Independent</option>
+          </Select>
         </div>
 
-        <p className="text-xs uppercase tracking-wide text-slate-500">
-          Showing {filteredInspections.length} of {totalCount} inspections
-        </p>
+        <div className="flex flex-col justify-between gap-3 text-xs uppercase tracking-wide text-slate-500 sm:flex-row sm:items-center">
+          <p>
+            Showing {showingStart}-{showingEnd} of {totalCount} inspections
+          </p>
+          <div className="flex gap-2">
+            <Button variant="secondary" disabled={page <= 1} onClick={() => setPage((prev) => Math.max(1, prev - 1))}>
+              Previous
+            </Button>
+            <Button
+              variant="secondary"
+              disabled={page >= totalPages || totalCount === 0}
+              onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
 
-        {filteredInspections.length === 0 ? (
+        {inspections.length === 0 ? (
           <EmptyState title="No inspections match" description="Try a different search or reset the filters." />
         ) : (
           <div className="overflow-x-auto">
@@ -137,11 +199,11 @@ export const InspectionsListPage = () => {
                   <th className="px-4 py-2">Location</th>
                   <th className="px-4 py-2">Started</th>
                   <th className="px-4 py-2">Score</th>
-                  <th className="px-4 py-2 text-right">Actions</th>
+                  <th className="px-4 py-2 text-right">Options</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredInspections.map((inspection) => {
+                {inspections.map((inspection) => {
                   const templateName = templateNameMap.get(inspection.template_id)
                   const inspectionLabel = formatInspectionName(templateName || 'Inspection', inspection.started_at, inspection.id)
                   return (
@@ -167,7 +229,7 @@ export const InspectionsListPage = () => {
                             className="text-indigo-600 hover:underline"
                             to={`/actions/search?inspectionId=${inspection.id}`}
                           >
-                            Actions
+                            Issues
                           </Link>
                           <Link className="text-brand-600 hover:underline" to={`/inspections/${inspection.id}`}>
                             View

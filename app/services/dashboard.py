@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from datetime import date, datetime, time, timezone
+from datetime import date, datetime, time, timezone, timedelta
+from statistics import median
 
-from sqlalchemy import case, func
+from sqlalchemy import case, func, or_
 from sqlalchemy.orm import Session
 
 from app.models.entities import (
     Assignment,
+    ActionStatus,
     CorrectiveAction,
     Inspection,
     InspectionResponse,
@@ -21,8 +23,20 @@ from app.schemas.dashboard import (
     ItemsMetrics,
     ItemFailureMetric,
     OverviewMetrics,
+    PriorityDashboard,
     WeeklyInspectionKPIs,
     WeeklyPendingUser,
+    CalendarCell,
+    CadenceStat,
+    CompletionHealth,
+    DurationStats,
+    DuplicateSummary,
+    FailCategoryStat,
+    HotspotStat,
+    InspectorLoad,
+    IssueClosure,
+    IssueDensity,
+    MonthlyFailPoint,
 )
 
 
@@ -230,3 +244,382 @@ def get_weekly_pending_by_user(db: Session, start_date: date, end_date: date) ->
             )
         )
     return result
+
+
+def _rate(part: int, total: int) -> float:
+    return round((part / total) * 100, 2) if total else 0.0
+
+
+def _month_floor(value: date) -> date:
+    return date(value.year, value.month, 1)
+
+
+def _months_ago(value: date, months: int) -> date:
+    month = value.month - months
+    year = value.year
+    while month <= 0:
+        month += 12
+        year -= 1
+    return date(year, month, 1)
+
+
+def get_priority_dashboard(
+    db: Session,
+    *,
+    start: date | None,
+    end: date | None,
+    template_id: str | None,
+    location: str | None,
+    locations: list[str] | None,
+    inspector_id: str | None,
+    item_query: str | None,
+    calendar_month: str | None,
+) -> PriorityDashboard:
+    """
+    Data-backed priorities used by the Dashboards page. All metrics are derived from the live SQLite database.
+    """
+
+    today = date.today()
+    end_date = end or today
+    start_date = start or _months_ago(_month_floor(end_date), 11)
+
+    month_window_start = _month_floor(start_date)
+    month_window_end = end_date
+    calendar_window_start = start_date
+    calendar_window_end = end_date
+    if calendar_month:
+        try:
+            cal_month_date = datetime.strptime(f"{calendar_month}-01", "%Y-%m-%d").date()
+            calendar_window_start = cal_month_date
+            next_month = cal_month_date.replace(day=28) + timedelta(days=4)
+            calendar_window_end = next_month.replace(day=1) - timedelta(days=1)
+        except ValueError:
+            calendar_window_start = start_date
+            calendar_window_end = end_date
+
+    start_dt = datetime.combine(start_date, time.min)
+    end_dt = datetime.combine(end_date, time.max)
+
+    base_inspection_filters = []
+    if inspector_id:
+        base_inspection_filters.append(Inspection.inspector_id == inspector_id)
+    if template_id:
+        base_inspection_filters.append(Inspection.template_id == template_id)
+    location_terms = [location] if location else []
+    if locations:
+        location_terms.extend(locations)
+    location_terms = [term for term in location_terms if term]
+    if location_terms:
+        lowered = [term.strip().lower() for term in location_terms]
+        clauses = [func.lower(Inspection.location).ilike(f"%{term}%") for term in lowered]
+        base_inspection_filters.append(clauses[0] if len(clauses) == 1 else or_(*clauses))
+
+    item_filter_ids: set[int] = set()
+    if item_query:
+        item_rows = (
+            db.query(func.distinct(InspectionResponse.inspection_id))
+            .join(Inspection, InspectionResponse.inspection_id == Inspection.id)
+            .join(TemplateItem, InspectionResponse.template_item_id == TemplateItem.id)
+            .filter(func.lower(TemplateItem.prompt).like(f"%{item_query.strip().lower()}%"), *base_inspection_filters)
+            .all()
+        )
+        item_filter_ids = {row[0] for row in item_rows}
+        base_inspection_filters.append(Inspection.id.in_(item_filter_ids or [-1]))
+
+    inspection_filters = [Inspection.started_at >= start_dt, Inspection.started_at <= end_dt, *base_inspection_filters]
+
+    completed_statuses = [
+        InspectionStatus.submitted.value,
+        InspectionStatus.approved.value,
+        InspectionStatus.rejected.value,
+    ]
+    total_inspections = db.query(func.count(Inspection.id)).filter(*inspection_filters).scalar() or 0
+    completed_inspections = (
+        db.query(func.count(Inspection.id))
+        .filter(*inspection_filters, Inspection.status.in_(completed_statuses))
+        .scalar()
+        or 0
+    )
+    open_inspections = max(total_inspections - completed_inspections, 0)
+
+    action_filters = []
+    if template_id or location_terms or start_date or end_date or inspector_id or item_filter_ids:
+        action_filters.append(CorrectiveAction.inspection_id == Inspection.id)
+    if start_date or end_date:
+        action_filters.extend([Inspection.started_at >= start_dt, Inspection.started_at <= end_dt])
+    if template_id:
+        action_filters.append(Inspection.template_id == template_id)
+    if inspector_id:
+        action_filters.append(Inspection.inspector_id == inspector_id)
+    if location_terms:
+        lowered_actions = [term.strip().lower() for term in location_terms]
+        clauses = [func.lower(Inspection.location).ilike(f"%{term}%") for term in lowered_actions]
+        action_filters.append(clauses[0] if len(clauses) == 1 else or_(*clauses))
+    if item_filter_ids:
+        action_filters.append(CorrectiveAction.inspection_id.in_(item_filter_ids))
+
+    total_actions_query = db.query(CorrectiveAction.id)
+    closed_actions_query = db.query(CorrectiveAction.id)
+    if action_filters:
+        total_actions_query = total_actions_query.join(Inspection).filter(*action_filters)
+        closed_actions_query = closed_actions_query.join(Inspection).filter(*action_filters)
+    total_actions = total_actions_query.count()
+    closed_actions = (
+        closed_actions_query.filter(CorrectiveAction.status == ActionStatus.closed.value).count()
+    )
+    open_actions = max(total_actions - closed_actions, 0)
+
+    fail_rows = (
+        db.query(
+            TemplateItem.prompt.label("label"),
+            func.count(InspectionResponse.id).label("total"),
+            func.sum(case((InspectionResponse.result == "fail", 1), else_=0)).label("fail_count"),
+        )
+        .join(InspectionResponse, InspectionResponse.template_item_id == TemplateItem.id)
+        .join(Inspection, InspectionResponse.inspection_id == Inspection.id)
+        .filter(*inspection_filters)
+        .group_by(TemplateItem.prompt)
+        .order_by(func.sum(case((InspectionResponse.result == "fail", 1), else_=0)).desc())
+        .limit(12)
+        .all()
+    )
+    fail_categories: list[FailCategoryStat] = []
+    for row in fail_rows:
+        total = int(row.total or 0)
+        fail_count = int(row.fail_count or 0)
+        pass_count = max(total - fail_count, 0)
+        label = row.label or "Unlabeled item"
+        fail_categories.append(
+            FailCategoryStat(
+                label=label,
+                fail_count=fail_count,
+                pass_count=pass_count,
+                fail_rate=_rate(fail_count, total),
+            )
+        )
+
+    month_window_start_dt = datetime.combine(month_window_start, time.min)
+    month_window_end_dt = datetime.combine(month_window_end, time.max)
+
+    monthly_fail_rows = {
+        row.month: int(row.fail_count or 0)
+        for row in (
+            db.query(
+                func.strftime("%Y-%m", Inspection.started_at).label("month"),
+                func.count(InspectionResponse.id).label("fail_count"),
+            )
+            .join(Inspection, InspectionResponse.inspection_id == Inspection.id)
+            .filter(
+                InspectionResponse.result == "fail",
+                Inspection.started_at >= month_window_start_dt,
+                Inspection.started_at <= month_window_end_dt,
+                *base_inspection_filters,
+            )
+            .group_by("month")
+            .order_by("month")
+            .all()
+        )
+    }
+    months_sequence: list[str] = []
+    cursor = month_window_start
+    while cursor <= month_window_end:
+        months_sequence.append(cursor.strftime("%Y-%m"))
+        # advance one month
+        next_month = cursor.month + 1
+        next_year = cursor.year
+        if next_month == 13:
+            next_month = 1
+            next_year += 1
+        cursor = date(next_year, next_month, 1)
+    monthly_fail_trend = [
+        MonthlyFailPoint(month=month, fail_count=monthly_fail_rows.get(month, 0)) for month in months_sequence
+    ]
+
+    hotspot_rows = (
+        db.query(
+            func.coalesce(func.nullif(func.trim(Inspection.location), ""), "Unspecified").label("location"),
+            func.count(CorrectiveAction.id).label("issue_count"),
+        )
+        .join(Inspection, CorrectiveAction.inspection_id == Inspection.id)
+        .filter(*inspection_filters)
+        .group_by("location")
+        .order_by(func.count(CorrectiveAction.id).desc())
+        .limit(8)
+        .all()
+    )
+    hotspots = [
+        HotspotStat(location=row.location, issue_count=int(row.issue_count or 0))
+        for row in hotspot_rows
+        if row.issue_count
+    ]
+
+    inspector_rows = (
+        db.query(
+            User.id.label("inspector_id"),
+            func.coalesce(func.nullif(func.trim(User.full_name), ""), User.email).label("name"),
+            func.count(Inspection.id).label("inspection_count"),
+        )
+        .join(Inspection, Inspection.inspector_id == User.id)
+        .filter(*inspection_filters)
+        .group_by(User.id, User.full_name, User.email)
+        .order_by(func.count(Inspection.id).desc())
+        .all()
+    )
+    inspector_workload = [
+        InspectorLoad(
+            inspector_id=row.inspector_id,
+            name=row.name,
+            inspection_count=int(row.inspection_count or 0),
+        )
+        for row in inspector_rows
+    ]
+
+    duplicate_rows = (
+        db.query(
+            func.date(Inspection.started_at).label("day"),
+            InspectionResponse.inspection_id,
+            InspectionResponse.template_item_id,
+            func.count(InspectionResponse.id).label("response_count"),
+        )
+        .join(Inspection, InspectionResponse.inspection_id == Inspection.id)
+        .filter(*inspection_filters)
+        .group_by("day", InspectionResponse.inspection_id, InspectionResponse.template_item_id)
+        .having(func.count(InspectionResponse.id) > 1)
+        .all()
+    )
+    duplicates_by_day: dict[str, int] = defaultdict(int)
+    duplicate_records = 0
+    for row in duplicate_rows:
+        extra = int(row.response_count or 0) - 1
+        if extra > 0:
+            duplicate_records += extra
+            duplicates_by_day[row.day] += extra
+    days_with_duplicates = len(duplicates_by_day)
+    max_duplicates_in_day = max(duplicates_by_day.values()) if duplicates_by_day else 0
+
+    duration_rows = (
+        db.query(Inspection.started_at, Inspection.submitted_at)
+        .filter(Inspection.submitted_at.isnot(None))
+        .filter(*inspection_filters)
+        .order_by(Inspection.started_at)
+        .all()
+    )
+    durations_minutes: list[float] = []
+    for started_at, submitted_at in duration_rows:
+        if started_at and submitted_at:
+            delta = submitted_at - started_at
+            durations_minutes.append(round(delta.total_seconds() / 60, 2))
+    duration_stats = DurationStats(
+        average_minutes=round(sum(durations_minutes) / len(durations_minutes), 2) if durations_minutes else None,
+        median_minutes=round(median(durations_minutes), 2) if durations_minutes else None,
+        max_minutes=round(max(durations_minutes), 2) if durations_minutes else None,
+    )
+
+    issue_counts = [
+        int(row.issue_count or 0)
+        for row in db.query(
+            CorrectiveAction.inspection_id, func.count(CorrectiveAction.id).label("issue_count")
+        )
+        .join(Inspection, CorrectiveAction.inspection_id == Inspection.id)
+        .filter(*inspection_filters)
+        .group_by(CorrectiveAction.inspection_id)
+        .all()
+    ]
+    issue_density = IssueDensity(
+        average_issues=round(sum(issue_counts) / len(issue_counts), 2) if issue_counts else None,
+        max_issues=max(issue_counts) if issue_counts else None,
+        inspections_with_issues=len(issue_counts),
+    )
+
+    cadence_counts = {
+        row.month: int(row.count or 0)
+        for row in (
+            db.query(
+                func.strftime("%Y-%m", Inspection.started_at).label("month"),
+                func.count(Inspection.id).label("count"),
+            )
+            .filter(Inspection.started_at >= month_window_start_dt, Inspection.started_at <= month_window_end_dt, *base_inspection_filters)
+            .group_by("month")
+            .order_by("month")
+            .all()
+        )
+    }
+    cadence = [CadenceStat(month=month, inspections=cadence_counts.get(month, 0)) for month in months_sequence]
+
+    calendar_rows = {
+        row.day: (int(row.inspection_count or 0), int(row.fail_count or 0))
+        for row in (
+            db.query(
+                func.date(Inspection.started_at).label("day"),
+                func.count(func.distinct(Inspection.id)).label("inspection_count"),
+                func.coalesce(func.sum(case((InspectionResponse.result == "fail", 1), else_=0)), 0).label("fail_count"),
+            )
+            .outerjoin(InspectionResponse, InspectionResponse.inspection_id == Inspection.id)
+            .filter(
+                Inspection.started_at >= calendar_window_start,
+                Inspection.started_at <= datetime.combine(calendar_window_end, time.max),
+                *inspection_filters,
+            )
+            .group_by("day")
+            .order_by("day")
+            .all()
+        )
+    }
+    calendar_heatmap = []
+    cursor_day = calendar_window_start
+    while cursor_day <= calendar_window_end:
+        day_str = cursor_day.isoformat()
+        inspection_count, fail_count = calendar_rows.get(day_str, (0, 0))
+        calendar_heatmap.append(
+            CalendarCell(
+                date=day_str,
+                inspection_count=inspection_count,
+                fail_count=fail_count,
+            )
+        )
+        cursor_day += timedelta(days=1)
+
+    inspection_dates = [
+        row.started_at.date()
+        for row in db.query(Inspection.started_at)
+        .filter(Inspection.started_at.isnot(None))
+        .filter(*inspection_filters)
+        .order_by(Inspection.started_at)
+        .all()
+        if row.started_at
+    ]
+    longest_gap = 0
+    for prev, curr in zip(inspection_dates, inspection_dates[1:]):
+        gap = (curr - prev).days
+        if gap > longest_gap:
+            longest_gap = gap
+
+    return PriorityDashboard(
+        completion=CompletionHealth(
+            total=total_inspections,
+            completed=completed_inspections,
+            open=open_inspections,
+            completion_rate=_rate(completed_inspections, total_inspections),
+        ),
+        issue_closure=IssueClosure(
+            total=total_actions,
+            closed=closed_actions,
+            open=open_actions,
+            with_corrective_action=total_actions,
+            closure_rate=_rate(closed_actions, total_actions),
+        ),
+        fail_categories=fail_categories,
+        monthly_fail_trend=monthly_fail_trend,
+        hotspots=hotspots,
+        inspector_workload=inspector_workload,
+        duplicates=DuplicateSummary(
+            duplicate_records=duplicate_records,
+            days_with_duplicates=days_with_duplicates,
+            max_duplicates_in_day=max_duplicates_in_day,
+        ),
+        duration=duration_stats,
+        issue_density=issue_density,
+        cadence=cadence,
+        calendar_heatmap=calendar_heatmap,
+        longest_gap_days=longest_gap,
+    )

@@ -1,4 +1,4 @@
-import { Menu, ShieldCheck, UserRound } from 'lucide-react'
+import { Menu, UserRound } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 import { useAuth } from '@/auth/useAuth'
@@ -11,6 +11,7 @@ type TopNavProps = {
 export const TopNav = ({ onToggleSidebar }: TopNavProps) => {
   const { user, logout, defaultRoute } = useAuth()
   const navigate = useNavigate()
+  const logoSrc = '/moore-logo.png'
 
   return (
     <header className="flex h-16 items-center justify-between border-b border-slate-200 bg-white px-4 sm:px-6">
@@ -28,8 +29,8 @@ export const TopNav = ({ onToggleSidebar }: TopNavProps) => {
           className="flex items-center gap-2 text-lg font-semibold text-slate-900"
           onClick={() => navigate(defaultRoute)}
         >
-          <ShieldCheck className="h-6 w-6 text-brand-600" />
-          Safety Inspection
+          <img src={logoSrc} alt="Moore brand logo" className="h-7 w-auto brightness-0" />
+          <span className="hidden sm:inline">Moore Safety Inspection</span>
         </button>
       </div>
       <div className="flex items-center gap-4">

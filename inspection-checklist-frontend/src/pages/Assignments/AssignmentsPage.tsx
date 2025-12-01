@@ -104,7 +104,7 @@ export const AssignmentsPage = () => {
             <th className="px-3 py-2">Schedule</th>
             <th className="px-3 py-2">Status</th>
             <th className="px-3 py-2">Tags &amp; notes</th>
-            {canStartInspection && <th className="px-3 py-2 text-right">Actions</th>}
+            {canStartInspection && <th className="px-3 py-2 text-right">Options</th>}
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100 bg-white">

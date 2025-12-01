@@ -20,7 +20,7 @@ import { Textarea } from '@/components/ui/Textarea'
 import { Checkbox } from '@/components/ui/Checkbox'
 
 export const ReviewQueuePage = () => {
-  const inspections = useInspectionsQuery()
+  const inspections = useInspectionsQuery({ status: 'submitted' })
   const templates = useTemplatesQuery()
   const approve = useApproveInspectionMutation()
   const reject = useRejectInspectionMutation()
@@ -59,9 +59,7 @@ export const ReviewQueuePage = () => {
     }
   }, [failingItemIds])
 
-  const queue = useMemo(() => {
-    return inspections.data?.filter((inspection) => inspection.status === 'submitted') ?? []
-  }, [inspections.data])
+  const queue = useMemo(() => inspections.data?.items ?? [], [inspections.data])
   const templateNameMap = useMemo(() => {
     const map = new Map<string, string>()
     templates.data?.forEach((template) => map.set(template.id, template.name))

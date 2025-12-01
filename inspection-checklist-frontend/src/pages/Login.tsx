@@ -1,5 +1,4 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ShieldCheck } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useLocation, useNavigate, type Location } from 'react-router-dom'
@@ -28,6 +27,7 @@ export const LoginPage = () => {
   const { push } = useToast()
   const mutation = useLoginMutation()
   const [serverError, setServerError] = useState<string | null>(null)
+  const logoSrc = '/moore-logo.png'
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(schema),
@@ -54,12 +54,10 @@ export const LoginPage = () => {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 px-4 py-12">
       <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 shadow-xl">
-        <div className="mb-6 flex items-center gap-3">
-          <div className="rounded-2xl bg-brand-100 p-3 text-brand-700">
-            <ShieldCheck className="h-6 w-6" />
-          </div>
+        <div className="mb-6 flex flex-col items-center gap-2 text-center">
+          <img src={logoSrc} alt="Moore Packaging Corporation" className="h-12 w-auto brightness-0" />
           <div>
-            <p className="text-lg font-semibold text-slate-900">Safety Inspection Checklist</p>
+            <p className="text-lg font-semibold text-slate-900">Moore Safety Inspection Checklist</p>
             <p className="text-sm text-slate-500">Sign in to manage inspections</p>
           </div>
         </div>

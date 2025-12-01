@@ -16,7 +16,10 @@ const server = setupServer(
       average_score: 87.5,
     }),
   ),
-  http.get(resolveApiUrl('/inspections/'), () => HttpResponse.json([])),
+  http.get(resolveApiUrl('/templates/'), () => HttpResponse.json([])),
+  http.get(resolveApiUrl('/inspections/'), () =>
+    HttpResponse.json({ items: [], total: 0, page: 1, page_size: 4 }),
+  ),
 )
 
 beforeAll(() => server.listen())

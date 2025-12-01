@@ -99,11 +99,11 @@ export const ActionDetailsModal = ({ action, onClose }: ActionDetailsModalProps)
 
   const handleCloseAction = async () => {
     if (!canClose) {
-      push({ title: 'Only managers can close actions', variant: 'warning' })
+      push({ title: 'Only managers can close issues', variant: 'warning' })
       return
     }
     if (displayStatus === 'closed') {
-      push({ title: 'Action already closed', variant: 'warning' })
+      push({ title: 'Issue already closed', variant: 'warning' })
       return
     }
     const content = noteDraft.trim()
@@ -120,13 +120,13 @@ export const ActionDetailsModal = ({ action, onClose }: ActionDetailsModalProps)
           ...(content ? { resolution_notes: content } : {}),
         },
       })
-      push({ title: 'Action closed', variant: 'success' })
+      push({ title: 'Issue closed', variant: 'success' })
       if (content) {
         setNoteDraft('')
         setLatestResolutionNote(content)
       }
     } catch (error) {
-      push({ title: 'Unable to close action', description: String((error as Error).message), variant: 'error' })
+      push({ title: 'Unable to close issue', description: String((error as Error).message), variant: 'error' })
     }
   }
 
@@ -181,7 +181,7 @@ export const ActionDetailsModal = ({ action, onClose }: ActionDetailsModalProps)
       onOpenChange={(open) => {
         if (!open) onClose()
       }}
-      title={`Action #${action.id}`}
+      title={`Issue #${action.id}`}
       description={action.title}
       widthClass="w-full max-w-2xl"
     >
@@ -251,7 +251,7 @@ export const ActionDetailsModal = ({ action, onClose }: ActionDetailsModalProps)
             <div className="flex flex-wrap items-center gap-3">
               <div>
                 <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Reassign</h3>
-                <p className="text-xs text-slate-500">Send this action to another owner or inspector.</p>
+                <p className="text-xs text-slate-500">Send this issue to another owner or inspector.</p>
               </div>
               <div className="flex flex-1 flex-wrap gap-2">
                 <Select
@@ -279,10 +279,10 @@ export const ActionDetailsModal = ({ action, onClose }: ActionDetailsModalProps)
           <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Details</h3>
           {action.description ? (
             <p className="text-sm text-slate-700">
-              <span className="font-semibold">Description:</span> {action.description}
+              <span className="font-semibold">Corrective action:</span> {action.description}
             </p>
           ) : (
-            <p className="text-sm text-slate-500">No description provided.</p>
+            <p className="text-sm text-slate-500">No corrective action documented.</p>
           )}
         </section>
 
@@ -309,14 +309,14 @@ export const ActionDetailsModal = ({ action, onClose }: ActionDetailsModalProps)
               </Button>
             </div>
             {action.work_order_required && !action.work_order_number && (
-              <p className="text-xs text-amber-700">A work order number is required before closing this action.</p>
+              <p className="text-xs text-amber-700">A work order number is required before closing this issue.</p>
             )}
           </section>
         )}
 
         <section className="rounded-xl border border-slate-100 p-4">
           <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Notes</h3>
-          <p className="mt-2 text-xs text-slate-500">Use notes to track progress before closing the action.</p>
+          <p className="mt-2 text-xs text-slate-500">Use notes to track progress before closing the issue.</p>
           <Textarea
             className="mt-3"
             value={noteDraft}
@@ -334,7 +334,7 @@ export const ActionDetailsModal = ({ action, onClose }: ActionDetailsModalProps)
               onClick={handleCloseAction}
               disabled={displayStatus === 'closed' || isSaving || !canClose}
             >
-              {displayStatus === 'closed' ? 'Action closed' : 'Close action'}
+              {displayStatus === 'closed' ? 'Issue closed' : 'Close issue'}
             </Button>
             {displayStatus === 'closed' && action.closed_at && (
               <p className="text-xs text-slate-500">
@@ -363,7 +363,7 @@ export const ActionDetailsModal = ({ action, onClose }: ActionDetailsModalProps)
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Attachments</h3>
-              <p className="text-xs text-slate-500">Add images to document the corrective action.</p>
+              <p className="text-xs text-slate-500">Add images to document the issue and corrective action.</p>
             </div>
             <button
               type="button"

@@ -33,7 +33,7 @@ const buildAction = (
   id: 1,
   inspection_id: 1,
   response_id: 'resp-1',
-  title: 'Action',
+  title: 'Issue',
   description: null,
   severity: 'high',
   due_date: null,

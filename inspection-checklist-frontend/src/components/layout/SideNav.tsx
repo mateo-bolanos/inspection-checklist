@@ -5,6 +5,7 @@ import {
   FilePlus2,
   FileSearch2,
   FileText,
+  BarChart3,
   LayoutDashboard,
   Layers3,
   ListChecks,
@@ -16,6 +17,7 @@ import { useAuth } from '@/auth/useAuth'
 import { clsx } from 'clsx'
 
 const navItems = [
+  { label: 'Dashboards', to: '/dash/dashboards', icon: BarChart3, roles: ['admin', 'inspector', 'reviewer'] },
   { label: 'Overview', to: '/dash/overview', icon: LayoutDashboard, roles: ['admin', 'reviewer'] },
   { label: 'Failing Items', to: '/dash/items', icon: ListChecks, roles: ['admin', 'reviewer'] },
   { label: 'Reports', to: '/reports', icon: FileText, roles: ['admin', 'reviewer'] },
@@ -23,8 +25,8 @@ const navItems = [
   { label: 'Assignments', to: '/assignments', icon: CalendarClock, roles: ['admin', 'inspector'] },
   { label: 'Start Inspection', to: '/inspections/new', icon: FilePlus2, roles: ['admin', 'inspector'] },
   { label: 'Inspections', to: '/inspections', icon: Search, roles: ['admin', 'inspector', 'reviewer'] },
-  { label: 'Actions Board', to: '/actions', icon: ClipboardList, roles: ['admin', 'inspector', 'reviewer'] },
-  { label: 'Search Actions', to: '/actions/search', icon: FileSearch2, roles: ['admin', 'inspector', 'reviewer'] },
+  { label: 'Issues Board', to: '/actions', icon: ClipboardList, roles: ['admin', 'inspector', 'reviewer'] },
+  { label: 'Search Issues', to: '/actions/search', icon: FileSearch2, roles: ['admin', 'inspector', 'reviewer'] },
   { label: 'Review Queue', to: '/reviews', icon: CheckCircle, roles: ['admin', 'reviewer'] },
 ]
 
